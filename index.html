@@ -21,29 +21,26 @@
         .slide-sidebar button:hover { background: rgba(0,0,0,0.04); color: #020617; }
         .sidebar-active { background: rgba(59, 130, 246, 0.08) !important; color: #1d4ed8 !important; border-left: 4px solid #1d4ed8 !important; border-radius: 0px 12px 12px 0px !important; }
 
-        #draggableShortcut { touch-action: none; user-select: none; z-index: 999; pointer-events: none; }
-        #shortcutBtn { pointer-events: auto; }
-        
-        select option { background: #0f172a; color: #fff; }
+        #draggableShortcut { touch-action: none; user-select: none; z-index: 999; }
     </style>
 </head>
 <body class="min-h-screen">
 
-<!-- MAIN MENU BURGER TRIGGER -->
+<!-- PEMICU UTAMA DI POJOK KIRI ATAS UNTUK MEMUNCULKAN DASBOR -->
 <div class="fixed top-4 left-4 z-50">
     <button onclick="toggleSidebar()" class="w-10 h-10 rounded-xl bg-slate-900/80 border border-white/10 text-white flex items-center justify-center shadow-lg active:scale-95 transition cursor-pointer">
         <i class="fa-solid fa-bars text-sm"></i>
     </button>
 </div>
 
-<!-- DRAGGABLE FLOATING SHORTCUT -->
-<div id="draggableShortcut" class="fixed bottom-6 right-6 p-2">
+<!-- SHORTCUT FLOATING DENGAN VALIDASI IKON KUSTOM -->
+<div id="draggableShortcut" class="fixed bottom-6 right-6">
     <button id="shortcutBtn" class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-yellow-500 to-emerald-500 text-white shadow-2xl flex items-center justify-center text-lg font-bold cursor-pointer border-2 border-white/20 active:scale-95 transition">
         <i class="fa-solid fa-circle-nodes"></i>
     </button>
 </div>
 
-<!-- SIDEBAR MODAL STRUCTURE -->
+<!-- SIDEBAR MODAL -->
 <aside id="menuSidebar" class="slide-sidebar flex flex-col justify-between">
     <div>
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center shadow-md pt-6">
@@ -67,7 +64,7 @@
     <div class="p-4 border-t border-slate-100 bg-slate-50 space-y-3">
         <div class="bg-slate-100 p-3 rounded-xl border border-slate-200">
             <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
-                <span><i class="fa-solid fa-database mr-1 text-slate-400"></i> STORAGE METRIC</span>
+                <span><i class="fa-solid fa-database mr-1 text-slate-400"></i> VERCEL STORAGE</span>
                 <span id="storagePercent" class="text-blue-600">0%</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-1">
@@ -79,7 +76,7 @@
         <div class="flex flex-col gap-1">
             <span class="text-[10px] text-slate-400 mono truncate" id="adminEmail">root@nexus.io</span>
             <button onclick="doLogout()" class="!bg-red-50 !text-red-600 text-xs font-bold text-center justify-center py-2 rounded-xl">
-                <i class="fa-solid fa-right-from-bracket mr-1"></i> Disconnect
+                <i class="fa-solid fa-right-from-bracket mr-1"></i> Disconnect Account
             </button>
         </div>
     </div>
@@ -87,7 +84,7 @@
 
 <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[9998]"></div>
 
-<!-- AUTH GATE -->
+<!-- AUTHENTICATION LAYERS -->
 <div id="authGate" class="fixed inset-0 z-[100] bg-[#070913] flex items-center justify-center">
     <div class="w-full max-w-sm mx-4">
         <div class="text-center mb-6">
@@ -116,25 +113,23 @@
     </div>
 </div>
 
-<!-- CONTENT WORKSPACE -->
+<!-- WORKSPACE UTAMA CONTAINER -->
 <div id="mainApp" class="hidden min-h-screen pt-20 px-6 pb-6">
     <main class="max-w-4xl mx-auto space-y-6">
         
-        <!-- MODULE BLANK OVERVIEW -->
         <div id="view-beranda" class="space-y-4">
             <div class="glass rounded-2xl p-5">
-                <h3 class="text-xs font-bold text-blue-400 mb-2"><i class="fa-solid fa-terminal mr-1"></i> Global Client Core Manual Hook</h3>
+                <h3 class="text-xs font-bold text-blue-400 mb-2"><i class="fa-solid fa-terminal mr-1"></i> Game Guardian Client Core Manual Hook</h3>
                 <textarea id="bootstrapCode" rows="6" readonly class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/5 text-[10px] text-emerald-400 mono resize-none focus:outline-none"></textarea>
-                <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Global Loader Copied!')" class="w-full mt-2 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">Copy Global Master Loader</button>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Bootstrap Copied!')" class="w-full mt-2 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">Copy Prompt Initializer</button>
             </div>
         </div>
 
-        <!-- VIEW SCRIPT COMPONENT MANAGEMENT -->
         <div id="view-ggscript" class="space-y-4 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-white" id="editorTitle"><i class="fa-solid fa-file-arrow-up mr-1 text-blue-400"></i> Upload Lua Component</h3>
-                    <button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline">Reset Form</button>
+                    <h3 class="text-xs font-bold text-white" id="editorTitle">Upload Lua Component</h3>
+                    <button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline">Reset</button>
                 </div>
                 
                 <div class="group relative flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-blue-500/50 rounded-2xl p-4 transition text-center bg-black/20">
@@ -145,11 +140,11 @@
 
                 <input type="hidden" id="editScriptId">
                 <input type="text" id="fileName" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
-                <textarea id="fileContent" rows="8" placeholder="-- Isi teks script otomatis terisi saat memilih file..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
+                <textarea id="fileContent" rows="8" placeholder="-- Isi script text otomatis terisi saat file dipilih..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
                 
                 <div id="uploadProgressContainer" class="hidden space-y-1">
                     <div class="flex justify-between text-[9px] text-slate-400 font-bold tracking-wider">
-                        <span>STORING TO POSTGRES ENGINE...</span>
+                        <span>UPLOADING TO POSTGRES STORAGE...</span>
                         <span id="uploadProgressPercent">0%</span>
                     </div>
                     <div class="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
@@ -159,47 +154,27 @@
 
                 <button id="deployBtn" onclick="deployFile()" class="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl cursor-pointer">Commit Database</button>
             </div>
-            
-            <!-- LIST ITEM SCRIPT DI BAWAH DASHBOARD -->
-            <div class="text-xs font-bold tracking-wider text-slate-400 mt-6 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-folder-tree text-blue-500"></i> ACTIVE CLOUD REPOSITORY
-            </div>
             <div id="fileList" class="space-y-2"></div>
         </div>
 
-        <!-- GENERATE LICENSE KEY VIEW -->
         <div id="view-keysystem" class="space-y-4 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
-                <h3 class="text-xs font-bold text-white" id="keyFormTitle"><i class="fa-solid fa-key text-emerald-400 mr-1"></i> Create/Manage Access Tokens</h3>
+                <h3 class="text-xs font-bold text-white">Generate Member Key Modules</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div id="keyTargetContainer">
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1">TARGET LUA COMPONENTS</label>
-                        <select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
-                            <option value="">-- Memuat Komponen --</option>
-                        </select>
+                    <div>
+                        <select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></select>
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1"><i class="fa-solid fa-laptop-code mr-1"></i> MAX DEV PERMITTED</label>
                         <input type="number" id="keyMaxDevices" value="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono" placeholder="Limit Perangkat">
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1"><i class="fa-solid fa-calendar-days mr-1"></i> EXPIRY DATETIME LIFETIME</label>
-                        <input type="datetime-local" id="keyExp" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs text-white mono">
+                        <input type="datetime-local" id="keyExp" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1">KEY IDENTIFIER / CODE TARGET</label>
-                        <input type="text" id="keyCustom" placeholder="Ex: REX-VIP-KEY" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
+                        <input type="text" id="keyCustom" placeholder="Custom Key Name (Optional)" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <button id="btnSubmitKey" onclick="genKey()" class="flex-1 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl transition cursor-pointer">Create Secure Access Key</button>
-                    <button id="btnCancelKeyEdit" onclick="resetKeyForm()" class="hidden px-4 py-2.5 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer">Cancel</button>
-                </div>
-            </div>
-            
-            <!-- LIST ITEM SECURE LICENSE DI BAWAH DASHBOARD -->
-            <div class="text-xs font-bold tracking-wider text-slate-400 mt-6 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-key text-emerald-500"></i> LIVE ACCESS TOKENS
+                <button onclick="genKey()" class="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl">Create Secure Access Key</button>
             </div>
             <div id="keyList" class="space-y-2"></div>
         </div>
@@ -209,7 +184,7 @@
 <div id="toast" class="fixed bottom-6 left-6 bg-blue-600 text-white px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[99999] text-xs font-bold">✨ <span id="toastMsg"></span></div>
 
 <script>
-var S = { files: [], keys: [], session: '', currentMenu: 'beranda', isEditingKey: false };
+var S = { files: [], keys: [], session: '', currentMenu: 'beranda' };
 
 function showToast(m) {
     var t = document.getElementById('toast');
@@ -231,9 +206,13 @@ async function updateStorageMetric() {
     if (!r.ok) return;
     var d = await r.json();
     var pct = Math.min(Math.round((d.usedBytes / d.allocatedBytes) * 100), 100);
+    
     document.getElementById('storageBar').style.width = pct + '%';
     document.getElementById('storagePercent').innerText = pct + '%';
-    document.getElementById('storageUsageText').innerText = (d.usedBytes / 1024).toFixed(1) + ' KB / ' + (d.allocatedBytes / (1024 * 1024)).toFixed(0) + ' MB';
+    
+    var usedKB = (d.usedBytes / 1024).toFixed(1);
+    var maxMB = (d.allocatedBytes / (1024 * 1024)).toFixed(0);
+    document.getElementById('storageUsageText').innerText = usedKB + ' KB / ' + maxMB + ' MB';
 }
 
 function handleFileSelect(e) {
@@ -241,12 +220,15 @@ function handleFileSelect(e) {
     if (!file) return;
     document.getElementById('selectedFileNameDisplay').innerText = file.name;
     document.getElementById('fileName').value = file.name;
+    
     var reader = new FileReader();
-    reader.onload = function(evt) { document.getElementById('fileContent').value = evt.target.result; };
+    reader.onload = function(evt) {
+        document.getElementById('fileContent').value = evt.target.result;
+    };
     reader.readAsText(file);
 }
 
-async function switchMenu(t) {
+function switchMenu(t) {
     S.currentMenu = t;
     ['beranda', 'ggscript', 'keysystem'].forEach(function(m) {
         document.getElementById('view-' + m).classList.add('hidden');
@@ -259,25 +241,22 @@ async function switchMenu(t) {
     if (s.classList.contains('open')) toggleSidebar();
 
     if (t === 'beranda') initBeranda();
-    if (t === 'ggscript') await loadFiles();
-    if (t === 'keysystem') { 
-        await loadFiles(); 
-        await loadKeys(); 
-    }
+    if (t === 'ggscript') loadFiles();
+    if (t === 'keysystem') { loadFiles(); loadKeys(); }
 }
 
 function initBeranda() {
-    var code = `local ask = gg.prompt({"🔑 ENTER VALID MEMBER ACCESS KEY:"}, {nil}, {"text"})\n`;
+    var code = `local ask = gg.prompt({"🔑 INPUT KEY LISENSI MEMBER:"}, {nil}, {"text"})\n`;
     code += `if not ask then os.exit() end\n`;
     code += `local userKey = ask[1]\n`;
-    code += `if userKey == "" then gg.alert("Lisensi Tidak Boleh Kosong!") os.exit() end\n`;
+    code += `if userKey == "" then gg.alert("Key Kosong!") os.exit() end\n`;
     code += `local targetUrl = "` + location.origin + `/api/server?key=" .. userKey\n`;
     code += `local r = gg.makeRequest(targetUrl)\n`;
     code += `if r and r.code == 200 then\n`;
     code += `    local run = load(r.content)\n`;
-    code += `    if run then run() else gg.alert("Validasi Lisensi Gagal/Format Salah!") end\n`;
+    code += `    if run then run() else gg.alert("Lisensi Salah!") end\n`;
     code += `else\n`;
-    code += `    gg.alert("Koneksi Engine Ditolak! Cek Masa Aktif Key Anda.")\n`;
+    code += `    gg.alert("Jaringan Error!")\n`;
     code += `end`;
     document.getElementById('bootstrapCode').value = code;
 }
@@ -293,36 +272,20 @@ async function loadFiles() {
     var r = await api('GET', '');
     if (!r.ok) return;
     S.files = await r.json();
-    
     var sel = document.getElementById('keyTarget');
-    if (sel) {
-        if (S.files.length === 0) {
-            sel.innerHTML = '<option value="">-- Tidak ada script tersedia --</option>';
-        } else {
-            sel.innerHTML = S.files.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
-        }
-    }
+    if (sel) sel.innerHTML = S.files.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
     
     var c = document.getElementById('fileList');
-    if(!c) return;
-    
-    if (S.files.length === 0) {
-        c.innerHTML = `<div class="text-xs text-slate-500 italic p-4 text-center bg-black/10 rounded-xl border border-white/5">Tidak ada data script Lua ditemukan. Silakan upload file baru.</div>`;
-        return;
-    }
-
     c.innerHTML = S.files.map(f => {
         var plainRawLink = location.origin + '/api/server?type=raw&id=' + f.id;
-        // Escape content safely for onclick parameter
-        var safeBase64 = btoa(encodeURIComponent(f.content));
         return `
-        <div class="glass rounded-xl p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3 transition hover:border-white/10">
+        <div class="glass rounded-xl p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div>
-                <span class="mono text-xs font-bold text-blue-400 block"><i class="fa-regular fa-file-code mr-1"></i> ${f.name}</span>
+                <span class="mono text-xs font-bold text-blue-400"><i class="fa-regular fa-file-code mr-1"></i> ${f.name}</span>
             </div>
-            <div class="flex gap-1.5 justify-end">
-                <button onclick="navigator.clipboard.writeText('${plainRawLink}');showToast('Link Raw Copied!')" class="px-2.5 py-1 bg-white/5 text-white border border-white/10 rounded-lg text-[10px] cursor-pointer">Copy Raw Link</button>
-                <button onclick="editFile('${f.id}','${safeBase64}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer">Edit</button>
+            <div class="flex gap-1.5">
+                <button onclick="navigator.clipboard.writeText('${plainRawLink}');showToast('Link Script Copied!')" class="px-2.5 py-1 bg-white/5 text-white border border-white/10 rounded-lg text-[10px] cursor-pointer">Copy Link</button>
+                <button onclick="editFile('${f.id}','${btoa(encodeURIComponent(f.content))}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer">Edit</button>
                 <button onclick="delFile('${f.id}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] cursor-pointer">Delete</button>
             </div>
         </div>`;
@@ -336,9 +299,9 @@ function editFile(id, base64Content) {
     document.getElementById('editScriptId').value = id;
     document.getElementById('fileName').value = target.name;
     document.getElementById('fileContent').value = dec;
-    document.getElementById('editorTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-amber-400 mr-1"></i> Mode Ubah Script: ' + target.name;
+    document.getElementById('editorTitle').innerText = 'Editing Script: ' + target.name;
     document.getElementById('btnResetEdit').classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    switchMenu('ggscript');
 }
 
 function resetEditor() {
@@ -347,7 +310,7 @@ function resetEditor() {
     document.getElementById('fileContent').value = '';
     document.getElementById('fileSelector').value = '';
     document.getElementById('selectedFileNameDisplay').innerText = 'Belum ada file dipilih';
-    document.getElementById('editorTitle').innerHTML = '<i class="fa-solid fa-file-arrow-up mr-1 text-blue-400"></i> Upload Lua Component';
+    document.getElementById('editorTitle').innerText = 'Upload Lua Component';
     document.getElementById('btnResetEdit').classList.add('hidden');
 }
 
@@ -362,36 +325,32 @@ async function deployFile() {
     var pPct = document.getElementById('uploadProgressPercent');
     
     pBox.classList.remove('hidden');
+    
     let progress = 0;
     let interval = setInterval(async () => {
-        progress += 20; if (progress > 90) progress = 90;
-        pBar.style.width = progress + '%'; pPct.innerText = progress + '%';
-    }, 60);
+        progress += 15;
+        if (progress > 90) progress = 90;
+        pBar.style.width = progress + '%';
+        pPct.innerText = progress + '%';
+    }, 80);
 
     var r = await api('POST', '', { name: n, content: c, existingScriptId: existingId });
+    
     clearInterval(interval);
-    pBar.style.width = '100%'; pPct.innerText = '100%';
+    pBar.style.width = '100%';
+    pPct.innerText = '100%';
     
     setTimeout(() => {
-        pBox.classList.add('hidden'); pBar.style.width = '0%'; pPct.innerText = '0%';
-        if (r.ok) { 
-            showToast('Script Committed Successfully!'); 
-            resetEditor(); 
-            loadFiles(); 
-        }
+        pBox.classList.add('hidden');
+        pBar.style.width = '0%';
+        pPct.innerText = '0%';
+        if (r.ok) { showToast('Script Committed!'); resetEditor(); loadFiles(); }
     }, 400);
 }
 
-function copyHookCode(rawKey) {
-    var scriptOutput = `local ask = gg.prompt({"🔑 MASUKKAN KEY MEMBER ANDA:"}, {nil}, {"text"})\n`;
-    scriptOutput += `if not ask then os.exit() end\n`;
-    scriptOutput += `local k = ask[1]\n`;
-    scriptOutput += `if k == "" then gg.alert("Akses Ditolak!") os.exit() end\n`;
-    scriptOutput += `local A = gg.getFile() gg.getFile = function() return A end\n`;
-    scriptOutput += `local V = gg.makeRequest("${location.origin}/api/server?key=" .. k).content\n`;
-    scriptOutput += `if V and V ~= "" then pcall(load(V)) else gg.alert("Key Salah / Expired!") end`;
-    
-    navigator.clipboard.writeText(scriptOutput);
+function copyHookCode(rawTargetUrl) {
+    var rawText = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + rawTargetUrl + '").content if V then pcall(load(V)) end';
+    navigator.clipboard.writeText(rawText);
     showToast('Secure Loader Copied!');
 }
 
@@ -400,72 +359,28 @@ async function loadKeys() {
     if (!r.ok) return;
     S.keys = await r.json();
     var c = document.getElementById('keyList');
-    if(!c) return;
-
-    if (S.keys.length === 0) {
-        c.innerHTML = `<div class="text-xs text-slate-500 italic p-4 text-center bg-black/10 rounded-xl border border-white/5">Belum ada Secure License Key yang dibuat.</div>`;
-        return;
-    }
-
     c.innerHTML = S.keys.map(k => {
         var expDate = new Date(k.expiry);
         var isExpired = new Date() > expDate;
-        var devCount = k.registered_devices ? (typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices).length : k.registered_devices.length) : 0;
+        var devicesCount = k.registered_devices ? k.registered_devices.length : 0;
+        var targetUrl = location.origin + '/api/server?key=' + k.key;
         
-        // Format ISO String to Local Datetime Input String Format
-        var isoLocal = expDate.getFullYear() + '-' + 
-                       String(expDate.getMonth()+1).padStart(2,'0') + '-' + 
-                       String(expDate.getDate()).padStart(2,'0') + 'T' + 
-                       String(expDate.getHours()).padStart(2,'0') + ':' + 
-                       String(expDate.getMinutes()).padStart(2,'0');
-
         return `
             <div class="glass rounded-xl p-4 space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="mono text-xs font-bold ${isExpired ? 'text-red-400 line-through' : 'text-amber-400'}"><i class="fa-solid fa-key text-[10px] mr-1"></i> ${k.key}</span>
-                    <div class="flex gap-1.5">
-                        <button onclick="editExistingKey('${k.key}', ${k.max_devices}, '${isoLocal}')" class="text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md cursor-pointer"><i class="fa-solid fa-user-gear"></i> Manage/Extend</button>
-                        <button onclick="resetKeyHWID('${k.key}')" class="text-[10px] text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-md cursor-pointer"><i class="fa-solid fa-rotate mr-0.5"></i> Reset HWID</button>
-                        <button onclick="delKey('${k.key}')" class="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md cursor-pointer">Delete</button>
-                    </div>
+                    <button onclick="delKey('${k.key}')" class="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md">Delete</button>
                 </div>
                 <div class="flex flex-wrap justify-between text-[10px] text-slate-400 mono gap-2 pt-1 border-t border-white/5">
-                    <div>Module Attached: <span class="text-white font-bold">${k.target_script_name || 'Unknown'}</span></div>
-                    <div>Max Devices: <span class="text-emerald-400 font-bold">${devCount}/${k.max_devices} <i class="fa-solid fa-mobile-screen text-[9px]"></i></span></div>
-                    <div>Expiry: <span class="text-slate-300">${expDate.toLocaleString()}</span></div>
+                    <div>Module: <span class="text-white">${k.target_script_name}</span></div>
+                    <div>Devices: <span class="text-emerald-400">${devicesCount}/${k.max_devices}</span></div>
+                    <div>Expired: <span class="text-slate-300">${expDate.toLocaleDateString()}</span></div>
                 </div>
-                <button onclick="copyHookCode('${k.key}')" class="w-full py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 text-xs font-bold rounded-xl cursor-pointer block text-center">
-                    <i class="fa-solid fa-copy mr-1"></i> Copy Loader (Auto Prompt Key)
+                <button onclick="copyHookCode('${targetUrl}')" class="w-full py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 text-xs font-bold rounded-xl cursor-pointer block text-center">
+                    Copy Hook Load Script
                 </button>
             </div>`;
     }).join('');
-}
-
-function editExistingKey(key, maxDevices, expIso) {
-    S.isEditingKey = true;
-    document.getElementById('keyFormTitle').innerHTML = `<i class="fa-solid fa-user-gear text-amber-400 mr-1"></i> Extend / Modify Key: ${key}`;
-    document.getElementById('keyCustom').value = key;
-    document.getElementById('keyCustom').readOnly = true;
-    document.getElementById('keyMaxDevices').value = maxDevices;
-    document.getElementById('keyExp').value = expIso;
-    
-    // Sembunyikan target selector saat mode edit akses/perpanjangan masa aktif
-    document.getElementById('keyTargetContainer').classList.add('opacity-40', 'pointer-events-none');
-    document.getElementById('btnSubmitKey').innerText = 'Update Expiry & Max Devices';
-    document.getElementById('btnCancelKeyEdit').classList.remove('hidden');
-    window.scrollTo({ top: document.getElementById('keyFormTitle').offsetTop - 100, behavior: 'smooth' });
-}
-
-function resetKeyForm() {
-    S.isEditingKey = false;
-    document.getElementById('keyFormTitle').innerHTML = '<i class="fa-solid fa-key text-emerald-400 mr-1"></i> Create/Manage Access Tokens';
-    document.getElementById('keyCustom').value = '';
-    document.getElementById('keyCustom').readOnly = false;
-    document.getElementById('keyMaxDevices').value = '1';
-    document.getElementById('keyExp').value = '';
-    document.getElementById('keyTargetContainer').classList.remove('opacity-40', 'pointer-events-none');
-    document.getElementById('btnSubmitKey').innerText = 'Create Secure Access Key';
-    document.getElementById('btnCancelKeyEdit').classList.add('hidden');
 }
 
 async function genKey() {
@@ -473,40 +388,13 @@ async function genKey() {
     var maxDev = document.getElementById('keyMaxDevices').value;
     var e = document.getElementById('keyExp').value;
     var c = document.getElementById('keyCustom').value.trim();
-    
-    if (S.isEditingKey) {
-        if (!e) return showToast('Harap tentukan New Expiry Date!');
-        var formattedExpiry = new Date(e).toISOString();
-        var r = await api('POST', '', { action: 'extendKey', key: c, expiry: formattedExpiry, maxDevices: maxDev });
-        if (r.ok) { 
-            showToast('Key Parameter Updated Successfully!'); 
-            resetKeyForm(); 
-            await loadKeys(); 
-        }
-    } else {
-        if (!s || !e) return showToast('Harap tentukan Component & Expiry Date!');
-        var formattedExpiry = new Date(e).toISOString();
-        var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: formattedExpiry, maxDevices: maxDev, customName: c });
-        if (r.ok) { 
-            showToast('New License Token Created!'); 
-            resetKeyForm(); 
-            await loadKeys(); 
-        }
-    }
+    if (!s || !e) return showToast('Lengkapi parameter!');
+    var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: e, maxDevices: maxDev, customName: c });
+    if (r.ok) { showToast('License Created!'); document.getElementById('keyCustom').value = ''; loadKeys(); }
 }
 
-async function resetKeyHWID(key) {
-    if (confirm('Reset log device hwid terdaftar untuk key ini?')) {
-        var r = await api('POST', '', { action: 'resetDevices', key: key });
-        if(r.ok) {
-            showToast('HWID Device Connected Clear!');
-            await loadKeys();
-        }
-    }
-}
-
-async function delFile(id) { if (confirm('Hapus Script Permanent?')) { await api('DELETE', '?id=' + id); loadFiles(); } }
-async function delKey(k) { if (confirm('Hapus Lisensi ini?')) { await api('DELETE', '?deleteKey=' + k); loadKeys(); } }
+async function delFile(id) { if (confirm('Hapus Script?')) { await api('DELETE', '?id=' + id); loadFiles(); } }
+async function delKey(k) { if (confirm('Hapus Lisensi?')) { await api('DELETE', '?deleteKey=' + k); loadKeys(); } }
 
 function switchTab(t) {
     if (t === 'reg') {
@@ -533,18 +421,18 @@ async function doLogin() {
 function goLogin() { document.getElementById('formCode').classList.add('hidden'); switchTab('log'); }
 function doLogout() { localStorage.removeItem('nx_session'); location.reload(); }
 
+// LOGIKA PEMISAH DRAG & CLICK SHORTCUT SECARA TOTAL
 var box = document.getElementById('draggableShortcut');
 var btn = document.getElementById('shortcutBtn');
 var isDragging = false, startX, startY, initialX, initialY;
 
 btn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    if (isDragging) return;
+    if (isDragging) { e.preventDefault(); return; }
     toggleSidebar();
 });
 
-btn.addEventListener('mousedown', dragStart);
-btn.addEventListener('touchstart', dragStart, { passive: true });
+box.addEventListener('mousedown', dragStart);
+box.addEventListener('touchstart', dragStart, { passive: true });
 document.addEventListener('mousemove', dragMove);
 document.addEventListener('touchmove', dragMove, { passive: false });
 document.addEventListener('mouseup', dragEnd);
@@ -556,31 +444,24 @@ function dragStart(e) {
     startX = clientX; startY = clientY;
     var style = window.getComputedStyle(box);
     initialX = parseInt(style.right); initialY = parseInt(style.bottom);
-    isDragging = false;
+    isDragging = false; 
 }
 
 function dragMove(e) {
-    if (startX === undefined || startY === undefined) return;
     var clientX = e.touches ? e.touches[0].clientX : e.clientX;
     var clientY = e.touches ? e.touches[0].clientY : e.clientY;
     var dx = startX - clientX, dy = startY - clientY;
-    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-        if (!isDragging) isDragging = true;
-        if (e.cancelable) e.preventDefault();
+    
+    // Toleransi 6 piksel untuk memisahkan pergeseran murni dengan klik tidak sengaja
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+        isDragging = true;
         box.style.right = (initialX + dx) + 'px';
         box.style.bottom = (initialY + dy) + 'px';
     }
 }
 
-function dragEnd(e) {
-    startX = undefined; startY = undefined;
-    if (isDragging) {
-        if(e) {
-            if (e.stopPropagation) e.stopPropagation();
-            if (e.preventDefault) e.preventDefault();
-        }
-        setTimeout(() => { isDragging = false; }, 100);
-    }
+function dragEnd() { 
+    setTimeout(() => { isDragging = false; }, 80); 
 }
 
 window.onload = function() {
