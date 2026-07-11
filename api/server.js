@@ -68,7 +68,6 @@ export default async function handler(req, res) {
         }
 
         if (!reqStage) {
-            // ANTI-HOOK PAYLOAD PROTECT STAGE 1
             const payloadStage1 = `gg.setVisible(false)
 local secure_math = tonumber("1293")
 local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=2")
@@ -78,8 +77,6 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         }
 
         if (reqStage === '2') {
-            const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-            // DOUBLE VALIDATION STAGE: PROTEKSI METATABLE LUA DARI DUMP MEMORI
             const payloadStage2 = `gg.toast("Verification Approved Engine")
 local env_meta = getmetatable(_G)
 if env_meta then env_meta.__index = nil end
@@ -136,6 +133,26 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
 
     if (req.method === 'GET') {
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
+        
+        if (type === 'storage') {
+            // ESTIMASI TITIK KONSUMSI UKURAN DARI KOLOM TABEL UNTUK KUOTA VERCEL DB FREE TIER
+            const sizeData = await sql`
+                SELECT 
+                    COALESCE(SUM(OCTET_LENGTH(content)), 0) as script_bytes,
+                    (SELECT COUNT(*) FROM keys) as key_count,
+                    (SELECT COUNT(*) FROM accounts) as acc_count
+                FROM scripts
+            `;
+            const scriptBytes = parseInt(sizeData[0].script_bytes);
+            const rawEstimatedRowsSize = (parseInt(sizeData[0].key_count) * 256) + (parseInt(sizeData[0].acc_count) * 128);
+            const totalUsedBytes = scriptBytes + rawEstimatedRowsSize;
+            
+            return res.status(200).json({
+                usedBytes: totalUsedBytes,
+                allocatedBytes: 33554432 // LIMIT REFERENSI ESTIMASI OPERASIONAL STANDAR (32MB ASSIGNMENT)
+            });
+        }
+        
         return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys` : await sql`SELECT * FROM scripts`);
     }
 

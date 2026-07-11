@@ -10,39 +10,33 @@
         body { font-family: 'Inter', sans-serif; background: #070913; color: #f1f5f9; overflow-x: hidden; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         
-        /* Backdrop Premium Blur Grid */
         .glass { background: rgba(20, 24, 45, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .input-dark { background: rgba(5, 6, 15, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); color: #f1f5f9; }
         .input-dark:focus { outline: none; border-color: #3b82f6; }
         
-        /* SIDEBAR MENURUT REFERENSI GAMBAR (SLIDING OUT KIRI & PUTIH EKSKLUSIF) */
         .slide-sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: #ffffff !important; color: #0f172a !important; box-shadow: 10px 0 40px rgba(0,0,0,0.5); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999; }
         .slide-sidebar.open { left: 0; }
         .slide-sidebar button { color: #334155; font-weight: 600; width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
         .slide-sidebar button:hover { background: rgba(0,0,0,0.04); color: #020617; }
         .sidebar-active { background: rgba(59, 130, 246, 0.08) !important; color: #1d4ed8 !important; border-left: 4px solid #1d4ed8 !important; border-radius: 0px 12px 12px 0px !important; }
 
-        /* Draggable Shortcut Engine */
         #draggableShortcut { touch-action: none; user-select: none; z-index: 999; }
     </style>
 </head>
 <body class="min-h-screen">
 
-<!-- DRAGGABLE FLOATING SHORTCUT WIDGET DENGAN IKON CHROME MODERN (POJOK KANAN BAWAH) -->
 <div id="draggableShortcut" class="fixed bottom-6 right-6">
     <button id="shortcutBtn" class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-yellow-500 to-emerald-500 text-white shadow-2xl flex items-center justify-center text-xl font-bold cursor-pointer border-2 border-white/20">
         🌐
     </button>
 </div>
 
-<!-- SIDEBAR MODAL YANG MUNCUL DARI KIRI SEPERTI PADA CONTOH FOTO -->
+<!-- SIDEBAR MODAL DENGAN METER PENYIMPANAN VERCEL STORAGE KUSTOM -->
 <aside id="menuSidebar" class="slide-sidebar flex flex-col justify-between">
     <div>
-        <!-- Gradient Top Bar header menu mirip gambar -->
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center shadow-md">
             <span class="font-bold tracking-wider text-sm">MENU UTAMA</span>
-            <!-- Tombol Silang 'X' untuk Menutup Samping Kiri -->
-            <button onclick="toggleSidebar()" class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm text-white hover:bg-white/30 !p-0 !w-7 !h-7">✕</button>
+            <button onclick="toggleSidebar()" class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm text-white hover:bg-white/30 !p-0">✕</button>
         </div>
         
         <nav class="p-4 space-y-1.5">
@@ -52,13 +46,26 @@
         </nav>
     </div>
     
-    <div class="p-4 border-t border-slate-100 bg-slate-50 flex flex-col gap-1">
-        <span class="text-[10px] text-slate-400 mono truncate" id="adminEmail">root@nexus.io</span>
-        <button onclick="doLogout()" class="!bg-red-50 !text-red-600 text-xs font-bold text-center justify-center py-2">Disconnect Account</button>
+    <!-- PANEL LIVE METRIC STORAGE VERCEL POSTGRES DATABASE -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50 space-y-3">
+        <div class="bg-slate-100 p-3 rounded-xl border border-slate-200">
+            <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                <span>🗄️ VERCEL STORAGE</span>
+                <span id="storagePercent text-blue-600">0%</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-1">
+                <div id="storageBar" class="bg-blue-600 h-full w-0 transition-all duration-500"></div>
+            </div>
+            <div class="text-[9px] text-slate-400 mono text-right" id="storageUsageText">0 KB / 32 MB</div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <span class="text-[10px] text-slate-400 mono truncate" id="adminEmail">root@nexus.io</span>
+            <button onclick="doLogout()" class="!bg-red-50 !text-red-600 text-xs font-bold text-center justify-center py-2">Disconnect Account</button>
+        </div>
     </div>
 </aside>
 
-<!-- OVERSHADOW BACKGROUND BLUR SAAT SIDEBAR AKTIF -->
 <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[9998]"></div>
 
 <!-- AUTHENTICATION LAYERS -->
@@ -94,7 +101,6 @@
 <div id="mainApp" class="hidden min-h-screen p-6">
     <main class="max-w-4xl mx-auto space-y-6">
         
-        <!-- MODULE 1: BOOTSTRAP OVERVIEW -->
         <div id="view-beranda" class="space-y-4">
             <div class="glass rounded-2xl p-5">
                 <h3 class="text-xs font-bold text-blue-400 mb-2">📋 Game Guardian Client Core Manual Hook</h3>
@@ -103,19 +109,41 @@
             </div>
         </div>
 
-        <!-- MODULE 2: LUA MANAGER -->
+        <!-- MODULE GG SCRIPT MANAGEMENT DENGAN SELEKSI FILE & REALTIME PROGRESS BAR -->
         <div id="view-ggscript" class="space-y-4 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
-                <div class="flex justify-between items-center"><h3 class="text-xs font-bold text-white" id="editorTitle">Upload Lua Component</h3><button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline">Reset</button></div>
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-white" id="editorTitle">Upload Lua Component</h3>
+                    <button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline">Reset</button>
+                </div>
+                
+                <!-- INPUT SELEKSI BERKAS DARI KELOLAAN FILE HP/PC -->
+                <div class="group relative flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-blue-500/50 rounded-2xl p-4 transition text-center bg-black/20">
+                    <span class="text-xs text-slate-400 mb-1">Pilih File Script (.lua/.txt)</span>
+                    <input type="file" id="fileSelector" accept=".lua,.txt" onchange="handleFileSelect(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                    <span id="selectedFileNameDisplay" class="text-[10px] text-blue-400 mono font-bold truncate max-w-xs">Belum ada file dipilih</span>
+                </div>
+
                 <input type="hidden" id="editScriptId">
                 <input type="text" id="fileName" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
-                <textarea id="fileContent" rows="8" placeholder="-- Input code script disini..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
-                <button id="deployBtn" onclick="deployFile()" class="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl">Commit Database</button>
+                <textarea id="fileContent" rows="8" placeholder="-- Isi script text otomatis terisi saat file dipilih..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
+                
+                <!-- VISUALISASI UPLOAD PROGRESS BAR -->
+                <div id="uploadProgressContainer" class="hidden space-y-1">
+                    <div class="flex justify-between text-[9px] text-slate-400 font-bold tracking-wider">
+                        <span>UPLOADING TO POSTGRES STORAGE...</span>
+                        <span id="uploadProgressPercent">0%</span>
+                    </div>
+                    <div class="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
+                        <div id="uploadProgressBar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full w-0 transition-all duration-100"></div>
+                    </div>
+                </div>
+
+                <button id="deployBtn" onclick="deployFile()" class="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl cursor-pointer">Commit Database</button>
             </div>
             <div id="fileList" class="space-y-2"></div>
         </div>
 
-        <!-- MODULE 3: KEY SYSTEM & EXPIRED MANAGEMENT -->
         <div id="view-keysystem" class="space-y-4 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
                 <h3 class="text-xs font-bold text-white">Generate Member Key Modules</h3>
@@ -140,7 +168,6 @@
     </main>
 </div>
 
-<!-- CONTAINER DATA NOTIFIKASI TOAST -->
 <div id="toast" class="fixed bottom-6 left-6 bg-blue-600 text-white px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[99999] text-xs font-bold">✨ <span id="toastMsg"></span></div>
 
 <script>
@@ -158,6 +185,35 @@ function toggleSidebar() {
     var o = document.getElementById('sidebarOverlay');
     s.classList.toggle('open');
     o.classList.toggle('hidden');
+    if (s.classList.contains('open')) updateStorageMetric();
+}
+
+// UPDATE INDIKATOR KAPASITAS KONSUMSI DATABASE VERCEL
+async function updateStorageMetric() {
+    var r = await api('GET', '?type=storage');
+    if (!r.ok) return;
+    var d = await r.json();
+    var pct = Math.min(Math.round((d.usedBytes / d.allocatedBytes) * 100), 100);
+    
+    document.getElementById('storageBar').style.width = pct + '%';
+    document.getElementById('storagePercent').innerText = pct + '%';
+    
+    var usedKB = (d.usedBytes / 1024).toFixed(1);
+    var maxMB = (d.allocatedBytes / (1024 * 1024)).toFixed(0);
+    document.getElementById('storageUsageText').innerText = usedKB + ' KB / ' + maxMB + ' MB';
+}
+
+function handleFileSelect(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('selectedFileNameDisplay').innerText = file.name;
+    document.getElementById('fileName').value = file.name;
+    
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+        document.getElementById('fileContent').value = evt.target.result;
+    };
+    reader.readAsText(file);
 }
 
 function switchMenu(t) {
@@ -169,7 +225,6 @@ function switchMenu(t) {
     document.getElementById('view-' + t).classList.remove('hidden');
     document.getElementById('btn-' + t).classList.add('sidebar-active');
     
-    // Auto close sidebar saat menu ditekan
     var s = document.getElementById('menuSidebar');
     if (s.classList.contains('open')) toggleSidebar();
 
@@ -241,20 +296,48 @@ function resetEditor() {
     document.getElementById('editScriptId').value = '';
     document.getElementById('fileName').value = '';
     document.getElementById('fileContent').value = '';
+    document.getElementById('fileSelector').value = '';
+    document.getElementById('selectedFileNameDisplay').innerText = 'Belum ada file dipilih';
     document.getElementById('editorTitle').innerText = 'Upload Lua Component';
     document.getElementById('btnResetEdit').classList.add('hidden');
 }
 
+// SIMULASI PROSES PUSH DAN VALIDASI DENGAN PROGRESS BAR VISUAL INTERAKTIF
 async function deployFile() {
     var n = document.getElementById('fileName').value.trim();
     var c = document.getElementById('fileContent').value;
     var existingId = document.getElementById('editScriptId').value;
     if (!n || !c) return showToast('Form Input Kosong!');
+    
+    var pBox = document.getElementById('uploadProgressContainer');
+    var pBar = document.getElementById('uploadProgressBar');
+    var pPct = document.getElementById('uploadProgressPercent');
+    
+    pBox.classList.remove('hidden');
+    
+    // Animasi Progress Bar Realtime Simulative
+    let progress = 0;
+    let interval = setInterval(async () => {
+        progress += 15;
+        if (progress > 90) progress = 90;
+        pBar.style.width = progress + '%';
+        pPct.innerText = progress + '%';
+    }, 80);
+
     var r = await api('POST', '', { name: n, content: c, existingScriptId: existingId });
-    if (r.ok) { showToast('Script Committed!'); resetEditor(); loadFiles(); }
+    
+    clearInterval(interval);
+    pBar.style.width = '100%';
+    pPct.innerText = '100%';
+    
+    setTimeout(() => {
+        pBox.classList.add('hidden');
+        pBar.style.width = '0%';
+        pPct.innerText = '0%';
+        if (r.ok) { showToast('Script Committed!'); resetEditor(); loadFiles(); }
+    }, 400);
 }
 
-// FORMAT PRESEISI TOTAL MURNI SESUAI ATURAN STRING REQUEST USER
 function copyHookCode(rawTargetUrl) {
     var rawText = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + rawTargetUrl + '").content if V then pcall(load(V)) end';
     navigator.clipboard.writeText(rawText);
@@ -328,7 +411,6 @@ async function doLogin() {
 function goLogin() { document.getElementById('formCode').classList.add('hidden'); switchTab('log'); }
 function doLogout() { localStorage.removeItem('nx_session'); location.reload(); }
 
-// DRAGGABLE ENGINE CONTROLLER WIHT CLICK INTERACTION BOUNDS
 var box = document.getElementById('draggableShortcut');
 var btn = document.getElementById('shortcutBtn');
 var activeDrag = false, startX, startY, initialX, initialY;
