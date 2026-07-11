@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DASHBOARD CONTROL CENTER</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tambahan library ikon fontawesome terverifikasi -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
         body { font-family: 'Inter', sans-serif; background: #070913; color: #f1f5f9; overflow-x: hidden; }
@@ -25,24 +27,31 @@
 </head>
 <body class="min-h-screen">
 
+<!-- SHORTCUT BUTTON UTAMA YANG BERFUNGSI SEBAGAI ANTARMUKA TOGGLE ACTION -->
 <div id="draggableShortcut" class="fixed bottom-6 right-6">
     <button id="shortcutBtn" class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-yellow-500 to-emerald-500 text-white shadow-2xl flex items-center justify-center text-xl font-bold cursor-pointer border-2 border-white/20">
-        🌐
+        <i class="fa-solid fa-gauge-high"></i>
     </button>
 </div>
 
-<!-- SIDEBAR MODAL DENGAN METER PENYIMPANAN VERCEL STORAGE KUSTOM -->
+<!-- SIDEBAR MODAL DENGAN STRUKTUR IKON INTEGRATIF -->
 <aside id="menuSidebar" class="slide-sidebar flex flex-col justify-between">
     <div>
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center shadow-md">
-            <span class="font-bold tracking-wider text-sm">MENU UTAMA</span>
+            <span class="font-bold tracking-wider text-sm"><i class="fa-solid fa-shield-halved mr-2"></i>NEXUS PANEL</span>
             <button onclick="toggleSidebar()" class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm text-white hover:bg-white/30 !p-0">✕</button>
         </div>
         
         <nav class="p-4 space-y-1.5">
-            <button id="btn-beranda" onclick="switchMenu('beranda')" class="sidebar-active">📊 Início (Overview)</button>
-            <button id="btn-ggscript" onclick="switchMenu('ggscript')">📝 GG Script Cloud</button>
-            <button id="btn-keysystem" onclick="switchMenu('keysystem')">🔑 Gerenciar Usuários & Keys</button>
+            <button id="btn-beranda" onclick="switchMenu('beranda')" class="sidebar-active">
+                <i class="fa-solid fa-chart-pie w-5 text-center"></i> Overview Dashboard
+            </button>
+            <button id="btn-ggscript" onclick="switchMenu('ggscript')">
+                <i class="fa-solid fa-code w-5 text-center"></i> GG Script Cloud
+            </button>
+            <button id="btn-keysystem" onclick="switchMenu('keysystem')">
+                <i class="fa-solid fa-key w-5 text-center"></i> Key & User Access
+            </button>
         </nav>
     </div>
     
@@ -50,8 +59,8 @@
     <div class="p-4 border-t border-slate-100 bg-slate-50 space-y-3">
         <div class="bg-slate-100 p-3 rounded-xl border border-slate-200">
             <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
-                <span>🗄️ VERCEL STORAGE</span>
-                <span id="storagePercent text-blue-600">0%</span>
+                <span><i class="fa-solid fa-database mr-1 text-slate-400"></i> VERCEL STORAGE</span>
+                <span id="storagePercent" class="text-blue-600">0%</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-1">
                 <div id="storageBar" class="bg-blue-600 h-full w-0 transition-all duration-500"></div>
@@ -61,7 +70,9 @@
 
         <div class="flex flex-col gap-1">
             <span class="text-[10px] text-slate-400 mono truncate" id="adminEmail">root@nexus.io</span>
-            <button onclick="doLogout()" class="!bg-red-50 !text-red-600 text-xs font-bold text-center justify-center py-2">Disconnect Account</button>
+            <button onclick="doLogout()" class="!bg-red-50 !text-red-600 text-xs font-bold text-center justify-center py-2 rounded-xl">
+                <i class="fa-solid fa-right-from-bracket mr-1"></i> Disconnect Account
+            </button>
         </div>
     </div>
 </aside>
@@ -103,7 +114,7 @@
         
         <div id="view-beranda" class="space-y-4">
             <div class="glass rounded-2xl p-5">
-                <h3 class="text-xs font-bold text-blue-400 mb-2">📋 Game Guardian Client Core Manual Hook</h3>
+                <h3 class="text-xs font-bold text-blue-400 mb-2"><i class="fa-solid fa-terminal mr-1"></i> Game Guardian Client Core Manual Hook</h3>
                 <textarea id="bootstrapCode" rows="6" readonly class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/5 text-[10px] text-emerald-400 mono resize-none focus:outline-none"></textarea>
                 <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Bootstrap Copied!')" class="w-full mt-2 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">Copy Prompt Initializer</button>
             </div>
@@ -117,9 +128,8 @@
                     <button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline">Reset</button>
                 </div>
                 
-                <!-- INPUT SELEKSI BERKAS DARI KELOLAAN FILE HP/PC -->
                 <div class="group relative flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-blue-500/50 rounded-2xl p-4 transition text-center bg-black/20">
-                    <span class="text-xs text-slate-400 mb-1">Pilih File Script (.lua/.txt)</span>
+                    <span class="text-xs text-slate-400 mb-1"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Pilih File Script (.lua/.txt)</span>
                     <input type="file" id="fileSelector" accept=".lua,.txt" onchange="handleFileSelect(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
                     <span id="selectedFileNameDisplay" class="text-[10px] text-blue-400 mono font-bold truncate max-w-xs">Belum ada file dipilih</span>
                 </div>
@@ -128,7 +138,6 @@
                 <input type="text" id="fileName" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
                 <textarea id="fileContent" rows="8" placeholder="-- Isi script text otomatis terisi saat file dipilih..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
                 
-                <!-- VISUALISASI UPLOAD PROGRESS BAR -->
                 <div id="uploadProgressContainer" class="hidden space-y-1">
                     <div class="flex justify-between text-[9px] text-slate-400 font-bold tracking-wider">
                         <span>UPLOADING TO POSTGRES STORAGE...</span>
@@ -188,7 +197,6 @@ function toggleSidebar() {
     if (s.classList.contains('open')) updateStorageMetric();
 }
 
-// UPDATE INDIKATOR KAPASITAS KONSUMSI DATABASE VERCEL
 async function updateStorageMetric() {
     var r = await api('GET', '?type=storage');
     if (!r.ok) return;
@@ -269,7 +277,7 @@ async function loadFiles() {
         return `
         <div class="glass rounded-xl p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div>
-                <span class="mono text-xs font-bold text-blue-400">📄 ${f.name}</span>
+                <span class="mono text-xs font-bold text-blue-400"><i class="fa-regular fa-file-code mr-1"></i> ${f.name}</span>
             </div>
             <div class="flex gap-1.5">
                 <button onclick="navigator.clipboard.writeText('${plainRawLink}');showToast('Link Script Copied!')" class="px-2.5 py-1 bg-white/5 text-white border border-white/10 rounded-lg text-[10px] cursor-pointer">Copy Link</button>
@@ -302,7 +310,6 @@ function resetEditor() {
     document.getElementById('btnResetEdit').classList.add('hidden');
 }
 
-// SIMULASI PROSES PUSH DAN VALIDASI DENGAN PROGRESS BAR VISUAL INTERAKTIF
 async function deployFile() {
     var n = document.getElementById('fileName').value.trim();
     var c = document.getElementById('fileContent').value;
@@ -315,7 +322,6 @@ async function deployFile() {
     
     pBox.classList.remove('hidden');
     
-    // Animasi Progress Bar Realtime Simulative
     let progress = 0;
     let interval = setInterval(async () => {
         progress += 15;
@@ -338,10 +344,11 @@ async function deployFile() {
     }, 400);
 }
 
+// STRUKTUR MODULAR HOOK UNTUK MEMASTIKAN LOAD SECURE TETAP BERJALAN SAAT DI-COPY
 function copyHookCode(rawTargetUrl) {
     var rawText = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + rawTargetUrl + '").content if V then pcall(load(V)) end';
     navigator.clipboard.writeText(rawText);
-    showToast('Fixed Hook Copied!');
+    showToast('Secure Loader Copied!');
 }
 
 async function loadKeys() {
@@ -358,7 +365,7 @@ async function loadKeys() {
         return `
             <div class="glass rounded-xl p-4 space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="mono text-xs font-bold ${isExpired ? 'text-red-400 line-through' : 'text-amber-400'}">🔑 ${k.key}</span>
+                    <span class="mono text-xs font-bold ${isExpired ? 'text-red-400 line-through' : 'text-amber-400'}"><i class="fa-solid fa-key text-[10px] mr-1"></i> ${k.key}</span>
                     <button onclick="delKey('${k.key}')" class="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md">Delete</button>
                 </div>
                 <div class="flex flex-wrap justify-between text-[10px] text-slate-400 mono gap-2 pt-1 border-t border-white/5">
@@ -415,8 +422,10 @@ var box = document.getElementById('draggableShortcut');
 var btn = document.getElementById('shortcutBtn');
 var activeDrag = false, startX, startY, initialX, initialY;
 
+// FIX SHORTCUT INTERACTION ACTION CLICK & DRAG STABILITY
 btn.addEventListener('click', function(e) {
-    if (Math.abs(startX - e.clientX) < 5 && Math.abs(startY - e.clientY) < 5) { toggleSidebar(); }
+    if (activeDrag) return;
+    toggleSidebar();
 });
 
 box.addEventListener('mousedown', dragStart);
@@ -432,19 +441,21 @@ function dragStart(e) {
     startX = clientX; startY = clientY;
     var style = window.getComputedStyle(box);
     initialX = parseInt(style.right); initialY = parseInt(style.bottom);
-    activeDrag = true;
+    activeDrag = false; 
 }
 
 function dragMove(e) {
-    if (!activeDrag) return;
     var clientX = e.touches ? e.touches[0].clientX : e.clientX;
     var clientY = e.touches ? e.touches[0].clientY : e.clientY;
     var dx = startX - clientX, dy = startY - clientY;
-    box.style.right = (initialX + dx) + 'px';
-    box.style.bottom = (initialY + dy) + 'px';
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        activeDrag = true;
+        box.style.right = (initialX + dx) + 'px';
+        box.style.bottom = (initialY + dy) + 'px';
+    }
 }
 
-function dragEnd() { activeDrag = false; }
+function dragEnd() { setTimeout(() => { activeDrag = false; }, 50); }
 
 window.onload = function() {
     var cached = localStorage.getItem('nx_session');
