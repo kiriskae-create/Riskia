@@ -15,36 +15,6 @@ export default async function handler(req, res) {
 
     const { id, type, key, device, reqStage, deleteKey } = req.query;
     const host = req.headers.host;
-    const userAgent = req.headers['user-agent'] || '';
-
-    // ==========================================
-    // ANTi-INTIP PROTECT: JIKA DIBUKA DARI BROWSER TANPA PARAMETER VALID
-    // ==========================================
-    if (req.method === 'GET' && !key && !type && !id && !deleteKey) {
-        res.setHeader('Content-Type', 'text/html');
-        return res.status(403).send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>🔒 PROTECTED SECURE API ENGINE</title>
-                <style>
-                    body { background: #060813; color: #ff4a4a; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-                    .card { background: rgba(255,0,0,0.05); border: 1px solid rgba(255,0,0,0.2); padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 0 30px rgba(255,0,0,0.1); }
-                    h1 { font-size: 24px; margin-bottom: 10px; color: #fff; }
-                    p { color: #8a9fc4; font-size: 13px; }
-                </style>
-            </head>
-            <body>
-                <div class="card">
-                    <div><span style="font-size: 50px;">🔒</span></div>
-                    <h1>403 ACCESS DENIED</h1>
-                    <p>NEXUS-X ENGINE: Direct browser queries are strictly restricted.</p>
-                    <p style="color: #555;">SSL Secure Connection Active</p>
-                </div>
-            </body>
-            </html>
-        `);
-    }
 
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
@@ -56,7 +26,7 @@ export default async function handler(req, res) {
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (checkKey.length === 0) {
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi Salah atau Tidak Terdaftar!")\nos.exit()');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak valid!")\nos.exit()');
         }
 
         const license = checkKey[0];
@@ -64,34 +34,36 @@ export default async function handler(req, res) {
         
         if (new Date() > expDate) {
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi Anda Telah Kedaluwarsa!"); os.exit()');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi kedaluwarsa!"); os.exit()');
         }
 
-        const clientHwid = device || 'NX-DEVICE';
+        const clientHwid = device || 'NX-INIT-DEVICE';
         let registeredDevices = license.registered_devices || [];
         
         if (device && !registeredDevices.includes(clientHwid)) {
             if (registeredDevices.length >= license.max_devices) {
                 res.setHeader('Content-Type', 'text/plain');
-                return res.status(200).send('gg.alert("❌ Slot Device Penuh!"); os.exit()');
+                return res.status(200).send('gg.alert("❌ Max Device Terlampaui!"); os.exit()');
             }
             registeredDevices.push(clientHwid);
             await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
         }
 
         if (!reqStage) {
-            // STAGE 1: KIRIM LOADER SIGNATURE VALIDATION
             const payloadStage1 = `gg.setVisible(false)
-local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=2")
-if r and r.code == 200 then load(r.content)() else gg.alert("❌ Autentikasi Cloud Gagal!") os.exit() end`;
+local raw_hwid = "NX-" .. tostring(gg.getTargetPackage())
+local encoded_hwid = ""
+for i = 1, #raw_hwid do encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i)) end
+local r = gg.makeRequest("https://${host}/api/server?key=${key}&device="..encoded_hwid.."&reqStage=2")
+if r and r.code == 200 then load(r.content)() else gg.alert("❌ Jaringan Terputus!") os.exit() end`;
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(payloadStage1);
         }
 
         if (reqStage === '2') {
             const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-            const payloadStage2 = `gg.toast("✨ LISENSI VALID SAMPAI: ${formattedDate} ✨")
-local sT = os.time() while os.time() < sT + 1 do end
+            const payloadStage2 = `gg.toast("✨ ACCESS GRANTED ✨\\n⏳ EXP: ${formattedDate}")
+local sysTime = os.time() while os.time() < sysTime + 2 do end
 local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
 if r and r.code == 200 then load(r.content)() else os.exit() end`;
             res.setHeader('Content-Type', 'text/plain');
@@ -101,7 +73,7 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         if (reqStage === '3') {
             const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Isi script kosong!"); os.exit()');
+            return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Script Kosong!"); os.exit()');
         }
     }
 

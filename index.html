@@ -3,181 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DASHBOARD CONTROL CENTER</title>
+    <title>NEXUS X CLOUD — PREMIUM CONTROL</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Tambahan library ikon fontawesome terverifikasi -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #070913; color: #f1f5f9; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #05060a; color: #e2e8f0; overflow-x: hidden; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        .glass { background: rgba(20, 24, 45, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .input-dark { background: rgba(5, 6, 15, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); color: #f1f5f9; }
-        .input-dark:focus { outline: none; border-color: #3b82f6; }
-        
-        .slide-sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: #ffffff !important; color: #0f172a !important; box-shadow: 10px 0 40px rgba(0,0,0,0.5); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999; }
-        .slide-sidebar.open { left: 0; }
-        .slide-sidebar button { color: #334155; font-weight: 600; width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
-        .slide-sidebar button:hover { background: rgba(0,0,0,0.04); color: #020617; }
-        .sidebar-active { background: rgba(59, 130, 246, 0.08) !important; color: #1d4ed8 !important; border-left: 4px solid #1d4ed8 !important; border-radius: 0px 12px 12px 0px !important; }
-
-        #draggableShortcut { touch-action: none; user-select: none; z-index: 999; }
+        .glass { background: rgba(15, 17, 25, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(245, 158, 11, 0.08); }
+        .glass-gold { background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(217, 119, 6, 0.02)); border: 1px solid rgba(245, 158, 11, 0.15); }
+        .gold-text { background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .menu-active { background: rgba(245, 158, 11, 0.08) !important; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-left: 4px solid #f59e0b; color: #fbbf24; font-weight: 700; }
+        .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 700; transition: all 0.2s; cursor: pointer; }
+        .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3); }
+        .input-dark { background: rgba(5, 6, 10, 0.8); border: 1px solid rgba(245, 158, 11, 0.1); color: #e2e8f0; }
+        .input-dark:focus { outline: none; border-color: rgba(245, 158, 11, 0.4); }
     </style>
 </head>
 <body class="min-h-screen">
 
-<!-- SHORTCUT BUTTON UTAMA YANG BERFUNGSI SEBAGAI ANTARMUKA TOGGLE ACTION -->
-<div id="draggableShortcut" class="fixed bottom-6 right-6">
-    <button id="shortcutBtn" class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-yellow-500 to-emerald-500 text-white shadow-2xl flex items-center justify-center text-xl font-bold cursor-pointer border-2 border-white/20">
-        <i class="fa-solid fa-gauge-high"></i>
-    </button>
+<!-- MAIN FLOATING ACTIONS SHORTCUT ICON -->
+<div class="fixed bottom-6 left-6 z-50">
+    <button onclick="toggleQuickMenu()" class="w-12 h-12 rounded-full btn-gold shadow-2xl flex items-center justify-center text-lg font-black tracking-tighter cursor-pointer border border-amber-400/20">🚀</button>
+    <div id="quickMenu" class="absolute bottom-16 left-0 glass p-3 rounded-2xl w-48 space-y-1.5 shadow-2xl hidden transition-all duration-200">
+        <div class="flex justify-between items-center px-2 pb-1 border-b border-amber-500/10">
+            <span class="text-[10px] font-bold text-slate-500 tracking-wider">SHORTCUTS</span>
+            <button onclick="toggleQuickMenu()" class="text-xs text-red-400 font-bold hover:text-red-300">✕</button>
+        </div>
+        <button onclick="switchMenu('ggscript');toggleQuickMenu()" class="w-full text-left px-3 py-1.5 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition flex items-center gap-2">📝 Cloud Scripts</button>
+        <button onclick="switchMenu('keysystem');toggleQuickMenu()" class="w-full text-left px-3 py-1.5 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition flex items-center gap-2">🔑 Key License System</button>
+    </div>
 </div>
 
-<!-- SIDEBAR MODAL DENGAN STRUKTUR IKON INTEGRATIF -->
-<aside id="menuSidebar" class="slide-sidebar flex flex-col justify-between">
-    <div>
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex justify-between items-center shadow-md">
-            <span class="font-bold tracking-wider text-sm"><i class="fa-solid fa-shield-halved mr-2"></i>NEXUS PANEL</span>
-            <button onclick="toggleSidebar()" class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm text-white hover:bg-white/30 !p-0">✕</button>
-        </div>
-        
-        <nav class="p-4 space-y-1.5">
-            <button id="btn-beranda" onclick="switchMenu('beranda')" class="sidebar-active">
-                <i class="fa-solid fa-chart-pie w-5 text-center"></i> Overview Dashboard
-            </button>
-            <button id="btn-ggscript" onclick="switchMenu('ggscript')">
-                <i class="fa-solid fa-code w-5 text-center"></i> GG Script Cloud
-            </button>
-            <button id="btn-keysystem" onclick="switchMenu('keysystem')">
-                <i class="fa-solid fa-key w-5 text-center"></i> Key & User Access
-            </button>
-        </nav>
-    </div>
-    
-    <!-- PANEL LIVE METRIC STORAGE VERCEL POSTGRES DATABASE -->
-    <div class="p-4 border-t border-slate-100 bg-slate-50 space-y-3">
-        <div class="bg-slate-100 p-3 rounded-xl border border-slate-200">
-            <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
-                <span><i class="fa-solid fa-database mr-1 text-slate-400"></i> VERCEL STORAGE</span>
-                <span id="storagePercent" class="text-blue-600">0%</span>
-            </div>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-1">
-                <div id="storageBar" class="bg-blue-600 h-full w-0 transition-all duration-500"></div>
-            </div>
-            <div class="text-[9px] text-slate-400 mono text-right" id="storageUsageText">0 KB / 32 MB</div>
-        </div>
-
-        <div class="flex flex-col gap-1">
-            <span class="text-[10px] text-slate-400 mono truncate" id="adminEmail">root@nexus.io</span>
-            <button onclick="doLogout()" class="!bg-red-50 !text-red-600 text-xs font-bold text-center justify-center py-2 rounded-xl">
-                <i class="fa-solid fa-right-from-bracket mr-1"></i> Disconnect Account
-            </button>
-        </div>
-    </div>
-</aside>
-
-<div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[9998]"></div>
-
-<!-- AUTHENTICATION LAYERS -->
-<div id="authGate" class="fixed inset-0 z-[100] bg-[#070913] flex items-center justify-center">
+<!-- AUTHENTICATION GATE -->
+<div id="authGate" class="fixed inset-0 z-[100] bg-[#05060a] flex items-center justify-center">
     <div class="w-full max-w-sm mx-4">
         <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-white/10 mb-2"><span class="text-lg font-black text-white">NX</span></div>
-            <h1 class="text-md font-bold text-white tracking-wider">SECURE DATABASE CONSOLE</h1>
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/10 border border-amber-500/20 mb-3"><span class="text-2xl font-black gold-text">NX</span></div>
+            <h1 class="text-xl font-bold gold-text tracking-tight">NEXUS X CLOUD</h1>
         </div>
-        <div class="flex mb-4 gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
-            <button id="tabReg" onclick="switchTab('reg')" class="flex-1 py-2 rounded-lg text-xs font-semibold bg-white/10 text-white cursor-pointer">Register</button>
-            <button id="tabLog" onclick="switchTab('log')" class="flex-1 py-2 rounded-lg text-xs font-semibold text-slate-400 cursor-pointer">Login</button>
+        <div class="flex mb-4 gap-1 bg-black/30 p-1 rounded-xl border border-amber-500/5">
+            <button id="tabReg" onclick="switchTab('reg')" class="flex-1 py-2 rounded-lg text-xs font-semibold cursor-pointer bg-amber-500/15 text-amber-400 border border-amber-500/30">Register</button>
+            <button id="tabLog" onclick="switchTab('log')" class="flex-1 py-2 rounded-lg text-xs font-semibold cursor-pointer transparent text-slate-500">Login</button>
         </div>
-        <div id="formReg" class="glass rounded-2xl p-5 space-y-3">
-            <input type="email" id="regEmail" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
-            <input type="password" id="regPass" placeholder="Password (min 4)" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
-            <button onclick="doRegister()" class="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs">Create Admin Account</button>
+        <div id="formReg" class="glass glass-gold rounded-2xl p-5 space-y-3">
+            <input type="email" id="regEmail" placeholder="Gmail Address" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+            <input type="password" id="regPass" placeholder="Password (min 4)" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+            <button onclick="doRegister()" class="w-full py-2.5 rounded-xl btn-gold text-sm">Register</button>
         </div>
-        <div id="formCode" class="glass rounded-2xl p-5 space-y-4 hidden text-center">
-            <h3 class="text-xs font-bold text-white">Generated Token</h3>
-            <div class="p-4 bg-black/60 rounded-xl tracking-widest font-black text-emerald-400 mono" id="codeDisplay">------</div>
-            <button onclick="goLogin()" class="w-full py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold">Proceed</button>
+        <div id="formCode" class="glass glass-gold rounded-2xl p-5 space-y-4 hidden text-center">
+            <h3 class="text-sm font-bold text-white">Security Key Created!</h3>
+            <div class="p-4 bg-black/40 rounded-xl tracking-widest font-black gold-text mono" id="codeDisplay">------</div>
+            <button onclick="goLogin()" class="w-full py-2.5 rounded-xl btn-gold text-sm">Proceed to Login</button>
         </div>
-        <div id="formLog" class="glass rounded-2xl p-5 space-y-3 hidden">
-            <input type="email" id="logEmail" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
-            <input type="password" id="logPass" placeholder="Secret Token / Password" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
-            <button onclick="doLogin()" class="w-full py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold">Authorize Engine</button>
+        <div id="formLog" class="glass glass-gold rounded-2xl p-5 space-y-3 hidden">
+            <input type="email" id="logEmail" placeholder="Gmail Address" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+            <input type="password" id="logPass" placeholder="Secret Token / Password" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+            <button onclick="doLogin()" class="w-full py-2.5 rounded-xl btn-gold text-sm">Login Engine</button>
         </div>
     </div>
 </div>
 
-<!-- WORKSPACE UTAMA CONTAINER -->
-<div id="mainApp" class="hidden min-h-screen p-6">
-    <main class="max-w-4xl mx-auto space-y-6">
-        
-        <div id="view-beranda" class="space-y-4">
+<!-- CONTAINER DASHBOARD UTAMA -->
+<div id="mainApp" class="hidden min-h-screen flex flex-col md:flex-row">
+    <aside class="w-full md:w-64 bg-[#090b11] border-b md:border-b-0 md:border-r border-amber-500/10 flex flex-col justify-between p-4 shrink-0">
+        <div>
+            <div class="flex items-center gap-3 mb-8 px-2 py-1">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20"><span class="text-sm font-black gold-text">NX</span></div>
+                <h2 class="text-sm font-bold text-white tracking-wide">NEXUS PANEL</h2>
+            </div>
+            <nav class="space-y-1">
+                <button id="btn-beranda" onclick="switchMenu('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">📊 Overview Console</button>
+                <button id="btn-ggscript" onclick="switchMenu('ggscript')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">📝 Manage LUA Scripts</button>
+                <button id="btn-keysystem" onclick="switchMenu('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">🔑 License Key System</button>
+            </nav>
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-900 px-2">
+            <p class="text-[9px] text-slate-500 truncate mb-2 mono" id="adminEmail">user@nexus.io</p>
+            <button onclick="doLogout()" class="w-full py-2 bg-red-950/30 text-red-400 border border-red-500/10 rounded-xl text-xs font-medium cursor-pointer">Disconnect</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-6 overflow-y-auto">
+        <!-- OVERVIEW / BERANDA -->
+        <div id="view-beranda" class="space-y-6">
             <div class="glass rounded-2xl p-5">
-                <h3 class="text-xs font-bold text-blue-400 mb-2"><i class="fa-solid fa-terminal mr-1"></i> Game Guardian Client Core Manual Hook</h3>
-                <textarea id="bootstrapCode" rows="6" readonly class="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/5 text-[10px] text-emerald-400 mono resize-none focus:outline-none"></textarea>
-                <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Bootstrap Copied!')" class="w-full mt-2 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">Copy Prompt Initializer</button>
+                <h3 class="text-sm font-bold text-amber-400 mb-2">Game Guardian Master Loader Manual</h3>
+                <textarea id="bootstrapCode" rows="4" readonly class="w-full px-3 py-2 rounded-xl bg-black/40 border border-amber-500/10 text-[10px] text-emerald-400 mono resize-none focus:outline-none"></textarea>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Bootstrap Copied!')" class="w-full mt-3 py-2.5 rounded-xl btn-gold text-xs">Copy Master Initializer</button>
             </div>
         </div>
 
-        <!-- MODULE GG SCRIPT MANAGEMENT DENGAN SELEKSI FILE & REALTIME PROGRESS BAR -->
-        <div id="view-ggscript" class="space-y-4 hidden">
+        <!-- LUA MANAGEMENT -->
+        <div id="view-ggscript" class="space-y-6 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-white" id="editorTitle">Upload Lua Component</h3>
-                    <button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline">Reset</button>
-                </div>
-                
-                <div class="group relative flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-blue-500/50 rounded-2xl p-4 transition text-center bg-black/20">
-                    <span class="text-xs text-slate-400 mb-1"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Pilih File Script (.lua/.txt)</span>
-                    <input type="file" id="fileSelector" accept=".lua,.txt" onchange="handleFileSelect(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
-                    <span id="selectedFileNameDisplay" class="text-[10px] text-blue-400 mono font-bold truncate max-w-xs">Belum ada file dipilih</span>
-                </div>
-
+                <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white" id="editorTitle">Create New Cloud Script</h3><button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline cursor-pointer">Buat Baru</button></div>
                 <input type="hidden" id="editScriptId">
                 <input type="text" id="fileName" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
-                <textarea id="fileContent" rows="8" placeholder="-- Isi script text otomatis terisi saat file dipilih..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
-                
-                <div id="uploadProgressContainer" class="hidden space-y-1">
-                    <div class="flex justify-between text-[9px] text-slate-400 font-bold tracking-wider">
-                        <span>UPLOADING TO POSTGRES STORAGE...</span>
-                        <span id="uploadProgressPercent">0%</span>
-                    </div>
-                    <div class="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-                        <div id="uploadProgressBar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full w-0 transition-all duration-100"></div>
-                    </div>
-                </div>
-
-                <button id="deployBtn" onclick="deployFile()" class="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl cursor-pointer">Commit Database</button>
+                <textarea id="fileContent" rows="10" placeholder="-- Tulis script LUA disini..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
+                <button id="deployBtn" onclick="deployFile()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Save & Commit to Neon Cloud</button>
             </div>
             <div id="fileList" class="space-y-2"></div>
         </div>
 
-        <div id="view-keysystem" class="space-y-4 hidden">
+        <!-- LICENSE SYSTEM -->
+        <div id="view-keysystem" class="space-y-6 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
-                <h3 class="text-xs font-bold text-white">Generate Member Key Modules</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <h3 class="text-sm font-bold text-white">Generate Auth License Key</h3>
+                <div class="grid grid-cols-1 gap-3">
                     <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Target Module</label>
                         <select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></select>
                     </div>
                     <div>
-                        <input type="number" id="keyMaxDevices" value="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono" placeholder="Limit Perangkat">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Max Devices Limit</label>
+                        <input type="number" id="keyMaxDevices" value="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
                     </div>
                     <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Expiration Date</label>
                         <input type="datetime-local" id="keyExp" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
                     </div>
                     <div>
-                        <input type="text" id="keyCustom" placeholder="Custom Key Name (Optional)" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Custom License Name</label>
+                        <input type="text" id="keyCustom" placeholder="Misal: VIP-KEY" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
                     </div>
                 </div>
-                <button onclick="genKey()" class="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl">Create Secure Access Key</button>
+                <button onclick="genKey()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Generate Access License</button>
             </div>
             <div id="keyList" class="space-y-2"></div>
         </div>
     </main>
 </div>
 
-<div id="toast" class="fixed bottom-6 left-6 bg-blue-600 text-white px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[99999] text-xs font-bold">✨ <span id="toastMsg"></span></div>
+<div id="toast" class="fixed bottom-6 right-6 bg-amber-500 text-black px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[200] text-xs font-bold">✨ <span id="toastMsg"></span></div>
 
 <script>
 var S = { files: [], keys: [], session: '', currentMenu: 'beranda' };
@@ -189,72 +146,26 @@ function showToast(m) {
     setTimeout(function() { t.style.opacity = '0'; }, 2500);
 }
 
-function toggleSidebar() {
-    var s = document.getElementById('menuSidebar');
-    var o = document.getElementById('sidebarOverlay');
-    s.classList.toggle('open');
-    o.classList.toggle('hidden');
-    if (s.classList.contains('open')) updateStorageMetric();
-}
-
-async function updateStorageMetric() {
-    var r = await api('GET', '?type=storage');
-    if (!r.ok) return;
-    var d = await r.json();
-    var pct = Math.min(Math.round((d.usedBytes / d.allocatedBytes) * 100), 100);
-    
-    document.getElementById('storageBar').style.width = pct + '%';
-    document.getElementById('storagePercent').innerText = pct + '%';
-    
-    var usedKB = (d.usedBytes / 1024).toFixed(1);
-    var maxMB = (d.allocatedBytes / (1024 * 1024)).toFixed(0);
-    document.getElementById('storageUsageText').innerText = usedKB + ' KB / ' + maxMB + ' MB';
-}
-
-function handleFileSelect(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    document.getElementById('selectedFileNameDisplay').innerText = file.name;
-    document.getElementById('fileName').value = file.name;
-    
-    var reader = new FileReader();
-    reader.onload = function(evt) {
-        document.getElementById('fileContent').value = evt.target.result;
-    };
-    reader.readAsText(file);
+function toggleQuickMenu() {
+    var m = document.getElementById('quickMenu');
+    m.classList.toggle('hidden');
 }
 
 function switchMenu(t) {
     S.currentMenu = t;
     ['beranda', 'ggscript', 'keysystem'].forEach(function(m) {
         document.getElementById('view-' + m).classList.add('hidden');
-        document.getElementById('btn-' + m).classList.remove('sidebar-active');
+        document.getElementById('btn-' + m).classList.remove('menu-active');
     });
     document.getElementById('view-' + t).classList.remove('hidden');
-    document.getElementById('btn-' + t).classList.add('sidebar-active');
-    
-    var s = document.getElementById('menuSidebar');
-    if (s.classList.contains('open')) toggleSidebar();
-
+    document.getElementById('btn-' + t).classList.add('menu-active');
     if (t === 'beranda') initBeranda();
     if (t === 'ggscript') loadFiles();
     if (t === 'keysystem') { loadFiles(); loadKeys(); }
 }
 
 function initBeranda() {
-    var code = `local ask = gg.prompt({"🔑 INPUT KEY LISENSI MEMBER:"}, {nil}, {"text"})\n`;
-    code += `if not ask then os.exit() end\n`;
-    code += `local userKey = ask[1]\n`;
-    code += `if userKey == "" then gg.alert("Key Kosong!") os.exit() end\n`;
-    code += `local targetUrl = "` + location.origin + `/api/server?key=" .. userKey\n`;
-    code += `local r = gg.makeRequest(targetUrl)\n`;
-    code += `if r and r.code == 200 then\n`;
-    code += `    local run = load(r.content)\n`;
-    code += `    if run then run() else gg.alert("Lisensi Salah!") end\n`;
-    code += `else\n`;
-    code += `    gg.alert("Jaringan Error!")\n`;
-    code += `end`;
-    document.getElementById('bootstrapCode').value = code;
+    document.getElementById('bootstrapCode').value = 'local r = gg.makeRequest("' + location.origin + '/api/server?key=MASUKKAN_KEY")\nif r and r.code == 200 then load(r.content)() else gg.alert("Gagal terhubung!") end';
 }
 
 async function api(method, urlParams, bodyContent) {
@@ -277,12 +188,13 @@ async function loadFiles() {
         return `
         <div class="glass rounded-xl p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div>
-                <span class="mono text-xs font-bold text-blue-400"><i class="fa-regular fa-file-code mr-1"></i> ${f.name}</span>
+                <span class="mono text-xs font-bold text-amber-400">${f.name}</span>
+                <div class="text-[9px] text-slate-500 mt-1 mono">ID: ${f.id}</div>
             </div>
             <div class="flex gap-1.5">
-                <button onclick="navigator.clipboard.writeText('${plainRawLink}');showToast('Link Script Copied!')" class="px-2.5 py-1 bg-white/5 text-white border border-white/10 rounded-lg text-[10px] cursor-pointer">Copy Link</button>
-                <button onclick="editFile('${f.id}','${btoa(encodeURIComponent(f.content))}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer">Edit</button>
-                <button onclick="delFile('${f.id}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] cursor-pointer">Delete</button>
+                <button onclick="navigator.clipboard.writeText('${plainRawLink}');showToast('Raw Link Copied!')" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Copy Raw Link</button>
+                <button onclick="editFile('${f.id}','${btoa(encodeURIComponent(f.content))}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Edit</button>
+                <button onclick="delFile('${f.id}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Delete</button>
             </div>
         </div>`;
     }).join('');
@@ -297,58 +209,32 @@ function editFile(id, base64Content) {
     document.getElementById('fileContent').value = dec;
     document.getElementById('editorTitle').innerText = 'Editing Script: ' + target.name;
     document.getElementById('btnResetEdit').classList.remove('hidden');
-    switchMenu('ggscript');
+    document.getElementById('deployBtn').innerText = 'Update & Commit Changes';
 }
 
 function resetEditor() {
     document.getElementById('editScriptId').value = '';
     document.getElementById('fileName').value = '';
     document.getElementById('fileContent').value = '';
-    document.getElementById('fileSelector').value = '';
-    document.getElementById('selectedFileNameDisplay').innerText = 'Belum ada file dipilih';
-    document.getElementById('editorTitle').innerText = 'Upload Lua Component';
+    document.getElementById('editorTitle').innerText = 'Create New Cloud Script';
     document.getElementById('btnResetEdit').classList.add('hidden');
+    document.getElementById('deployBtn').innerText = 'Save & Commit to Neon Cloud';
 }
 
 async function deployFile() {
     var n = document.getElementById('fileName').value.trim();
     var c = document.getElementById('fileContent').value;
     var existingId = document.getElementById('editScriptId').value;
-    if (!n || !c) return showToast('Form Input Kosong!');
-    
-    var pBox = document.getElementById('uploadProgressContainer');
-    var pBar = document.getElementById('uploadProgressBar');
-    var pPct = document.getElementById('uploadProgressPercent');
-    
-    pBox.classList.remove('hidden');
-    
-    let progress = 0;
-    let interval = setInterval(async () => {
-        progress += 15;
-        if (progress > 90) progress = 90;
-        pBar.style.width = progress + '%';
-        pPct.innerText = progress + '%';
-    }, 80);
-
+    if (!n || !c) return showToast('Nama & content kosong!');
     var r = await api('POST', '', { name: n, content: c, existingScriptId: existingId });
-    
-    clearInterval(interval);
-    pBar.style.width = '100%';
-    pPct.innerText = '100%';
-    
-    setTimeout(() => {
-        pBox.classList.add('hidden');
-        pBar.style.width = '0%';
-        pPct.innerText = '0%';
-        if (r.ok) { showToast('Script Committed!'); resetEditor(); loadFiles(); }
-    }, 400);
+    if (r.ok) { showToast('Script Disimpan!'); resetEditor(); loadFiles(); }
 }
 
-// STRUKTUR MODULAR HOOK UNTUK MEMASTIKAN LOAD SECURE TETAP BERJALAN SAAT DI-COPY
+// PERBAIKAN TOTAL SYSTEM COPY STRING HOOK AGAR ANTI BREAK DI JAVASCRIPT
 function copyHookCode(rawTargetUrl) {
-    var rawText = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + rawTargetUrl + '").content if V then pcall(load(V)) end';
-    navigator.clipboard.writeText(rawText);
-    showToast('Secure Loader Copied!');
+    var generatedHook = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + rawTargetUrl + '").content if V then pcall(load(V)) end';
+    navigator.clipboard.writeText(generatedHook);
+    showToast('Hook Load Copied Successfully!');
 }
 
 async function loadKeys() {
@@ -365,15 +251,15 @@ async function loadKeys() {
         return `
             <div class="glass rounded-xl p-4 space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="mono text-xs font-bold ${isExpired ? 'text-red-400 line-through' : 'text-amber-400'}"><i class="fa-solid fa-key text-[10px] mr-1"></i> ${k.key}</span>
-                    <button onclick="delKey('${k.key}')" class="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md">Delete</button>
+                    <span class="mono text-xs font-bold ${isExpired ? 'text-red-400 line-through' : 'text-amber-400'}">${k.key}</span>
+                    <button onclick="delKey('${k.key}')" class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-[10px] cursor-pointer">Delete</button>
                 </div>
-                <div class="flex flex-wrap justify-between text-[10px] text-slate-400 mono gap-2 pt-1 border-t border-white/5">
+                <div class="flex flex-wrap justify-between text-[10px] text-slate-400 mono gap-2 pt-1 border-t border-slate-900">
                     <div>Module: <span class="text-white">${k.target_script_name}</span></div>
-                    <div>Devices: <span class="text-emerald-400">${devicesCount}/${k.max_devices}</span></div>
-                    <div>Expired: <span class="text-slate-300">${expDate.toLocaleDateString()}</span></div>
+                    <div>Devices: <span class="text-emerald-400 font-bold">${devicesCount}/${k.max_devices}</span></div>
+                    <div>Expired: <span class="${isExpired ? 'text-red-400 font-bold' : 'text-slate-300'}">${expDate.toLocaleDateString()}</span></div>
                 </div>
-                <button onclick="copyHookCode('${targetUrl}')" class="w-full py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 text-xs font-bold rounded-xl cursor-pointer block text-center">
+                <button onclick="copyHookCode('${targetUrl}')" class="w-full py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-bold rounded-xl transition cursor-pointer text-center block">
                     Copy Hook Load Script
                 </button>
             </div>`;
@@ -385,9 +271,9 @@ async function genKey() {
     var maxDev = document.getElementById('keyMaxDevices').value;
     var e = document.getElementById('keyExp').value;
     var c = document.getElementById('keyCustom').value.trim();
-    if (!s || !e) return showToast('Lengkapi parameter!');
+    if (!s || !e) return showToast('Parameter belum lengkap!');
     var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: e, maxDevices: maxDev, customName: c });
-    if (r.ok) { showToast('License Created!'); document.getElementById('keyCustom').value = ''; loadKeys(); }
+    if (r.ok) { showToast('License Key Generated!'); document.getElementById('keyCustom').value = ''; loadKeys(); }
 }
 
 async function delFile(id) { if (confirm('Hapus Script?')) { await api('DELETE', '?id=' + id); loadFiles(); } }
@@ -417,45 +303,6 @@ async function doLogin() {
 
 function goLogin() { document.getElementById('formCode').classList.add('hidden'); switchTab('log'); }
 function doLogout() { localStorage.removeItem('nx_session'); location.reload(); }
-
-var box = document.getElementById('draggableShortcut');
-var btn = document.getElementById('shortcutBtn');
-var activeDrag = false, startX, startY, initialX, initialY;
-
-// FIX SHORTCUT INTERACTION ACTION CLICK & DRAG STABILITY
-btn.addEventListener('click', function(e) {
-    if (activeDrag) return;
-    toggleSidebar();
-});
-
-box.addEventListener('mousedown', dragStart);
-box.addEventListener('touchstart', dragStart, { passive: true });
-document.addEventListener('mousemove', dragMove);
-document.addEventListener('touchmove', dragMove, { passive: false });
-document.addEventListener('mouseup', dragEnd);
-document.addEventListener('touchend', dragEnd);
-
-function dragStart(e) {
-    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    startX = clientX; startY = clientY;
-    var style = window.getComputedStyle(box);
-    initialX = parseInt(style.right); initialY = parseInt(style.bottom);
-    activeDrag = false; 
-}
-
-function dragMove(e) {
-    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    var dx = startX - clientX, dy = startY - clientY;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-        activeDrag = true;
-        box.style.right = (initialX + dx) + 'px';
-        box.style.bottom = (initialY + dy) + 'px';
-    }
-}
-
-function dragEnd() { setTimeout(() => { activeDrag = false; }, 50); }
 
 window.onload = function() {
     var cached = localStorage.getItem('nx_session');
