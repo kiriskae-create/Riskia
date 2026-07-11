@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         if (device && !registeredDevices.includes(clientHwid)) {
             if (registeredDevices.length >= license.max_devices) {
                 res.setHeader('Content-Type', 'text/plain');
-                return res.status(200).send('gg.alert("❌ Device penuh!"); os.exit()');
+                return res.status(200).send('gg.alert("❌ Perangkat Penuh!"); os.exit()');
             }
             registeredDevices.push(clientHwid);
             await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
@@ -115,6 +115,7 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
             return res.status(401).json({ error: 'Auth failed' });
         }
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
+        
         if (name && content) {
             if (existingScriptId) {
                 await sql`UPDATE scripts SET name = ${name}, content = ${content}, updated_at = CURRENT_TIMESTAMP WHERE id = ${existingScriptId}`;
@@ -126,8 +127,16 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         if (action === 'createKey') {
             const finalKey = customName || 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
-            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${new Date(expiry)}, ${parseInt(maxDevices) || 1})`;
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${new Date(expiry)}, ${parseInt(maxDevices) || 1}) ON CONFLICT (key) DO UPDATE SET script_id = EXCLUDED.script_id, target_script_name = EXCLUDED.target_script_name, expiry = EXCLUDED.expiry, max_devices = EXCLUDED.max_devices`;
             return res.status(200).json({ key: finalKey });
+        }
+        if (action === 'extendKey') {
+            await sql`UPDATE keys SET expiry = ${new Date(expiry)}, max_devices = ${parseInt(maxDevices) || 1} WHERE key = ${key}`;
+            return res.status(200).json({ success: true });
+        }
+        if (action === 'resetDevices') {
+            await sql`UPDATE keys SET registered_devices = '[]'::jsonb WHERE key = ${key}`;
+            return res.status(200).json({ success: true });
         }
     }
 
@@ -135,7 +144,6 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
         
         if (type === 'storage') {
-            // ESTIMASI TITIK KONSUMSI UKURAN DARI KOLOM TABEL UNTUK KUOTA VERCEL DB FREE TIER
             const sizeData = await sql`
                 SELECT 
                     COALESCE(SUM(OCTET_LENGTH(content)), 0) as script_bytes,
@@ -149,11 +157,17 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
             
             return res.status(200).json({
                 usedBytes: totalUsedBytes,
-                allocatedBytes: 33554432 // LIMIT REFERENSI ESTIMASI OPERASIONAL STANDAR (32MB ASSIGNMENT)
+                allocatedBytes: 33554432
             });
         }
         
-        return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys` : await sql`SELECT * FROM scripts`);
+        if (type === 'keys') {
+            const keysData = await sql`SELECT * FROM keys ORDER BY expiry DESC`;
+            return res.status(200).json(keysData);
+        }
+        
+        const scriptsData = await sql`SELECT * FROM scripts ORDER BY id DESC`;
+        return res.status(200).json(scriptsData);
     }
 
     if (req.method === 'DELETE') {

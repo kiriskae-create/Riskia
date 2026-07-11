@@ -133,7 +133,7 @@
         <div id="view-ggscript" class="space-y-4 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-white" id="editorTitle">Upload Lua Component</h3>
+                    <h3 class="text-xs font-bold text-white" id="editorTitle"><i class="fa-solid fa-file-arrow-up mr-1 text-blue-400"></i> Upload Lua Component</h3>
                     <button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline">Reset Form</button>
                 </div>
                 
@@ -170,28 +170,31 @@
         <!-- GENERATE LICENSE KEY VIEW -->
         <div id="view-keysystem" class="space-y-4 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
-                <h3 class="text-xs font-bold text-white">Generate Member Key Modules</h3>
+                <h3 class="text-xs font-bold text-white" id="keyFormTitle"><i class="fa-solid fa-key text-emerald-400 mr-1"></i> Create/Manage Access Tokens</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
+                    <div id="keyTargetContainer">
                         <label class="block text-[10px] text-slate-400 font-bold mb-1">TARGET LUA COMPONENTS</label>
                         <select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
                             <option value="">-- Memuat Komponen --</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1">MAX DEV PERMITTED</label>
+                        <label class="block text-[10px] text-slate-400 font-bold mb-1"><i class="fa-solid fa-laptop-code mr-1"></i> MAX DEV PERMITTED</label>
                         <input type="number" id="keyMaxDevices" value="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono" placeholder="Limit Perangkat">
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1">EXPIRY DATETIME LIFETIME</label>
+                        <label class="block text-[10px] text-slate-400 font-bold mb-1"><i class="fa-solid fa-calendar-days mr-1"></i> EXPIRY DATETIME LIFETIME</label>
                         <input type="datetime-local" id="keyExp" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs text-white mono">
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1">CUSTOM KEY IDENTIFIER (OPTIONAL)</label>
+                        <label class="block text-[10px] text-slate-400 font-bold mb-1">KEY IDENTIFIER / CODE TARGET</label>
                         <input type="text" id="keyCustom" placeholder="Ex: REX-VIP-KEY" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
                     </div>
                 </div>
-                <button onclick="genKey()" class="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl">Create Secure Access Key</button>
+                <div class="flex gap-2">
+                    <button id="btnSubmitKey" onclick="genKey()" class="flex-1 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl transition cursor-pointer">Create Secure Access Key</button>
+                    <button id="btnCancelKeyEdit" onclick="resetKeyForm()" class="hidden px-4 py-2.5 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer">Cancel</button>
+                </div>
             </div>
             
             <!-- LIST ITEM SECURE LICENSE DI BAWAH DASHBOARD -->
@@ -206,7 +209,7 @@
 <div id="toast" class="fixed bottom-6 left-6 bg-blue-600 text-white px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[99999] text-xs font-bold">✨ <span id="toastMsg"></span></div>
 
 <script>
-var S = { files: [], keys: [], session: '', currentMenu: 'beranda' };
+var S = { files: [], keys: [], session: '', currentMenu: 'beranda', isEditingKey: false };
 
 function showToast(m) {
     var t = document.getElementById('toast');
@@ -310,6 +313,8 @@ async function loadFiles() {
 
     c.innerHTML = S.files.map(f => {
         var plainRawLink = location.origin + '/api/server?type=raw&id=' + f.id;
+        // Escape content safely for onclick parameter
+        var safeBase64 = btoa(encodeURIComponent(f.content));
         return `
         <div class="glass rounded-xl p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3 transition hover:border-white/10">
             <div>
@@ -317,7 +322,7 @@ async function loadFiles() {
             </div>
             <div class="flex gap-1.5 justify-end">
                 <button onclick="navigator.clipboard.writeText('${plainRawLink}');showToast('Link Raw Copied!')" class="px-2.5 py-1 bg-white/5 text-white border border-white/10 rounded-lg text-[10px] cursor-pointer">Copy Raw Link</button>
-                <button onclick="editFile('${f.id}','${btoa(encodeURIComponent(f.content))}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer">Edit</button>
+                <button onclick="editFile('${f.id}','${safeBase64}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer">Edit</button>
                 <button onclick="delFile('${f.id}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] cursor-pointer">Delete</button>
             </div>
         </div>`;
@@ -331,7 +336,7 @@ function editFile(id, base64Content) {
     document.getElementById('editScriptId').value = id;
     document.getElementById('fileName').value = target.name;
     document.getElementById('fileContent').value = dec;
-    document.getElementById('editorTitle').innerText = 'Editing Script: ' + target.name;
+    document.getElementById('editorTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-amber-400 mr-1"></i> Mode Ubah Script: ' + target.name;
     document.getElementById('btnResetEdit').classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -342,7 +347,7 @@ function resetEditor() {
     document.getElementById('fileContent').value = '';
     document.getElementById('fileSelector').value = '';
     document.getElementById('selectedFileNameDisplay').innerText = 'Belum ada file dipilih';
-    document.getElementById('editorTitle').innerText = 'Upload Lua Component';
+    document.getElementById('editorTitle').innerHTML = '<i class="fa-solid fa-file-arrow-up mr-1 text-blue-400"></i> Upload Lua Component';
     document.getElementById('btnResetEdit').classList.add('hidden');
 }
 
@@ -369,11 +374,15 @@ async function deployFile() {
     
     setTimeout(() => {
         pBox.classList.add('hidden'); pBar.style.width = '0%'; pPct.innerText = '0%';
-        if (r.ok) { showToast('Script Committed Successfully!'); resetEditor(); loadFiles(); }
+        if (r.ok) { 
+            showToast('Script Committed Successfully!'); 
+            resetEditor(); 
+            loadFiles(); 
+        }
     }, 400);
 }
 
-function copyHookCode() {
+function copyHookCode(rawKey) {
     var scriptOutput = `local ask = gg.prompt({"🔑 MASUKKAN KEY MEMBER ANDA:"}, {nil}, {"text"})\n`;
     scriptOutput += `if not ask then os.exit() end\n`;
     scriptOutput += `local k = ask[1]\n`;
@@ -383,7 +392,7 @@ function copyHookCode() {
     scriptOutput += `if V and V ~= "" then pcall(load(V)) else gg.alert("Key Salah / Expired!") end`;
     
     navigator.clipboard.writeText(scriptOutput);
-    showToast('Secure Loader Copied for Members!');
+    showToast('Secure Loader Copied!');
 }
 
 async function loadKeys() {
@@ -401,22 +410,62 @@ async function loadKeys() {
     c.innerHTML = S.keys.map(k => {
         var expDate = new Date(k.expiry);
         var isExpired = new Date() > expDate;
+        var devCount = k.registered_devices ? (typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices).length : k.registered_devices.length) : 0;
+        
+        // Format ISO String to Local Datetime Input String Format
+        var isoLocal = expDate.getFullYear() + '-' + 
+                       String(expDate.getMonth()+1).padStart(2,'0') + '-' + 
+                       String(expDate.getDate()).padStart(2,'0') + 'T' + 
+                       String(expDate.getHours()).padStart(2,'0') + ':' + 
+                       String(expDate.getMinutes()).padStart(2,'0');
+
         return `
             <div class="glass rounded-xl p-4 space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="mono text-xs font-bold ${isExpired ? 'text-red-400 line-through' : 'text-amber-400'}"><i class="fa-solid fa-key text-[10px] mr-1"></i> ${k.key}</span>
-                    <button onclick="delKey('${k.key}')" class="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md cursor-pointer">Delete</button>
+                    <div class="flex gap-1.5">
+                        <button onclick="editExistingKey('${k.key}', ${k.max_devices}, '${isoLocal}')" class="text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md cursor-pointer"><i class="fa-solid fa-user-gear"></i> Manage/Extend</button>
+                        <button onclick="resetKeyHWID('${k.key}')" class="text-[10px] text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-md cursor-pointer"><i class="fa-solid fa-rotate mr-0.5"></i> Reset HWID</button>
+                        <button onclick="delKey('${k.key}')" class="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md cursor-pointer">Delete</button>
+                    </div>
                 </div>
                 <div class="flex flex-wrap justify-between text-[10px] text-slate-400 mono gap-2 pt-1 border-t border-white/5">
-                    <div>Module Attached: <span class="text-white">${k.target_script_name || 'Unknown'}</span></div>
-                    <div>Max Devices: <span class="text-emerald-400">${k.registered_devices ? k.registered_devices.length : 0}/${k.max_devices}</span></div>
+                    <div>Module Attached: <span class="text-white font-bold">${k.target_script_name || 'Unknown'}</span></div>
+                    <div>Max Devices: <span class="text-emerald-400 font-bold">${devCount}/${k.max_devices} <i class="fa-solid fa-mobile-screen text-[9px]"></i></span></div>
                     <div>Expiry: <span class="text-slate-300">${expDate.toLocaleString()}</span></div>
                 </div>
-                <button onclick="copyHookCode()" class="w-full py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 text-xs font-bold rounded-xl cursor-pointer block text-center">
-                    Copy Loader (Auto Prompt Key)
+                <button onclick="copyHookCode('${k.key}')" class="w-full py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 text-xs font-bold rounded-xl cursor-pointer block text-center">
+                    <i class="fa-solid fa-copy mr-1"></i> Copy Loader (Auto Prompt Key)
                 </button>
             </div>`;
     }).join('');
+}
+
+function editExistingKey(key, maxDevices, expIso) {
+    S.isEditingKey = true;
+    document.getElementById('keyFormTitle').innerHTML = `<i class="fa-solid fa-user-gear text-amber-400 mr-1"></i> Extend / Modify Key: ${key}`;
+    document.getElementById('keyCustom').value = key;
+    document.getElementById('keyCustom').readOnly = true;
+    document.getElementById('keyMaxDevices').value = maxDevices;
+    document.getElementById('keyExp').value = expIso;
+    
+    // Sembunyikan target selector saat mode edit akses/perpanjangan masa aktif
+    document.getElementById('keyTargetContainer').classList.add('opacity-40', 'pointer-events-none');
+    document.getElementById('btnSubmitKey').innerText = 'Update Expiry & Max Devices';
+    document.getElementById('btnCancelKeyEdit').classList.remove('hidden');
+    window.scrollTo({ top: document.getElementById('keyFormTitle').offsetTop - 100, behavior: 'smooth' });
+}
+
+function resetKeyForm() {
+    S.isEditingKey = false;
+    document.getElementById('keyFormTitle').innerHTML = '<i class="fa-solid fa-key text-emerald-400 mr-1"></i> Create/Manage Access Tokens';
+    document.getElementById('keyCustom').value = '';
+    document.getElementById('keyCustom').readOnly = false;
+    document.getElementById('keyMaxDevices').value = '1';
+    document.getElementById('keyExp').value = '';
+    document.getElementById('keyTargetContainer').classList.remove('opacity-40', 'pointer-events-none');
+    document.getElementById('btnSubmitKey').innerText = 'Create Secure Access Key';
+    document.getElementById('btnCancelKeyEdit').classList.add('hidden');
 }
 
 async function genKey() {
@@ -425,12 +474,35 @@ async function genKey() {
     var e = document.getElementById('keyExp').value;
     var c = document.getElementById('keyCustom').value.trim();
     
-    if (!s || !e) return showToast('Harap tentukan Component & Expiry Date!');
-    
-    var formattedExpiry = new Date(e).toISOString();
-    
-    var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: formattedExpiry, maxDevices: maxDev, customName: c });
-    if (r.ok) { showToast('License Created!'); document.getElementById('keyCustom').value = ''; await loadKeys(); }
+    if (S.isEditingKey) {
+        if (!e) return showToast('Harap tentukan New Expiry Date!');
+        var formattedExpiry = new Date(e).toISOString();
+        var r = await api('POST', '', { action: 'extendKey', key: c, expiry: formattedExpiry, maxDevices: maxDev });
+        if (r.ok) { 
+            showToast('Key Parameter Updated Successfully!'); 
+            resetKeyForm(); 
+            await loadKeys(); 
+        }
+    } else {
+        if (!s || !e) return showToast('Harap tentukan Component & Expiry Date!');
+        var formattedExpiry = new Date(e).toISOString();
+        var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: formattedExpiry, maxDevices: maxDev, customName: c });
+        if (r.ok) { 
+            showToast('New License Token Created!'); 
+            resetKeyForm(); 
+            await loadKeys(); 
+        }
+    }
+}
+
+async function resetKeyHWID(key) {
+    if (confirm('Reset log device hwid terdaftar untuk key ini?')) {
+        var r = await api('POST', '', { action: 'resetDevices', key: key });
+        if(r.ok) {
+            showToast('HWID Device Connected Clear!');
+            await loadKeys();
+        }
+    }
 }
 
 async function delFile(id) { if (confirm('Hapus Script Permanent?')) { await api('DELETE', '?id=' + id); loadFiles(); } }
