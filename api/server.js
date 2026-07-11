@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     const { id, type, key, device, reqStage, deleteKey } = req.query;
     const host = req.headers.host;
 
-    // STAGE 1: Dipanggil pertama kali oleh struktur loader eksternal
+    // STAGE 1: Inisialisasi awal saat link utama di-load di Game Guardian
     if (key && !reqStage) {
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (checkKey.length === 0) {
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         return res.status(200).send(payloadStage1);
     }
 
-    // PROSES VALIDASI STAGE 2 & STAGE 3
+    // PROSES VALIDASI LANJUTAN STAGE 2 & STAGE 3
     if (key && reqStage) {
         const keys = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (keys.length === 0) return res.status(200).send('gg.alert("❌ Lisensi Tidak Valid!"); os.exit()');
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
             await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
         }
 
-        // STAGE 2: Memunculkan toast status validasi lisensi
+        // STAGE 2: Memunculkan Toast Selamat Datang & Lempar ke Tahap Akhir
         if (reqStage === '2') {
             const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
             return res.status(200).send(payloadStage2);
         }
 
-        // STAGE 3: Menyerahkan source code script LUA asli
+        // STAGE 3: Penyerahan enkripsi source code LUA murni dari database
         if (reqStage === '3') {
             const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
             res.setHeader('Content-Type', 'text/plain');
@@ -93,14 +93,14 @@ export default async function handler(req, res) {
         }
     }
 
-    // AKSES PUBLIC RAW SCRIPT (Mengatasi Denied saat di-view/di-klik langsung)
+    // JALUR AKSES RAW UNTUK DASHBOARD (Bypass Otentikasi Sesi Khusus Tipe Raw)
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- Script Not Found');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- Script Tidak Ditemukan');
     }
 
-    // --- SECURITY MANAGEMENT SESSION ROUTING ---
+    // --- VERIFIKASI SESI ADMINISTRATOR DASHBOARD ---
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
