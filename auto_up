@@ -1,0 +1,30 @@
+#!/data/data/com.termux/files/usr/bin/bash
+cd "$(dirname "$0")"
+
+VERCEL_URL="https://riskia.vercel.app"
+
+echo "📥 Menyedot update dari Vercel..."
+curl -s "$VERCEL_URL/api/server?type=sync" > database_temp.json
+
+if grep -q "accounts" database_temp.json; then
+  mv database_temp.json database.json
+  echo "  [✓] Database lokal diperbarui."
+else
+  echo "  [⚠️] Gagal sync / data kosong. Pakai data lokal."
+  rm -f database_temp.json
+fi
+
+# Reset git & Sambungin langsung ke repo RISK
+rm -rf .git
+git init
+git remote add origin https://github.com/kiriskae-create/Riskia.git
+
+# WAJIB: Masukin folder api dan database secara eksplisit
+git add api/server.js database.json auto_up index.html
+git branch -M main
+
+echo "📤 Mengirim struktur folder ke GitHub..."
+git commit -m "Nexus X v9.5 — Full Structure Fix in Project Riskia" --allow-empty
+git push origin main --force 2>/dev/null || git push origin master --force 2>/dev/null || git push --force
+
+echo "🚀 DONE! Cek repo https://github.com/kiriskae-create/Riskia sekarang!"

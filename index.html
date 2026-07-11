@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <title>NEXUS X CLOUD</title>
+ <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+ <style>
+ @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+ *,*::before,*::after{box-sizing:border-box}
+ body{font-family:'Inter',sans-serif;overflow-x:hidden;background:#05060a}
+ .mono{font-family:'JetBrains Mono',monospace}
+ ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#0a0b10}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#f59e0b,#d97706);border-radius:4px}
+ .glass{background:rgba(15,17,25,0.7);backdrop-filter:blur(20px);border:1px solid rgba(245,158,11,0.08)}
+ .glass-gold{background:linear-gradient(135deg,rgba(245,158,11,0.06),rgba(217,119,6,0.03));border:1px solid rgba(245,158,11,0.15)}
+ .gold-glow{box-shadow:0 0 30px rgba(245,158,11,0.08),0 0 60px rgba(245,158,11,0.04)}
+ .gold-text{background:linear-gradient(135deg,#fbbf24,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+ .menu-active{background:linear-gradient(90deg,rgba(245,158,11,0.12),transparent);border-left:3px solid #f59e0b;color:#fbbf24}
+ .vip-badge{background:linear-gradient(135deg,#f59e0b,#d97706);font-size:8px;padding:2px 8px;border-radius:4px;font-weight:800;letter-spacing:1px;color:#000}
+ @keyframes fillRight{0%{width:0%}100%{width:100%}}.animate-fill-right{animation:fillRight 1s cubic-bezier(0.4,0,0.2,1) forwards}
+ @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease}
+ @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}.shimmer{background:linear-gradient(90deg,transparent 0%,rgba(245,158,11,0.05) 50%,transparent 100%);background-size:200% 100%;animation:shimmer 3s infinite}
+ .btn-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-weight:700;transition:all 0.2s}.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(245,158,11,0.3)}
+ .btn-ghost{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);color:#fbbf24;transition:all 0.2s}.btn-ghost:hover{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)}
+ .input-dark{background:rgba(5,6,10,0.8);border:1px solid rgba(245,158,11,0.1);color:#e2e8f0;transition:border-color 0.2s}.input-dark:focus{outline:none;border-color:rgba(245,158,11,0.4)}.input-dark::placeholder{color:#374151}
+ .tab-active{background:rgba(245,158,11,0.15);color:#fbbf24;border-color:rgba(245,158,11,0.3)}
+ .tab-inactive{background:transparent;color:#6b7280;border-color:transparent}
+ .code-box{background:rgba(0,0,0,0.6);border:2px dashed rgba(245,158,11,0.3);letter-spacing:10px;font-size:30px;font-weight:900}
+ .spinner{width:18px;height:18px;border:2px solid rgba(245,158,11,0.3);border-top-color:#f59e0b;border-radius:50%;animation:spin 0.6s linear infinite}
+ @keyframes spin{to{transform:rotate(360deg)}}
+ </style>
+</head>
+<body class="text-slate-200 min-h-screen">
+ <div id="authGate" class="fixed inset-0 z-[100] bg-[#05060a] flex items-center justify-center">
+ <div class="absolute inset-0 overflow-hidden pointer-events-none"><div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[100px]"></div><div class="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[100px]"></div></div>
+ <div class="w-full max-w-sm mx-4 relative z-10 fade-in" id="authContent">
+ <div class="text-center mb-6">
+ <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/10 border border-amber-500/20 mb-3"><span class="text-2xl font-black gold-text" style="letter-spacing: -1px;">NX</span></div>
+ <h1 class="text-lg font-bold gold-text tracking-tight">NEXUS X CLOUD</h1>
+ <p class="text-[10px] text-slate-500 mt-0.5">Premium Script Management</p>
+ </div>
+ <div class="flex mb-4 gap-1 bg-black/30 p-1 rounded-xl border border-amber-500/5">
+ <button id="tabReg" onclick="switchTab('reg')" class="flex-1 py-2 rounded-lg text-xs font-semibold border transition cursor-pointer tab-active">Create Account</button>
+ <button id="tabLog" onclick="switchTab('log')" class="flex-1 py-2 rounded-lg text-xs font-semibold border transition cursor-pointer tab-inactive">Login</button>
+ </div>
+ 
+ <div id="formReg" class="glass glass-gold rounded-2xl p-5 space-y-3">
+ <input type="email" id="regEmail" placeholder="Gmail address" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+ <input type="password" id="regPass" placeholder="Password (min 4)" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+ <input type="password" id="regPass2" placeholder="Confirm password" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+ <button onclick="doRegister()" id="regBtn" class="w-full py-2.5 rounded-xl btn-gold text-sm flex items-center justify-center gap-2"><span id="regBtnText">Register</span><div id="regSpinner" class="spinner hidden"></div></button>
+ <div id="regErr" class="hidden text-[10px] text-red-400 text-center bg-red-500/5 border border-red-500/10 rounded-lg py-2 px-3"></div>
+ </div>
+
+ <div id="formCode" class="glass glass-gold rounded-2xl p-5 space-y-4 hidden">
+ <div class="text-center">
+ <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-2"><svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg></div>
+ <h3 class="text-sm font-bold text-white">Account Created!</h3>
+ <p class="text-[10px] text-slate-400 mt-1">Code juga dikirim ke Gmail (cek Spam)</p>
+ </div>
+ <div class="bg-emerald-500/5 border border-emerald-500/10 rounded-lg p-3 flex items-start gap-2">
+ <svg class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+ <div><p class="text-[10px] text-emerald-400 font-semibold">Email terkirim</p><p class="text-[9px] text-amber-400 mt-0.5">Cek Spam / Promotions</p></div>
+ </div>
+ <div class="text-center"><p class="text-[9px] text-slate-500 uppercase tracking-widest mb-2">Your Code</p></div>
+ <div class="code-box rounded-xl py-5 px-3 text-center gold-text mono" id="codeDisplay">------</div>
+ <button onclick="navigator.clipboard.writeText(S.regCode);showToast('Copied!')" class="w-full py-2 rounded-xl btn-ghost text-xs">Copy Code</button>
+ <button onclick="goLogin()" class="w-full py-2.5 rounded-xl btn-gold text-sm">Continue to Login</button>
+ </div>
+
+ <div id="formLog" class="glass glass-gold rounded-2xl p-5 space-y-3 hidden">
+ <input type="email" id="logEmail" placeholder="Gmail address" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+ <input type="password" id="logPass" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+ <button onclick="doLogin()" id="logBtn" class="w-full py-2.5 rounded-xl btn-gold text-sm flex items-center justify-center gap-2"><span id="logBtnText">Login</span><div id="logSpinner" class="spinner hidden"></div></button>
+ <div id="logErr" class="hidden text-[10px] text-red-400 text-center bg-red-500/5 border border-red-500/10 rounded-lg py-2 px-3"></div>
+ </div>
+ <p class="text-center text-[8px] text-slate-600 mt-4">v8.7 Permanent</p>
+ </div>
+ </div>
+
+ <div id="mainApp" class="hidden min-h-screen relative">
+ <div class="absolute inset-0 overflow-hidden pointer-events-none"><div class="absolute top-0 left-0 w-[600px] h-[600px] bg-amber-500/[0.03] rounded-full blur-[120px]"></div><div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-orange-500/[0.02] rounded-full blur-[120px]"></div></div>
+ <div id="sidebarDrawer" class="fixed inset-y-0 left-0 w-64 bg-[#0a0b10] border-r border-amber-500/10 shadow-2xl z-50 transform -translate-x-full transition-transform duration-300">
+ <div class="p-4 bg-gradient-to-r from-amber-600 to-orange-600 flex items-center justify-between"><div class="flex items-center gap-2"><span class="text-black font-black text-sm">NEXUS X</span><span class="vip-badge">VIP</span></div><button onclick="toggleSidebar(false)" class="h-7 w-7 rounded-lg bg-black/20 text-black flex items-center justify-center cursor-pointer text-xs font-bold">X</button></div>
+ <div class="p-3 space-y-1">
+ <div class="px-3 py-2"><p class="text-[9px] text-slate-500 uppercase tracking-widest">Menu</p></div>
+ <button onclick="switchMenu('beranda')" id="menu-beranda" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-amber-500/5 text-xs font-medium text-left transition menu-active">Dashboard</button>
+ <button onclick="switchMenu('ggscript')" id="menu-ggscript" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-amber-500/5 text-xs font-medium text-left transition">Script Cloud</button>
+ <button onclick="switchMenu('keysystem')" id="menu-keysystem" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-amber-500/5 text-xs font-medium text-left transition"><span>Key System</span><span class="vip-badge">PRO</span></button>
+ <div class="border-t border-amber-500/5 my-2"></div>
+ <button onclick="doLogout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/5 text-xs font-medium text-left transition">Logout</button>
+ </div>
+ </div>
+ <div id="sidebarOverlay" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300"></div>
+ <div class="max-w-5xl mx-auto px-4 py-4 relative z-10">
+ <header class="flex items-center justify-between mb-6">
+ <div class="flex items-center gap-3">
+ <button onclick="toggleSidebar(true)" class="h-10 w-10 rounded-xl glass-gold flex items-center justify-center text-amber-400 cursor-pointer text-sm">=</button>
+ <div><div class="flex items-center gap-2"><h1 class="text-sm font-bold text-white">NEXUS X</h1><span class="vip-badge">VIP</span></div><p class="text-[9px] text-slate-500 mono" id="adminEmail"></p></div>
+ </div>
+ <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div><span class="text-[9px] text-emerald-400">Online</span></div>
+ </header>
+ 
+ <div id="view-beranda" class="space-y-4 fade-in">
+ <div class="glass gold-glow rounded-2xl p-6 shimmer">
+ <div class="flex items-center justify-between mb-4"><div><p class="text-[9px] text-amber-400/60 uppercase tracking-widest font-semibold">Dashboard</p><h2 class="text-lg font-bold text-white mt-1">Overview</h2></div><span class="vip-badge text-[10px]">PREMIUM</span></div>
+ <div class="grid grid-cols-3 gap-3">
+ <div class="bg-black/30 rounded-xl p-3 border border-amber-500/5"><p class="text-[9px] text-slate-500">Scripts</p><p class="text-xl font-bold gold-text mono" id="statS">0</p></div>
+ <div class="bg-black/30 rounded-xl p-3 border border-amber-500/5"><p class="text-[9px] text-slate-500">Active Keys</p><p class="text-xl font-bold gold-text mono" id="statK">0</p></div>
+ <div class="bg-black/30 rounded-xl p-3 border border-amber-500/5"><p class="text-[9px] text-slate-500">Devices</p><p class="text-xl font-bold gold-text mono" id="statD">0</p></div>
+ </div>
+ </div>
+ <div class="glass rounded-2xl p-4 space-y-3">
+ <div class="flex items-center justify-between"><h3 class="text-xs font-bold text-amber-400">Bootstrap Script</h3></div>
+ <textarea id="bootstrapCode" rows="4" readonly class="w-full px-3 py-2 rounded-lg bg-black/40 border border-amber-500/5 text-[10px] text-emerald-400 mono resize-none"></textarea>
+ <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Copied!')" class="w-full py-2.5 rounded-xl btn-gold text-xs">Copy Bootstrap</button>
+ </div>
+ </div>
+
+ <div id="view-ggscript" class="space-y-4 hidden fade-in">
+ <div class="glass rounded-2xl p-4 space-y-4">
+ <h2 class="text-xs font-bold uppercase tracking-widest text-amber-400">Upload Script</h2>
+ <div onclick="document.getElementById('fileIn').click()" class="border border-dashed border-amber-500/15 rounded-xl p-6 flex flex-col items-center cursor-pointer hover:border-amber-500/30 transition"><input type="file" id="fileIn" class="hidden" onchange="handleFile(event)" accept=".lua,.txt"><p class="text-xs font-semibold text-slate-300">Select LUA</p></div>
+ <input type="text" id="fileName" placeholder="script.lua" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
+ <textarea id="fileContent" rows="5" placeholder="-- code..." class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono resize-none"></textarea>
+ <div id="progWrap" class="hidden w-full bg-black/40 rounded-full h-1.5 overflow-hidden"><div id="progBar" class="bg-gradient-to-r from-amber-400 to-orange-500 h-1.5 rounded-full animate-fill-right"></div></div>
+ <button id="deployBtn" onclick="deployFile()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Deploy</button>
+ </div>
+ <div id="fileList" class="space-y-2"></div>
+ </div>
+
+ <div id="view-keysystem" class="space-y-4 hidden fade-in">
+ <div class="glass rounded-2xl p-4 space-y-4">
+ <div class="flex items-center justify-between"><h2 class="text-xs font-bold uppercase tracking-widest text-amber-400">Key Generator</h2><span class="vip-badge">PRO</span></div>
+ <div class="space-y-3">
+ <div><label class="block text-[9px] text-slate-500 mb-1 uppercase tracking-wider">Target</label><select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></select></div>
+ <div class="grid grid-cols-2 gap-3">
+ <div><label class="block text-[9px] text-slate-500 mb-1 uppercase tracking-wider">Expired</label><input type="datetime-local" id="keyExp" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></div>
+ <div><label class="block text-[9px] text-slate-500 mb-1 uppercase tracking-wider">Quick</label><button onclick="setExp(1)" class="w-full btn-ghost text-[10px] py-1.5 rounded-lg mb-1">+24J</button><button onclick="setExp(7)" class="w-full btn-ghost text-[10px] py-1.5 rounded-lg mb-1">+7H</button><button onclick="setExp(30)" class="w-full btn-ghost text-[10px] py-1.5 rounded-lg">+30H</button></div>
+ </div>
+ <div class="grid grid-cols-2 gap-3">
+ <div><label class="block text-[9px] text-slate-500 mb-1 uppercase tracking-wider">Max Dev</label><input type="number" id="keyMax" value="1" min="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></div>
+ <div><label class="block text-[9px] text-slate-500 mb-1 uppercase tracking-wider">Custom Key</label><input type="text" id="keyCustom" placeholder="Optional" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></div>
+ </div>
+ <button onclick="genKey()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Generate Key</button>
+ </div>
+ </div>
+ <div id="keyList" class="space-y-2"></div>
+ </div>
+ </div>
+ </div>
+ 
+ <div id="editModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden p-3"><div class="glass-gold w-full max-w-md rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"><div class="bg-gradient-to-r from-amber-600 to-orange-600 p-3 flex justify-between items-center"><h3 class="text-xs font-bold text-black uppercase tracking-wider">Edit</h3><button onclick="closeEdit()" class="text-xs font-bold px-2 py-1 bg-black/20 rounded text-black cursor-pointer">X</button></div><div class="p-4 space-y-3"><input type="hidden" id="editId"><input type="text" id="editName" readonly class="w-full px-3 py-2 rounded-lg input-dark text-xs mono opacity-60"><textarea id="editCode" rows="8" class="w-full px-3 py-2 rounded-lg input-dark text-xs mono resize-none"></textarea><button onclick="encScript()" id="encBtn" class="w-full py-2.5 rounded-xl bg-purple-600 text-white text-xs font-bold cursor-pointer">Encrypt</button><div class="flex gap-2 pt-2 border-t border-amber-500/10"><button onclick="closeEdit()" class="flex-1 py-2 rounded-lg btn-ghost text-xs">Cancel</button><button onclick="saveEdit()" class="flex-[2] py-2 rounded-xl btn-gold text-xs">Save</button></div></div></div></div>
+ <div id="prevModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden p-3"><div class="glass-gold w-full max-w-md rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"><div class="bg-gradient-to-r from-emerald-600 to-green-600 p-3 flex justify-between items-center"><h3 class="text-xs font-bold text-white uppercase tracking-wider">GG Script</h3><button onclick="closePrev()" class="text-xs font-bold px-2 py-1 bg-black/20 rounded text-white cursor-pointer">X</button></div><div class="p-4 space-y-3"><textarea id="prevCode" rows="14" readonly class="w-full px-3 py-2 rounded-lg bg-black/40 border border-amber-500/5 text-[10px] text-emerald-400 mono resize-none"></textarea><button onclick="navigator.clipboard.writeText(document.getElementById('prevCode').value);showToast('Copied!')" class="w-full py-2.5 rounded-xl btn-gold text-xs">Copy</button><button onclick="closePrev()" class="w-full py-2 rounded-lg btn-ghost text-xs">Close</button></div></div></div>
+ <div id="toast" class="fixed bottom-4 right-4 bg-gradient-to-r from-amber-600 to-orange-600 text-black px-4 py-2.5 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-[60] text-xs font-bold"><span id="toastMsg">OK</span></div>
+
+ <script>
+ var S={files:[],keys:[],session:'',regCode:''};
+ function showToast(m){var t=document.getElementById('toast');document.getElementById('toastMsg').innerText=m;t.classList.remove('translate-y-20','opacity-0');setTimeout(function(){t.classList.add('translate-y-20','opacity-0')},2500)}
+ function toggleSidebar(o){var s=document.getElementById('sidebarDrawer'),v=document.getElementById('sidebarOverlay');if(o){s.classList.remove('-translate-x-full');v.classList.remove('hidden');setTimeout(function(){v.classList.add('opacity-100')},10)}else{s.classList.add('-translate-x-full');v.classList.remove('opacity-100');setTimeout(function(){v.classList.add('hidden')},250)}}
+ function switchMenu(t){['beranda','ggscript','keysystem'].forEach(function(m){document.getElementById('menu-'+m).classList.remove('menu-active');document.getElementById('view-'+m).classList.add('hidden')});document.getElementById('menu-'+t).classList.add('menu-active');document.getElementById('view-'+t).classList.remove('hidden');toggleSidebar(false);if(t==='beranda'){initBeranda();loadStats()}if(t==='ggscript')loadFiles();if(t==='keysystem'){loadFiles();loadKeys();setExp(1)}}
+ function setExp(d){var n=new Date();n.setDate(n.getDate()+d);n.setMinutes(n.getMinutes()-n.getTimezoneOffset());document.getElementById('keyExp').value=n.toISOString().slice(0,16)}
+ function handleFile(e){var f=e.target.files[0];if(!f)return;document.getElementById('fileName').value=f.name;var r=new FileReader();r.onload=function(ev){document.getElementById('fileContent').value=ev.target.result};r.readAsText(f)}
+ function initBeranda(){var u=location.origin+'/api/server?loader=1';document.getElementById('bootstrapCode').value='gg.setVisible(false)\nlocal r=gg.makeRequest("'+u+'")\nif r and r.code==200 then\n local f=load(r.content)\n if f then f() else gg.alert("Error!") end\nelse\n gg.alert("Network error!")\nend'}
+ function loadStats(){document.getElementById('statS').innerText=S.files.length;var ak=0,ad=0;S.keys.forEach(function(k){if(new Date()<new Date(k.expiry)){ak++;ad+=k.registeredDevices.length}});document.getElementById('statK').innerText=ak;document.getElementById('statD').innerText=ad}
+ function genGG(key){var b=location.origin;return'gg.setVisible(false)\nlocal function getD()\n local ok,f=pcall(io.open,"/sys/class/net/wlan0/address","r")\n if ok and f then local m=f:read("*a") f:close() if m then return m:gsub("\\n",""):gsub(":","") end end\n ok,f=pcall(io.open,"/sys/class/net/eth0/address","r")\n if ok and f then local m=f:read("*a") f:close() if m then return m:gsub("\\n",""):gsub(":","") end end\n return "NOID"\nend\nlocal hwid=getD() gg.toast("Device: "..hwid)\nlocal inp=gg.prompt({"[NEXUS X] Device ID","[NEXUS X] Masukkan Key"},{hwid,""},{"text","text"})\nif not inp then return end\nlocal key=inp[2] if key=="" then gg.alert("Key kosong!") return end\ngg.toast("Verifying: "..key)\nlocal r=gg.makeRequest("'+b+'/api/server?authKey="..key.."&device="..hwid.."&reqStage=1")\nif r and r.code==200 then\n local f=load(r.content) if f then f() else gg.alert("Exec error!") end\nelse gg.alert("Connection failed!") end'}
+ async function api(m,p,b){var o={method:m,headers:{'Content-Type':'application/json'}};if(S.session)o.headers['X-Session']=S.session;if(b)o.body=JSON.stringify(b);var r=await fetch('/api/server'+p,o);if(r.status===401){doLogout();return null}return r}
+ async function loadFiles(){var r=await api('GET','');if(!r)return;S.files=await r.json();var sel=document.getElementById('keyTarget');if(sel)sel.innerHTML='<option value="">-- Select --</option>'+S.files.map(function(f){return'<option value="'+f.id+'">'+f.name+'</option>'}).join('');var c=document.getElementById('fileList');if(!S.files.length){c.innerHTML='<div class="text-xs text-slate-500 text-center py-8 glass rounded-xl">Empty.</div>';return}c.innerHTML=S.files.map(function(f,i){return'<div class="glass rounded-xl p-3 flex items-center justify-between gap-2"><div class="min-w-0 flex-1"><h3 class="text-xs font-semibold text-white mono truncate">'+f.name+'</h3><p class="text-[9px] text-slate-500 mono">'+f.time+'</p></div><div class="flex gap-1.5 shrink-0"><button onclick="openEdit('+i+')" class="px-2.5 py-1 btn-ghost rounded-lg text-[10px]">Edit</button><button onclick="delFile(\''+f.id+'\')" class="px-2.5 py-1 bg-red-500/5 border border-red-500/10 text-red-400 rounded-lg text-[10px] cursor-pointer">Del</button></div></div>'}).join('')}
+ async function deployFile(){var n=document.getElementById('fileName').value.trim(),c=document.getElementById('fileContent').value;if(!n||!c)return showToast('Fill all!');var b=document.getElementById('deployBtn'),pW=document.getElementById('progWrap'),pB=document.getElementById('progBar');b.disabled=true;b.innerText='Deploying...';pW.classList.remove('hidden');pB.classList.add('animate-fill-right');var r=await api('POST','',{name:n,content:c});setTimeout(function(){document.getElementById('fileName').value='';document.getElementById('fileContent').value='';pW.classList.add('hidden');pB.classList.remove('animate-fill-right');b.disabled=false;b.innerText='Deploy';if(r)showToast('Done!');loadFiles()},1000)}
+ async function loadKeys(){var r=await api('GET','?type=keys');if(!r)return;S.keys=await r.json();var c=document.getElementById('keyList');if(!S.keys.length){c.innerHTML='<div class="text-xs text-slate-500 text-center py-8 glass rounded-xl">Empty.</div>';return}c.innerHTML=S.keys.map(function(k){var ie=new Date()>new Date(k.expiry),sc=ie?'text-red-400':'text-emerald-400',st=ie?'EXPIRED':'ACTIVE';return'<div class="glass rounded-xl p-3 space-y-2 '+(ie?'opacity-50':'')+'"><div class="flex justify-between items-start"><div><span class="text-xs font-bold gold-text mono">'+k.key+'</span><div class="flex items-center gap-2 mt-1"><span class="text-[8px] font-bold '+sc+' px-1.5 py-0.5 rounded '+(ie?'bg-red-500/10':'bg-emerald-500/10')+'">'+st+'</span><span class="text-[9px] text-slate-500">'+k.targetScriptName+'</span></div></div><button onclick="delKey(\''+k.key+'\')" class="text-[10px] bg-red-500/5 border border-red-500/10 text-red-400 px-2 py-0.5 rounded cursor-pointer">X</button></div><div class="text-[9px] text-slate-500 flex gap-4"><span>Exp: <span class="text-red-400 mono">'+k.expiry.replace('T',' ')+'</span></span><span>Dev: <span class="'+sc+' mono">'+k.registeredDevices.length+'/'+k.maxDevices+'</span></span></div><div class="flex gap-1.5 pt-1.5 border-t border-amber-500/5"><button onclick="navigator.clipboard.writeText(\''+k.key+'\');showToast(\'Copied!\')" class="flex-1 btn-ghost text-[9px] py-1.5 rounded-lg">Key</button><button onclick="showPrev(\''+k.key+'\')" class="flex-1 btn-ghost text-[9px] py-1.5 rounded-lg">GG Script</button><button onclick="navigator.clipboard.writeText(genGG(\''+k.key+'\'));showToast(\'Copied!\')" class="flex-1 btn-ghost text-[9px] py-1.5 rounded-lg">Direct</button></div></div>'}).join('')}
+ async function genKey(){var s=document.getElementById('keyTarget').value,e=document.getElementById('keyExp').value;if(!s||!e)return showToast('Fill!');var d=new Date(e);var utc=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString();var m=parseInt(document.getElementById('keyMax').value)||1,c=document.getElementById('keyCustom').value.trim();var r=await api('POST','',{action:'createKey',scriptId:s,expiry:utc,maxDevices:m,customName:c});if(r){showToast('Created!');document.getElementById('keyCustom').value='';loadKeys();loadStats()}}
+ async function delKey(k){if(!confirm('Delete?'))return;var r=await api('DELETE','?deleteKey='+k);if(r){showToast('Deleted!');loadKeys();loadStats()}}
+ async function delFile(id){if(!confirm('Delete?'))return;var r=await api('DELETE','?id='+id);if(r){showToast('Deleted!');loadFiles();loadStats()}}
+ function openEdit(i){var f=S.files[i];document.getElementById('editId').value=f.id;document.getElementById('editName').value=f.name;document.getElementById('editCode').value=f.content;document.getElementById('editModal').classList.remove('hidden')}
+ function closeEdit(){document.getElementById('editModal').classList.add('hidden')}
+ function showPrev(k){document.getElementById('prevCode').value=genGG(k);document.getElementById('prevModal').classList.remove('hidden')}
+ function closePrev(){document.getElementById('prevModal').classList.add('hidden')}
+ async function encScript(){var id=document.getElementById('editId').value,c=document.getElementById('editCode').value;if(!c.trim())return;var b=document.getElementById('encBtn');b.disabled=true;b.innerText='Encrypting...';var r=await api('PUT','',{id:id,encrypt:true,content:c});if(r){var d=await r.json();document.getElementById('editCode').value=d.content;showToast('Encrypted!')}b.disabled=false;b.innerText='Encrypt'}
+ async function saveEdit(){var id=document.getElementById('editId').value,n=document.getElementById('editName').value,c=document.getElementById('editCode').value;var r=await api('POST','',{id:id,name:n,content:c});if(r){showToast('Saved!');closeEdit();loadFiles()}}
+ function switchTab(t){var tr=document.getElementById('tabReg'),tl=document.getElementById('tabLog'),fr=document.getElementById('formReg'),fc=document.getElementById('formCode'),fl=document.getElementById('formLog');if(t==='reg'){tr.className='flex-1 py-2 rounded-lg text-xs font-semibold border transition cursor-pointer tab-active';tl.className='flex-1 py-2 rounded-lg text-xs font-semibold border transition cursor-pointer tab-inactive';fr.classList.remove('hidden');fc.classList.add('hidden');fl.classList.add('hidden')}else{tl.className='flex-1 py-2 rounded-lg text-xs font-semibold border transition cursor-pointer tab-active';tr.className='flex-1 py-2 rounded-lg text-xs font-semibold border transition cursor-pointer tab-inactive';fl.classList.remove('hidden');fr.classList.add('hidden');fc.classList.add('hidden')}hideErrs()}
+ function showErr(id,m){var e=document.getElementById(id);e.classList.remove('hidden');e.innerText=m}
+ function hideErrs(){document.getElementById('regErr').classList.add('hidden');document.getElementById('logErr').classList.add('hidden')}
+ 
+ async function doRegister(){
+ hideErrs();
+ var em=document.getElementById('regEmail').value.trim();
+ var p1=document.getElementById('regPass').value;
+ var p2=document.getElementById('regPass2').value;
+ if(!em||!p1||!p2)return showErr('regErr','Fill all fields!');
+ if(!em.includes('@'))return showErr('regErr','Invalid email!');
+ if(p1.length<4)return showErr('regErr','Password min 4 chars!');
+ if(p1!==p2)return showErr('regErr','Passwords do not match!');
+ var btn=document.getElementById('regBtn'), txt=document.getElementById('regBtnText'), spinner=document.getElementById('regSpinner');
+ btn.disabled=true; txt.innerText='Creating...'; spinner.classList.remove('hidden');
+ try {
+ var r=await fetch('/api/server',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'register',email:em,password:p1}) });
+ var d=await r.json();
+ if(!r.ok || !d.success){ showErr('regErr',d.error||'Gagal mendaftar.'); btn.disabled=false; txt.innerText='Register'; spinner.classList.add('hidden'); return; }
+ S.regCode=d.code;
+ document.getElementById('codeDisplay').innerText=d.code;
+ document.getElementById('formReg').classList.add('hidden');
+ document.getElementById('formCode').classList.remove('hidden');
+ } catch(err) { showErr('regErr','Gagal menghubungi server. Coba lagi.'); }
+ btn.disabled=false; txt.innerText='Register'; spinner.classList.add('hidden');
+ }
+
+ async function doLogin(){
+ hideErrs();
+ var em=document.getElementById('logEmail').value.trim();
+ var pw=document.getElementById('logPass').value;
+ if(!em||!pw)return showErr('logErr','Fill all!');
+ var btn=document.getElementById('logBtn'), txt=document.getElementById('logBtnText'), spinner=document.getElementById('logSpinner');
+ btn.disabled=true; txt.innerText='Logging in...'; spinner.classList.remove('hidden');
+ try{
+ var r=await fetch('/api/server',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'login',email:em,password:pw}) });
+ var d=await r.json();
+ if(!r.ok){ showErr('logErr',d.error||'Login gagal.'); btn.disabled=false; txt.innerText='Login'; spinner.classList.add('hidden'); return; }
+ S.session=d.session;
+ localStorage.setItem('nx_session',d.session);
+ document.getElementById('authGate').style.display='none';
+ document.getElementById('mainApp').classList.remove('hidden');
+ document.getElementById('adminEmail').innerText=em;
+ initBeranda();
+ showToast('Welcome!');
+ }catch(err){ showErr('logErr','Gagal menghubungi server.'); }
+ btn.disabled=false; txt.innerText='Login'; spinner.classList.add('hidden');
+ }
+ function goLogin(){document.getElementById('formCode').classList.add('hidden');switchTab('log');document.getElementById('logEmail').value=document.getElementById('regEmail').value}
+ function doLogout(){localStorage.removeItem('nx_session');S.session='';location.reload()}
+ async function checkSession(){
+ var s=localStorage.getItem('nx_session');
+ if(!s){ document.getElementById('authGate').style.display=''; document.getElementById('mainApp').classList.add('hidden'); return; }
+ S.session=s;
+ try{
+ var r=await fetch('/api/server?checkSession=1',{headers:{'X-Session':s}});
+ if(r.ok){
+ var d=await r.json();
+ document.getElementById('authGate').style.display='none';
+ document.getElementById('mainApp').classList.remove('hidden');
+ document.getElementById('adminEmail').innerText=d.email||'';
+ initBeranda();
+ }else{ localStorage.removeItem('nx_session'); document.getElementById('authGate').style.display=''; document.getElementById('mainApp').classList.add('hidden'); }
+ }catch(e){ localStorage.removeItem('nx_session'); document.getElementById('authGate').style.display=''; document.getElementById('mainApp').classList.add('hidden'); }
+ }
+ checkSession();
+ </script>
+</body>
+</html>
