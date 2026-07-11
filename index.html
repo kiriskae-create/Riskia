@@ -174,7 +174,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] text-slate-400 font-bold mb-1">TARGET LUA COMPONENTS</label>
-                        <select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></select>
+                        <select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
+                            <option value="">-- Memuat Komponen --</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-400 font-bold mb-1">MAX DEV PERMITTED</label>
@@ -241,7 +243,7 @@ function handleFileSelect(e) {
     reader.readAsText(file);
 }
 
-function switchMenu(t) {
+async function switchMenu(t) {
     S.currentMenu = t;
     ['beranda', 'ggscript', 'keysystem'].forEach(function(m) {
         document.getElementById('view-' + m).classList.add('hidden');
@@ -254,12 +256,14 @@ function switchMenu(t) {
     if (s.classList.contains('open')) toggleSidebar();
 
     if (t === 'beranda') initBeranda();
-    if (t === 'ggscript') loadFiles();
-    if (t === 'keysystem') { loadFiles(); loadKeys(); }
+    if (t === 'ggscript') await loadFiles();
+    if (t === 'keysystem') { 
+        await loadFiles(); 
+        await loadKeys(); 
+    }
 }
 
 function initBeranda() {
-    // KODE MASTER DENGAN DIALOG PROMPT GAME GUARDIAN INTEGRATED AGAR MEMBER BISA INPUT KEYNYA SENDIRI DI GAME
     var code = `local ask = gg.prompt({"🔑 ENTER VALID MEMBER ACCESS KEY:"}, {nil}, {"text"})\n`;
     code += `if not ask then os.exit() end\n`;
     code += `local userKey = ask[1]\n`;
@@ -286,8 +290,15 @@ async function loadFiles() {
     var r = await api('GET', '');
     if (!r.ok) return;
     S.files = await r.json();
+    
     var sel = document.getElementById('keyTarget');
-    if (sel) sel.innerHTML = S.files.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+    if (sel) {
+        if (S.files.length === 0) {
+            sel.innerHTML = '<option value="">-- Tidak ada script tersedia --</option>';
+        } else {
+            sel.innerHTML = S.files.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+        }
+    }
     
     var c = document.getElementById('fileList');
     if(!c) return;
@@ -362,8 +373,7 @@ async function deployFile() {
     }, 400);
 }
 
-function copyHookCode(keyString) {
-    // SCRIPT HOOK YANG DIBAGIKAN KE MEMBER AKAN MEMINTA INPUT KEY DI GAME GUARDIAN MASING-MASING
+function copyHookCode() {
     var scriptOutput = `local ask = gg.prompt({"🔑 MASUKKAN KEY MEMBER ANDA:"}, {nil}, {"text"})\n`;
     scriptOutput += `if not ask then os.exit() end\n`;
     scriptOutput += `local k = ask[1]\n`;
@@ -402,7 +412,7 @@ async function loadKeys() {
                     <div>Max Devices: <span class="text-emerald-400">${k.registered_devices ? k.registered_devices.length : 0}/${k.max_devices}</span></div>
                     <div>Expiry: <span class="text-slate-300">${expDate.toLocaleString()}</span></div>
                 </div>
-                <button onclick="copyHookCode('${k.key}')" class="w-full py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 text-xs font-bold rounded-xl cursor-pointer block text-center">
+                <button onclick="copyHookCode()" class="w-full py-2 bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 text-xs font-bold rounded-xl cursor-pointer block text-center">
                     Copy Loader (Auto Prompt Key)
                 </button>
             </div>`;
@@ -414,9 +424,13 @@ async function genKey() {
     var maxDev = document.getElementById('keyMaxDevices').value;
     var e = document.getElementById('keyExp').value;
     var c = document.getElementById('keyCustom').value.trim();
+    
     if (!s || !e) return showToast('Harap tentukan Component & Expiry Date!');
-    var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: e, maxDevices: maxDev, customName: c });
-    if (r.ok) { showToast('License Created!'); document.getElementById('keyCustom').value = ''; loadKeys(); }
+    
+    var formattedExpiry = new Date(e).toISOString();
+    
+    var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: formattedExpiry, maxDevices: maxDev, customName: c });
+    if (r.ok) { showToast('License Created!'); document.getElementById('keyCustom').value = ''; await loadKeys(); }
 }
 
 async function delFile(id) { if (confirm('Hapus Script Permanent?')) { await api('DELETE', '?id=' + id); loadFiles(); } }
@@ -447,7 +461,6 @@ async function doLogin() {
 function goLogin() { document.getElementById('formCode').classList.add('hidden'); switchTab('log'); }
 function doLogout() { localStorage.removeItem('nx_session'); location.reload(); }
 
-// DRAGGABLE AND TAP ISOLATION SYSTEM FIXED ANTI-BUG
 var box = document.getElementById('draggableShortcut');
 var btn = document.getElementById('shortcutBtn');
 var isDragging = false, startX, startY, initialX, initialY;
