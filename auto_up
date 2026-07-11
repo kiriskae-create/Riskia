@@ -3,28 +3,29 @@ cd "$(dirname "$0")"
 
 VERCEL_URL="https://riskia.vercel.app"
 
-echo "📥 Menyedot update dari Vercel..."
+echo "📥 Menyedot sinkronisasi data dari cloud..."
 curl -s "$VERCEL_URL/api/server?type=sync" > database_temp.json
 
 if grep -q "accounts" database_temp.json; then
   mv database_temp.json database.json
-  echo "  [✓] Database lokal diperbarui."
+  echo "  [✓] Local database updated from live server."
 else
-  echo "  [⚠️] Gagal sync / data kosong. Pakai data lokal."
+  echo "  [⚠️] Data cloud kosong/gagal fetch. Mempertahankan database lokal."
   rm -f database_temp.json
 fi
 
-# Reset git & Sambungin langsung ke repo RISK
-rm -rf .git
-git init
-git remote add origin https://github.com/kiriskae-create/Riskia.git
+# Cek branch aktif biar jalurnya tepat (main atau master)
+BRANCH_NAME=$(git branch --show-current)
+if [ -z "$BRANCH_NAME" ]; then
+  BRANCH_NAME="main"
+  git branch -M main
+fi
 
-# WAJIB: Masukin folder api dan database secara eksplisit
-git add api/server.js database.json auto_up index.html
-git branch -M main
+# Daftarkan perubahan (HANYA menambahkan file database & backend baru tanpa menghapus file lama lu)
+git add api/server.js database.json auto_up index.html 2>/dev/null
 
-echo "📤 Mengirim struktur folder ke GitHub..."
-git commit -m "Nexus X v9.5 — Full Structure Fix in Project Riskia" --allow-empty
-git push origin main --force 2>/dev/null || git push origin master --force 2>/dev/null || git push --force
+echo "📤 Melakukan push pembaruan aman ke branch: $BRANCH_NAME..."
+git commit -m "Nexus X v9.5 — Immortal Salt & Structure Fixed" --allow-empty
+git push origin $BRANCH_NAME
 
-echo "🚀 DONE! Cek repo https://github.com/kiriskae-create/Riskia sekarang!"
+echo "🚀 SUCCESS! File backend terpasang rapi di https://github.com/kiriskae-create/Riskia"

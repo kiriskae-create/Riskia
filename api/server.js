@@ -4,6 +4,9 @@ import { createHash, randomBytes } from 'crypto';
 
 const dbPath = join(process.cwd(), 'database.json');
 
+// KUNCI UTAMA: Salt dikunci permanen agar password tidak pernah dianggap salah lagi
+const IMMORTAL_SALT = 'nexus_x_immortal_salt_core_v1';
+
 function getDB() {
   try {
     if (existsSync(dbPath)) return JSON.parse(readFileSync(dbPath, 'utf-8'));
@@ -17,8 +20,14 @@ function writeDB(data) {
   } catch (e) {}
 }
 
-function hashPass(pw) { return createHash('sha256').update(pw + '_nx_salt_v95').digest('hex'); }
-function makePermSession(email, passwordHash) { return createHash('sha256').update(`${email}::${passwordHash}::nx_sess_perm`).digest('hex').substring(0, 32); }
+function hashPass(pw) { 
+  return createHash('sha256').update(pw + IMMORTAL_SALT).digest('hex'); 
+}
+
+function makePermSession(email, passwordHash) { 
+  return createHash('sha256').update(`${email}::${passwordHash}::nx_sess_perm_v95`).digest('hex').substring(0, 32); 
+}
+
 function makeCode() {
   const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = ''; const b = randomBytes(6);
@@ -151,7 +160,8 @@ export default async function handler(req, res) {
 
     if (body.action === 'login') {
       const targetAcc = db.accounts.find(a => a.email === body.email);
-      if (!targetAcc || targetAcc.password !== hashPass(body.password)) return res.status(401).json({ error: 'Password salah!' });
+      const computedHash = hashPass(body.password);
+      if (!targetAcc || targetAcc.password !== computedHash) return res.status(401).json({ error: 'Password salah!' });
       return res.status(200).json({ session: makePermSession(targetAcc.email, targetAcc.password) });
     }
 
