@@ -16,9 +16,7 @@ export default async function handler(req, res) {
     const { id, type, key, device, reqStage, deleteKey } = req.query;
     const host = req.headers.host;
 
-    // --- SYSTEM GAME GUARDIAN PUBLIC VALIDATION ROADS ---
-
-    // STAGE 1: INI KODE SAAT URL LOADER DI-REQUEST PERTAMA KALI OLEH GAME GUARDIAN
+    // STAGE 1: Dipanggil pertama kali oleh struktur loader eksternal
     if (key && !reqStage) {
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (checkKey.length === 0) {
@@ -26,7 +24,6 @@ export default async function handler(req, res) {
             return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak ditemukan di server Cloud!")\nos.exit()');
         }
 
-        // Script ini akan dijalankan di Game Guardian untuk meminta login/validasi internal
         const payloadStage1 = `
         gg.setVisible(false)
         local raw_hwid = "NX-" .. tostring(gg.getTargetPackage()) .. "-" .. tostring(gg.getLine)
@@ -35,7 +32,6 @@ export default async function handler(req, res) {
             encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i))
         end
         
-        -- Mengirim HWID ke URL Validasi Stage 2
         local r = gg.makeRequest("https://${host}/api/server?key=${key}&device="..encoded_hwid.."&reqStage=2")
         if r and r.code == 200 then 
             load(r.content)() 
@@ -47,7 +43,7 @@ export default async function handler(req, res) {
         return res.status(200).send(payloadStage1);
     }
 
-    // PROSES DETEKSI UNTUK STAGE 2 DAN STAGE 3
+    // PROSES VALIDASI STAGE 2 & STAGE 3
     if (key && reqStage) {
         const keys = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (keys.length === 0) return res.status(200).send('gg.alert("❌ Lisensi Tidak Valid!"); os.exit()');
@@ -55,12 +51,10 @@ export default async function handler(req, res) {
         const license = keys[0];
         const expDate = new Date(license.expiry);
         
-        // Cek Expired
         if (new Date() > expDate) {
             return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi telah berakhir!"); os.exit()');
         }
 
-        // Cek HWID Lock Device
         const clientHwid = device || 'UNKNOWN_DEVICE';
         let registeredDevices = license.registered_devices || [];
         
@@ -72,7 +66,7 @@ export default async function handler(req, res) {
             await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
         }
 
-        // STAGE 2: AMBIL MASA AKTIF & EKSEKUSI TOAST KEREN LALU LANJUT REQUEST STAGE 3
+        // STAGE 2: Memunculkan toast status validasi lisensi
         if (reqStage === '2') {
             const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             
@@ -81,7 +75,6 @@ export default async function handler(req, res) {
             sysTime = os.time()
             while os.time() < sysTime + 2 do end
             
-            -- Request URL Ke-3 Untuk Menarik Kode Asli Terenkripsi dari Cloud
             local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
             if r and r.code == 200 then 
                 load(r.content)() 
@@ -92,7 +85,7 @@ export default async function handler(req, res) {
             return res.status(200).send(payloadStage2);
         }
 
-        // STAGE 3: HANYA MENYERAHKAN KODE ASLI LUA JIKA LOLOS VALIDASI
+        // STAGE 3: Menyerahkan source code script LUA asli
         if (reqStage === '3') {
             const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
             res.setHeader('Content-Type', 'text/plain');
@@ -100,14 +93,14 @@ export default async function handler(req, res) {
         }
     }
 
-    // AKSES RAW SCRIPT DARI DASHBOARD (Agar tidak Denied saat di-klik)
+    // AKSES PUBLIC RAW SCRIPT (Mengatasi Denied saat di-view/di-klik langsung)
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : '-- Script Not Found');
     }
 
-    // --- ADMIN SESSION GATEWAY ---
+    // --- SECURITY MANAGEMENT SESSION ROUTING ---
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
