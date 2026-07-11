@@ -13,35 +13,39 @@ export default async function handler(req, res) {
     
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { id, type, authKey, reqStage, loader, deleteKey, device } = req.query;
+    const { id, type, key, device, reqStage, deleteKey } = req.query;
     const host = req.headers.host;
 
-    // STAGE 1: BOOTSTRAP / LOADER UTAMA GAME GUARDIAN
-    if (loader === '1') {
-        const payload = `
+    // STAGE 1: URL BOOTSTRAP UTAMA (Ketik/Copy URL langsung bawa Key)
+    if (key && !reqStage) {
+        // Cek dulu apakah key terdaftar di Neon Postgres
+        const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
+        if (checkKey.length === 0) {
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak ditemukan di server Cloud!")');
+        }
+
+        const payloadStage1 = `
         gg.setVisible(false)
         local raw_hwid = "NX-" .. tostring(gg.getTargetPackage()) .. "-" .. tostring(gg.getLine)
         local encoded_hwid = ""
         for i = 1, #raw_hwid do
             encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i))
         end
-        local inp = gg.prompt({"🔐 ENTER NEXUS X PREMIUM KEY:"},{"","text"})
-        if not inp or inp[1] == "" then return end
-        local r = gg.makeRequest("https://${host}/api/server?authKey="..inp[1].."&device="..encoded_hwid.."&reqStage=2")
+        local r = gg.makeRequest("https://${host}/api/server?key=${key}&device="..encoded_hwid.."&reqStage=2")
         if r and r.code == 200 then 
             load(r.content)() 
         else 
-            gg.alert("❌ [NEXUS X] Network Error atau Key Invalid!") 
+            gg.alert("❌ [NEXUS X] Masalah Jaringan atau Validasi Gagal!") 
         end`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(payload);
+        return res.status(200).send(payloadStage1);
     }
 
-    // VALIDASI UTAMA: AUTH KEY DARI GAME GUARDIAN
-    if (authKey) {
-        // Cari lisensi key dari database Neon
-        const keys = await sql`SELECT * FROM keys WHERE key = ${authKey}`;
-        if (keys.length === 0) return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak ditemukan di server Cloud!")');
+    // VALIDASI BERLAPIS (STAGE 2 & STAGE 3)
+    if (key && reqStage) {
+        const keys = await sql`SELECT * FROM keys WHERE key = ${key}`;
+        if (keys.length === 0) return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak valid!")');
 
         const license = keys[0];
         const expDate = new Date(license.expiry);
@@ -57,38 +61,37 @@ export default async function handler(req, res) {
         
         if (!registeredDevices.includes(clientHwid)) {
             if (registeredDevices.length >= license.max_devices) {
-                return res.status(200).send(`gg.alert("❌ [NEXUS X] Perangkat Penuh! Max: ${license.max_devices} Device.")`);
+                return res.status(200).send(`gg.alert("❌ [NEXUS X] Perangkat Penuh! Maksimal: ${license.max_devices} Device.")`);
             }
-            // Daftarkan perangkat baru ke array kolom Neon Postgres
             registeredDevices.push(clientHwid);
-            await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${authKey}`;
+            await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
         }
 
-        // STAGE 2: MENAMPILKAN TOAST KEREN & MEMANGGIL STAGE KETIGA
+        // STAGE 2: MENAMPILKAN TOAST KEREN & MAJU KE STAGE KETIGA
         if (reqStage === '2') {
             const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             
             const payloadStage2 = `
-            gg.toast("✨ WELCOME TO NEXUS X PREMIUM SYSTEM ✨\\n🔑 KEY: ${authKey}\\n⏳ EXPIRED: ${formattedDate}")
+            gg.toast("✨ WELCOME TO NEXUS X PREMIUM SYSTEM ✨\\n🔑 KEY: ${key}\\n⏳ EXPIRED: ${formattedDate}")
             sysTime = os.time()
             while os.time() < sysTime + 2 do end
-            local r = gg.makeRequest("https://${host}/api/server?authKey=${authKey}&device=${clientHwid}&reqStage=3")
+            local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
             if r and r.code == 200 then 
                 load(r.content)() 
             else 
-                gg.alert("❌ Failed to fetch payload stage 3") 
+                gg.alert("❌ Gagal memuat payload eksekusi akhir!") 
             end`;
             return res.status(200).send(payloadStage2);
         }
 
-        // STAGE 3: EKSEKUSI AKSES UTAMA KODE ASLI LUA
+        // STAGE 3: EXECUTE KODE ASLI DARI DATABASE
         if (reqStage === '3') {
             const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
             return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Script Asli tidak ditemukan di Cloud Database!")');
         }
     }
 
-    // SYSTEM ADMIN MANAGEMENT ROUTE
+    // AUTH ADMIN & DATABASE DASHBOARD MANAGEMENT SYSTEM
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
