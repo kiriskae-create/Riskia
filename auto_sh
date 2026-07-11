@@ -1,3 +1,86 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# ================================================================
+# NEXUS X — SERVERLESS NEON POSTGRES MIGRATION ARCHITECTURE
+# ================================================================
+
+echo "🚀 Memulai restrukturisasi Nexus X ke Neon Serverless Postgres..."
+
+# 1. VALIDASI LINGKUNGAN DATABASE
+if [ -z "$POSTGRES_URL" ]; then
+    echo "⚠️  Error: Environment variable POSTGRES_URL tidak ditemukan!"
+    echo "Silakan ekspor dulu di Termux: export POSTGRES_URL='isi_url_neon_kamu'"
+    exit 1
+fi
+
+# 2. UPDATE PACKAGE.JSON & INSTALL DEPENDENCIES
+echo "📦 Mengonfigurasi dependensi project..."
+cat << 'JSONEOF' > package.json
+{
+  "name": "nexus-x-cloud",
+  "version": "8.8.0",
+  "description": "Premium Script Management with Neon Serverless Postgres",
+  "main": "api/server.js",
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0",
+    "dotenv": "^16.4.5"
+  }
+}
+JSONEOF
+
+npm install --no-audit --no-fund
+
+# 3. KREASI FILE KONFIGURASI .ENV
+cat << ENVEOF > .env
+POSTGRES_URL="${POSTGRES_URL}"
+ENVEOF
+
+# 4. MEMBUAT PROSES INITIALISASI TABEL DB (MIGRATION SYSTEM)
+echo "🗄️  Menginisialisasi skema tabel database di Neon..."
+node -e "
+import { neon } from '@neondatabase/serverless';
+import 'dotenv/config';
+
+async function initDB() {
+  const sql = neon(process.env.POSTGRES_URL);
+  try {
+    // Tabel Akun Pengguna
+    await sql\`CREATE TABLE IF NOT EXISTS accounts (
+      email VARCHAR(255) PRIMARY KEY,
+      password VARCHAR(255) NOT NULL,
+      code VARCHAR(50),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )\`;
+
+    // Tabel Berkas LUA/Scripts
+    await sql\`CREATE TABLE IF NOT EXISTS scripts (
+      id VARCHAR(255) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      content TEXT NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )\`;
+
+    // Tabel Lisensi / Key System
+    await sql\`CREATE TABLE IF NOT EXISTS keys (
+      key VARCHAR(255) PRIMARY KEY,
+      script_id VARCHAR(255) REFERENCES scripts(id) ON DELETE CASCADE,
+      target_script_name VARCHAR(255),
+      expiry TIMESTAMP NOT NULL,
+      max_devices INT DEFAULT 1,
+      registered_devices TEXT[] DEFAULT '{}'::TEXT[]
+    )\`;
+
+    console.log('✅ Skema tabel database berhasil dibangun.');
+  } catch (err) {
+    console.error('❌ Gagal menginisialisasi database:', err);
+    process.exit(1);
+  }
+}
+initDB();
+"
+
+# 5. RE-STRUCTURE INDEX.HTML (FRONTEND COMPATIBILITY FIX)
+cat << 'HTMLEOF' > index.html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -138,3 +221,150 @@ function doLogout(){localStorage.removeItem('nx_session');location.reload()}
 </script>
 </body>
 </html>
+HTMLEOF
+
+# 6. FILE ARCHITECTURE REWRITE: API/SERVER.JS (PURE SQL DRIVEN WITH NEON)
+mkdir -p api
+cat << 'SRVEOF' > api/server.js
+import { neon } from '@neondatabase/serverless';
+import { createHash } from 'crypto';
+
+// Inisialisasi Database Serverless Client Neon
+const sql = neon(process.env.POSTGRES_URL);
+
+function hashPass(pw) {
+    return createHash('sha256').update(pw + '_nx_postgres_salt').digest('hex');
+}
+
+function makeSession(email, hash) {
+    return createHash('md5').update(email + hash + 'session_token').digest('hex');
+}
+
+export default async function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session');
+    
+    if (req.method === 'OPTIONS') return res.status(200).end();
+
+    const { id, type, authKey, device, reqStage, loader, deleteKey } = req.query;
+
+    // 1. ANONYMOUS SYSTEM: LOADER SCRIPT UNTUK GAME GUARDIAN
+    if (loader === '1') {
+        const payload = `
+        gg.setVisible(false)
+        local inp = gg.prompt({"Masukkan Key Nexus X:"},{"","text"})
+        if not inp then return end
+        local r = gg.makeRequest("${'https://' + req.headers.host}/api/server?authKey="..inp[1].."&device=termux_hwid&reqStage=1")
+        if r and r.code == 200 then load(r.content)() else gg.alert("Auth Error!") end`;
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(payload);
+    }
+
+    // 2. CLIENT VALIDATION (GAME GUARDIAN DIRECT RUNTIME EXECUTION)
+    if (authKey) {
+        const keys = await sql`SELECT * FROM keys WHERE key = ${authKey}`;
+        if (keys.length === 0) return res.status(200).send('gg.alert("Key Tidak Valid!")');
+
+        const license = keys[0];
+        if (new Date() > new Date(license.expiry)) return res.status(200).send('gg.alert("Key Kadaluwarsa!")');
+
+        if (!reqStage || reqStage === '1') {
+            const nextUrl = `https://${req.headers.host}/api/server?authKey=${authKey}&reqStage=2`;
+            return res.status(200).send(`local r=gg.makeRequest("${nextUrl}") if r.code==200 then load(r.content)() end`);
+        }
+
+        if (reqStage === '2') {
+            const scripts = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
+            return res.status(200).send(scripts.length > 0 ? scripts[0].content : 'gg.alert("Script Hilang!")');
+        }
+    }
+
+    // 3. SECURE MIDDLEWARE: SESSION VALIDATION VIA POSTGRES ACCOUNTS TABLE
+    const sessionToken = req.headers['x-session'];
+    let authenticatedUser = null;
+
+    if (sessionToken) {
+        const accounts = await sql`SELECT * FROM accounts`;
+        for (const acc of accounts) {
+            if (makeSession(acc.email, acc.password) === sessionToken) {
+                authenticatedUser = acc.email;
+                break;
+            }
+        }
+    }
+
+    // 4. ROUTING LOGIC & CORE CONTROLLERS
+    if (req.method === 'POST') {
+        const { action, email, password, name, content, scriptId, expiry, customName } = req.body;
+
+        if (action === 'register') {
+            const secretCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const encryptedPassword = hashPass(password);
+            await sql`INSERT INTO accounts (email, password, code) VALUES (${email}, ${encryptedPassword}, ${secretCode}) ON CONFLICT (email) DO NOTHING`;
+            return res.status(200).json({ success: true, code: secretCode });
+        }
+
+        if (action === 'login') {
+            const account = await sql`SELECT * FROM accounts WHERE email = ${email}`;
+            if (account.length > 0 && account[0].password === hashPass(password)) {
+                return res.status(200).json({ session: makeSession(email, account[0].password) });
+            }
+            return res.status(401).json({ error: 'Sandi Salah' });
+        }
+
+        if (!authenticatedUser) return res.status(401).json({ error: 'Expired session' });
+
+        // UPLOAD ATAU INSERT SCRIPT BARU
+        if (name && content) {
+            const generatedId = 'sc_' + Math.random().toString(36).substring(2, 9);
+            await sql`INSERT INTO scripts (id, name, content) VALUES (${generatedId}, ${name}, ${content})`;
+            return res.status(200).json({ success: true });
+        }
+
+        // BUAT LISENSI SCRIPT / GENERATE KEY
+        if (action === 'createKey') {
+            const finalKey = customName || 'KEY-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            const targetScript = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
+            const scriptName = targetScript.length > 0 ? targetScript[0].name : 'Unknown Script';
+            
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry) VALUES (${finalKey}, ${scriptId}, ${scriptName}, ${new Date(expiry)})`;
+            return res.status(200).json({ key: finalKey });
+        }
+    }
+
+    if (req.method === 'GET') {
+        if (!authenticatedUser) return res.status(401).json({ error: 'Access denied' });
+        if (type === 'keys') {
+            const allKeys = await sql`SELECT * FROM keys`;
+            return res.status(200).json(allKeys);
+        }
+        const allScripts = await sql`SELECT * FROM scripts`;
+        return res.status(200).json(allScripts);
+    }
+
+    if (req.method === 'DELETE') {
+        if (!authenticatedUser) return res.status(401).json({ error: 'Access denied' });
+        if (deleteKey) {
+            await sql`DELETE FROM keys WHERE key = ${deleteKey}`;
+            return res.status(200).json({ success: true });
+        }
+        if (id) {
+            await sql`DELETE FROM scripts WHERE id = ${id}`;
+            return res.status(200).json({ success: true });
+        }
+    }
+
+    return res.status(405).end();
+}
+SRVEOF
+
+# 7. AUTOMATION PUSH KE REPOSITORY GITHUB VIA DEPLOYMENT SCRIPT
+echo "📤 Menyingkronkan pembaruan sistem ke Git Repository GitHub..."
+git config --global --add safe.directory "$(pwd)"
+git add -A
+git commit -m "Migration to Serverless Neon Postgres Storage Architecture" --allow-empty
+git branch -M main
+git push origin main --force
+
+echo "⚡ Selesai! Seluruh arsitektur database Anda sekarang 100% menggunakan Cloud Serverless Neon Postgres."
