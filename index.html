@@ -23,8 +23,6 @@
         .input-dark { background: rgba(5, 6, 10, 0.8); border: 1px solid rgba(245, 158, 11, 0.1); color: #e2e8f0; transition: border-color 0.2s; }
         .input-dark:focus { outline: none; border-color: rgba(245, 158, 11, 0.4); }
         .code-box { background: rgba(0, 0, 0, 0.6); border: 2px dashed rgba(245, 158, 11, 0.3); letter-spacing: 6px; font-size: 24px; font-weight: 900; }
-        .spinner { width: 16px; height: 16px; border: 2px solid rgba(245, 158, 11, 0.3); border-top-color:#f59e0b; border-radius: 50%; animation: spin 0.6s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="min-h-screen">
@@ -95,11 +93,11 @@
     <!-- KONTEN UTAMA -->
     <main class="flex-1 p-6 overflow-y-auto">
         
-        <!-- SECTION 1: OVERVIEW / BERANDA -->
+        <!-- SECTION 1: OVERVIEW -->
         <div id="view-beranda" class="space-y-6">
             <div class="glass rounded-2xl p-5">
                 <h3 class="text-sm font-bold text-amber-400 mb-2">Game Guardian Master Loader Manual</h3>
-                <p class="text-xs text-slate-400 mb-3">Gunakan bootstrap global di bawah jika Anda ingin membuat bypass kustom lisensi dasar.</p>
+                <p class="text-xs text-slate-400 mb-3">Gunakan bootstrap inisialisasi di bawah ini pada Game Guardian client untuk memuat menu otentikasi awan Anda secara dinamis.</p>
                 <textarea id="bootstrapCode" rows="4" readonly class="w-full px-3 py-2 rounded-xl bg-black/40 border border-amber-500/10 text-[10px] text-emerald-400 mono resize-none focus:outline-none"></textarea>
                 <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Bootstrap Copied!')" class="w-full mt-3 py-2.5 rounded-xl btn-gold text-xs">Copy Master Initializer</button>
             </div>
@@ -176,7 +174,7 @@ function switchMenu(t) {
 }
 
 function initBeranda() {
-    document.getElementById('bootstrapCode').value = '-- Global Master Key Loader\nlocal r = gg.makeRequest("' + location.origin + '/api/server?key=MASUKKAN_KEY_DISINI")\nif r and r.code == 200 then load(r.content)() else gg.alert("Connection Failed!") end';
+    document.getElementById('bootstrapCode').value = 'local r = gg.makeRequest("' + location.origin + '/api/server?key=MASUKKAN_KEY")\nif r and r.code == 200 then load(r.content)() else gg.alert("Gagal terhubung!") end';
 }
 
 async function api(method, urlParams, bodyContent) {
@@ -196,7 +194,7 @@ async function loadFiles() {
     
     var c = document.getElementById('fileList');
     c.innerHTML = S.files.map(f => {
-        var rawLink = location.origin + '/api/server?type=raw&id=' + f.id;
+        var plainRawLink = location.origin + '/api/server?type=raw&id=' + f.id;
         return `
         <div class="glass rounded-xl p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div>
@@ -204,7 +202,7 @@ async function loadFiles() {
                 <div class="text-[9px] text-slate-500 mt-1 mono">ID: ${f.id}</div>
             </div>
             <div class="flex gap-1.5 self-end sm:self-auto">
-                <a href="${rawLink}" target="_blank" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-semibold flex items-center">View Raw Link</a>
+                <button onclick="navigator.clipboard.writeText('${plainRawLink}');showToast('Raw Link Copied!')" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Copy Raw Link</button>
                 <button onclick="editFile('${f.id}','${btoa(encodeURIComponent(f.content))}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Edit</button>
                 <button onclick="delFile('${f.id}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Delete</button>
             </div>
@@ -239,12 +237,11 @@ async function deployFile() {
     var n = document.getElementById('fileName').value.trim();
     var c = document.getElementById('fileContent').value;
     var existingId = document.getElementById('editScriptId').value;
-    
     if (!n || !c) return showToast('Nama & content tidak boleh kosong!');
     
     var r = await api('POST', '', { name: n, content: c, existingScriptId: existingId });
     if (r.ok) {
-        showToast(existingId ? 'Script Updated Successfully!' : 'New Script Deployed!');
+        showToast(existingId ? 'Script Updated!' : 'Script Saved!');
         resetEditor();
         loadFiles();
     }
@@ -263,8 +260,8 @@ async function loadKeys() {
         
         var targetUrl = location.origin + '/api/server?key=' + k.key;
         
-        // INTEGRASI HOOK PROTEKSI KAMUFLASE SESUAI STRUKTUR PERMINTAAN USER
-        var finalHookScript = 'local A = gg.getFile()gg.getFile = function () return A end local V = gg.makeRequest("' + targetUrl + '").content if V then pcall(load(V)) end';
+        // COPY HOOK LOAD FULL FIXED STRING (ANTI ERROR ESCAPE)
+        var finalHookScript = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + targetUrl + '").content if V then pcall(load(V)) end';
 
         return `
             <div class="glass rounded-xl p-4 space-y-3">
@@ -277,8 +274,8 @@ async function loadKeys() {
                     <div>Devices: <span class="text-emerald-400 font-bold">${devicesCount}/${k.max_devices}</span></div>
                     <div>Expired: <span class="${isExpired ? 'text-red-400 font-bold' : 'text-slate-300'}">${expDate.toLocaleString()}</span></div>
                 </div>
-                <button onclick="navigator.clipboard.writeText(\`${finalHookScript}\`);showToast('Camouflage Hook Copied!')" class="w-full py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-bold rounded-xl transition cursor-pointer">
-                    Copy Loader Hook Script
+                <button onclick="navigator.clipboard.writeText(\`${finalHookScript}\`);showToast('Hook Load Copied!')" class="w-full py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-bold rounded-xl transition cursor-pointer">
+                    Copy Hook Load Script
                 </button>
             </div>
         `;
@@ -290,7 +287,6 @@ async function genKey() {
     var maxDev = document.getElementById('keyMaxDevices').value;
     var e = document.getElementById('keyExp').value;
     var c = document.getElementById('keyCustom').value.trim();
-    
     if (!s || !e) return showToast('Lengkapi parameter key lisensi!');
     
     var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: e, maxDevices: maxDev, customName: c });
@@ -301,8 +297,8 @@ async function genKey() {
     }
 }
 
-async function delFile(id) { if (confirm('Hapus Script permanently?')) { await api('DELETE', '?id=' + id); loadFiles(); } }
-async function delKey(k) { if (confirm('Hapus Lisensi Key?')) { await api('DELETE', '?deleteKey=' + k); loadKeys(); } }
+async function delFile(id) { if (confirm('Hapus Script?')) { await api('DELETE', '?id=' + id); loadFiles(); } }
+async function delKey(k) { if (confirm('Hapus Lisensi?')) { await api('DELETE', '?deleteKey=' + k); loadKeys(); } }
 
 function switchTab(t) {
     if (t === 'reg') {
