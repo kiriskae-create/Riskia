@@ -16,15 +16,17 @@ export default async function handler(req, res) {
     const { id, type, key, device, reqStage, deleteKey } = req.query;
     const host = req.headers.host;
 
-    // STAGE 1: URL BOOTSTRAP UTAMA (Ketik/Copy URL langsung bawa Key)
+    // --- SYSTEM GAME GUARDIAN PUBLIC VALIDATION ROADS ---
+
+    // STAGE 1: INI KODE SAAT URL LOADER DI-REQUEST PERTAMA KALI OLEH GAME GUARDIAN
     if (key && !reqStage) {
-        // Cek dulu apakah key terdaftar di Neon Postgres
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (checkKey.length === 0) {
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak ditemukan di server Cloud!")');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak ditemukan di server Cloud!")\nos.exit()');
         }
 
+        // Script ini akan dijalankan di Game Guardian untuk meminta login/validasi internal
         const payloadStage1 = `
         gg.setVisible(false)
         local raw_hwid = "NX-" .. tostring(gg.getTargetPackage()) .. "-" .. tostring(gg.getLine)
@@ -32,66 +34,80 @@ export default async function handler(req, res) {
         for i = 1, #raw_hwid do
             encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i))
         end
+        
+        -- Mengirim HWID ke URL Validasi Stage 2
         local r = gg.makeRequest("https://${host}/api/server?key=${key}&device="..encoded_hwid.."&reqStage=2")
         if r and r.code == 200 then 
             load(r.content)() 
         else 
-            gg.alert("❌ [NEXUS X] Masalah Jaringan atau Validasi Gagal!") 
+            gg.alert("❌ [NEXUS X] Autentikasi Gagal / Jaringan Terputus!") 
+            os.exit()
         end`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(payloadStage1);
     }
 
-    // VALIDASI BERLAPIS (STAGE 2 & STAGE 3)
+    // PROSES DETEKSI UNTUK STAGE 2 DAN STAGE 3
     if (key && reqStage) {
         const keys = await sql`SELECT * FROM keys WHERE key = ${key}`;
-        if (keys.length === 0) return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak valid!")');
+        if (keys.length === 0) return res.status(200).send('gg.alert("❌ Lisensi Tidak Valid!"); os.exit()');
 
         const license = keys[0];
         const expDate = new Date(license.expiry);
         
-        // 1. Cek Expired
+        // Cek Expired
         if (new Date() > expDate) {
-            return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi Key ini telah berakhir / Expired!")');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi telah berakhir!"); os.exit()');
         }
 
-        // 2. Cek Perangkat / HWID Lock
+        // Cek HWID Lock Device
         const clientHwid = device || 'UNKNOWN_DEVICE';
         let registeredDevices = license.registered_devices || [];
         
         if (!registeredDevices.includes(clientHwid)) {
             if (registeredDevices.length >= license.max_devices) {
-                return res.status(200).send(`gg.alert("❌ [NEXUS X] Perangkat Penuh! Maksimal: ${license.max_devices} Device.")`);
+                return res.status(200).send('gg.alert("❌ Perangkat Penuh! Maksimal ' + license.max_devices + ' Device."); os.exit()');
             }
             registeredDevices.push(clientHwid);
             await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
         }
 
-        // STAGE 2: MENAMPILKAN TOAST KEREN & MAJU KE STAGE KETIGA
+        // STAGE 2: AMBIL MASA AKTIF & EKSEKUSI TOAST KEREN LALU LANJUT REQUEST STAGE 3
         if (reqStage === '2') {
             const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             
             const payloadStage2 = `
-            gg.toast("✨ WELCOME TO NEXUS X PREMIUM SYSTEM ✨\\n🔑 KEY: ${key}\\n⏳ EXPIRED: ${formattedDate}")
+            gg.toast("✨ WELCOME PREMIUM SYSTEM ✨\\n🔑 KEY: ${key}\\n⏳ EXP: ${formattedDate}")
             sysTime = os.time()
             while os.time() < sysTime + 2 do end
+            
+            -- Request URL Ke-3 Untuk Menarik Kode Asli Terenkripsi dari Cloud
             local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
             if r and r.code == 200 then 
                 load(r.content)() 
             else 
-                gg.alert("❌ Gagal memuat payload eksekusi akhir!") 
+                gg.alert("❌ Gagal Mengambil Skrip Eksekusi Akhir!") 
+                os.exit()
             end`;
             return res.status(200).send(payloadStage2);
         }
 
-        // STAGE 3: EXECUTE KODE ASLI DARI DATABASE
+        // STAGE 3: HANYA MENYERAHKAN KODE ASLI LUA JIKA LOLOS VALIDASI
         if (reqStage === '3') {
             const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
-            return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Script Asli tidak ditemukan di Cloud Database!")');
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Kode Skrip Kosong di Database!"); os.exit()');
         }
     }
 
-    // AUTH ADMIN & DATABASE DASHBOARD MANAGEMENT SYSTEM
+    // AKSES RAW SCRIPT DARI DASHBOARD (Agar tidak Denied saat di-klik)
+    if (req.method === 'GET' && type === 'raw' && id) {
+        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- Script Not Found');
+    }
+
+    // --- ADMIN SESSION GATEWAY ---
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
