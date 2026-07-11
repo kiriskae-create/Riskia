@@ -377,6 +377,8 @@ async function deployFile() {
             showToast('Script Committed Successfully!'); 
             resetEditor(); 
             loadFiles(); 
+        } else {
+            showToast('Gagal Sinkronisasi Database!');
         }
     }, 400);
 }
