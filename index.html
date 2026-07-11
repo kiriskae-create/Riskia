@@ -21,20 +21,23 @@
         .slide-sidebar button:hover { background: rgba(0,0,0,0.04); color: #020617; }
         .sidebar-active { background: rgba(59, 130, 246, 0.08) !important; color: #1d4ed8 !important; border-left: 4px solid #1d4ed8 !important; border-radius: 0px 12px 12px 0px !important; }
 
-        #draggableShortcut { touch-action: none; user-select: none; z-index: 999; }
+        /* Mengisolasi container agar tidak memblokir pointer area luar */
+        #draggableShortcut { touch-action: none; user-select: none; z-index: 999; pointer-events: none; }
+        /* Mengaktifkan kembali pointer event hanya pada lingkaran fisik tombol */
+        #shortcutBtn { pointer-events: auto; }
     </style>
 </head>
 <body class="min-h-screen">
 
-<!-- PEMICU UTAMA DI POJOK KIRI ATAS UNTUK MEMUNCULKAN DASBOR -->
+<!-- PEMICU UTAMA DI POJOK KIRI ATAS -->
 <div class="fixed top-4 left-4 z-50">
     <button onclick="toggleSidebar()" class="w-10 h-10 rounded-xl bg-slate-900/80 border border-white/10 text-white flex items-center justify-center shadow-lg active:scale-95 transition cursor-pointer">
         <i class="fa-solid fa-bars text-sm"></i>
     </button>
 </div>
 
-<!-- SHORTCUT FLOATING DENGAN VALIDASI IKON KUSTOM -->
-<div id="draggableShortcut" class="fixed bottom-6 right-6">
+<!-- SHORTCUT FLOATING CONTAINER -->
+<div id="draggableShortcut" class="fixed bottom-6 right-6 p-2">
     <button id="shortcutBtn" class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-yellow-500 to-emerald-500 text-white shadow-2xl flex items-center justify-center text-lg font-bold cursor-pointer border-2 border-white/20 active:scale-95 transition">
         <i class="fa-solid fa-circle-nodes"></i>
     </button>
@@ -421,18 +424,21 @@ async function doLogin() {
 function goLogin() { document.getElementById('formCode').classList.add('hidden'); switchTab('log'); }
 function doLogout() { localStorage.removeItem('nx_session'); location.reload(); }
 
-// LOGIKA PEMISAH DRAG & CLICK SHORTCUT SECARA TOTAL
+// ISOLASI EVENT TOTAL PADA ELEMEN LINGKARAN TOMBOL UTAMA
 var box = document.getElementById('draggableShortcut');
 var btn = document.getElementById('shortcutBtn');
 var isDragging = false, startX, startY, initialX, initialY;
 
 btn.addEventListener('click', function(e) {
-    if (isDragging) { e.preventDefault(); return; }
+    e.stopPropagation(); // Mencegah event bocor keluar area tombol
+    if (isDragging) return;
     toggleSidebar();
 });
 
-box.addEventListener('mousedown', dragStart);
-box.addEventListener('touchstart', dragStart, { passive: true });
+// Touch/Mouse event dilekatkan langsung pada tombol lingkaran saja
+btn.addEventListener('mousedown', dragStart);
+btn.addEventListener('touchstart', dragStart, { passive: true });
+
 document.addEventListener('mousemove', dragMove);
 document.addEventListener('touchmove', dragMove, { passive: false });
 document.addEventListener('mouseup', dragEnd);
@@ -442,26 +448,40 @@ function dragStart(e) {
     var clientX = e.touches ? e.touches[0].clientX : e.clientX;
     var clientY = e.touches ? e.touches[0].clientY : e.clientY;
     startX = clientX; startY = clientY;
+    
     var style = window.getComputedStyle(box);
-    initialX = parseInt(style.right); initialY = parseInt(style.bottom);
-    isDragging = false; 
+    initialX = parseInt(style.right); 
+    initialY = parseInt(style.bottom);
+    isDragging = false;
 }
 
 function dragMove(e) {
+    if (startX === undefined || startY === undefined) return;
+    
     var clientX = e.touches ? e.touches[0].clientX : e.clientX;
     var clientY = e.touches ? e.touches[0].clientY : e.clientY;
     var dx = startX - clientX, dy = startY - clientY;
     
-    // Toleransi 6 piksel untuk memisahkan pergeseran murni dengan klik tidak sengaja
-    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
-        isDragging = true;
+    // Memberikan batas toleransi deteksi gerak (10px) agar tap biasa tidak memicu drag
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        if (!isDragging) isDragging = true;
+        if (e.cancelable) e.preventDefault(); // Mencegah layar scroll saat diseret
         box.style.right = (initialX + dx) + 'px';
         box.style.bottom = (initialY + dy) + 'px';
     }
 }
 
-function dragEnd() { 
-    setTimeout(() => { isDragging = false; }, 80); 
+function dragEnd(e) {
+    startX = undefined;
+    startY = undefined;
+    if (isDragging) {
+        // Blokir event jika selesai melakukan drag agar menu tidak otomatis terbuka
+        if(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            if (e.preventDefault) e.preventDefault();
+        }
+        setTimeout(() => { isDragging = false; }, 100);
+    }
 }
 
 window.onload = function() {
