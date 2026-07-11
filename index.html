@@ -16,9 +16,9 @@
         .glass-gold { background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(217, 119, 6, 0.02)); border: 1px solid rgba(245, 158, 11, 0.15); }
         .gold-text { background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .menu-active { background: linear-gradient(90deg, rgba(245, 158, 11, 0.12), transparent); border-left: 3px solid #f59e0b; color: #fbbf24; font-weight: 700; }
-        .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 700; transition: all 0.2s; }
+        .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 700; transition: all 0.2s; cursor: pointer; }
         .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3); }
-        .btn-ghost { background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15); color: #fbbf24; transition: all 0.2s; }
+        .btn-ghost { background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15); color: #fbbf24; transition: all 0.2s; cursor: pointer; }
         .btn-ghost:hover { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3); }
         .input-dark { background: rgba(5, 6, 10, 0.8); border: 1px solid rgba(245, 158, 11, 0.1); color: #e2e8f0; transition: border-color 0.2s; }
         .input-dark:focus { outline: none; border-color: rgba(245, 158, 11, 0.4); }
@@ -67,7 +67,7 @@
     </div>
 </div>
 
-<!-- CONTAINER DASHBOARD UTAMA (LEFT SIDEBAR NAVIGATION LAYOUT) -->
+<!-- CONTAINER DASHBOARD UTAMA -->
 <div id="mainApp" class="hidden min-h-screen flex flex-col md:flex-row">
     
     <!-- SIDEBAR KIRI -->
@@ -81,27 +81,27 @@
                 </div>
             </div>
             <nav class="space-y-1">
-                <button id="btn-beranda" onclick="switchMenu('beranda')" class="w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition menu-active">📋 Overview & Bootstrap</button>
-                <button id="btn-ggscript" onclick="switchMenu('ggscript')" class="w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition">📝 Manage LUA Scripts</button>
-                <button id="btn-keysystem" onclick="switchMenu('keysystem')" class="w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition">🔑 License Key System</button>
+                <button id="btn-beranda" onclick="switchMenu('beranda')" class="w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition menu-active cursor-pointer">📋 Overview & Bootstrap</button>
+                <button id="btn-ggscript" onclick="switchMenu('ggscript')" class="w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition cursor-pointer">📝 Manage LUA Scripts</button>
+                <button id="btn-keysystem" onclick="switchMenu('keysystem')" class="w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition cursor-pointer">🔑 License Key System</button>
             </nav>
         </div>
         <div class="mt-6 pt-4 border-t border-slate-900 px-2">
             <p class="text-[9px] text-slate-500 truncate mb-2 mono" id="adminEmail">user@nexus.io</p>
-            <button onclick="doLogout()" class="w-full py-2 bg-red-950/30 text-red-400 border border-red-500/10 rounded-xl text-xs font-medium hover:bg-red-900/40 transition">Disconnect Account</button>
+            <button onclick="doLogout()" class="w-full py-2 bg-red-950/30 text-red-400 border border-red-500/10 rounded-xl text-xs font-medium hover:bg-red-900/40 transition cursor-pointer">Disconnect Account</button>
         </div>
     </aside>
 
-    <!-- KONTEN UTAMA DI SEBELAH KANAN SIDEBAR -->
+    <!-- KONTEN UTAMA -->
     <main class="flex-1 p-6 overflow-y-auto">
         
         <!-- SECTION 1: OVERVIEW / BERANDA -->
         <div id="view-beranda" class="space-y-6">
             <div class="glass rounded-2xl p-5">
-                <h3 class="text-sm font-bold text-amber-400 mb-2">Game Guardian Main Bootstrap</h3>
-                <p class="text-xs text-slate-400 mb-3">Gunakan script inisialisasi di bawah ini pada Game Guardian client untuk memuat menu otentikasi awan Anda secara dinamis.</p>
+                <h3 class="text-sm font-bold text-amber-400 mb-2">Game Guardian Master Loader Manual</h3>
+                <p class="text-xs text-slate-400 mb-3">Gunakan bootstrap global di bawah jika Anda ingin membuat bypass kustom lisensi dasar.</p>
                 <textarea id="bootstrapCode" rows="4" readonly class="w-full px-3 py-2 rounded-xl bg-black/40 border border-amber-500/10 text-[10px] text-emerald-400 mono resize-none focus:outline-none"></textarea>
-                <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Bootstrap Copied!')" class="w-full mt-3 py-2.5 rounded-xl btn-gold text-xs">Copy Bootstrap Executable</button>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Bootstrap Copied!')" class="w-full mt-3 py-2.5 rounded-xl btn-gold text-xs">Copy Master Initializer</button>
             </div>
         </div>
 
@@ -119,13 +119,17 @@
             <div id="fileList" class="space-y-2"></div>
         </div>
 
-        <!-- SECTION 3: LICENSE KEY SYSTEM (EXPIRED & MAX DEVICES CONTROL) -->
+        <!-- SECTION 3: LICENSE KEY SYSTEM -->
         <div id="view-keysystem" class="space-y-6 hidden">
             <div class="glass rounded-2xl p-5 space-y-4">
                 <h3 class="text-sm font-bold text-white">Generate Auth License Key</h3>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Target Target Script Module</label>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Target Script Module</label>
                     <select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Max Devices Limit</label>
+                    <input type="number" id="keyMaxDevices" value="1" min="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Expiration Date & Time</label>
@@ -133,7 +137,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Custom License Text Name (Optional)</label>
-                    <input type="text" id="keyCustom" placeholder="Misal: VIP-GUEST-LINE" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
+                    <input type="text" id="keyCustom" placeholder="Misal: VIP-KEY-PRO" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
                 </div>
                 <button onclick="genKey()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Generate Access License</button>
             </div>
@@ -147,7 +151,6 @@
 <!-- TOAST ALERTS SYSTEM -->
 <div id="toast" class="fixed bottom-6 right-6 bg-amber-500 text-black px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[200] text-xs font-bold flex items-center gap-2">✨ <span id="toastMsg"></span></div>
 
-<!-- CORE SCRIPTS OPERATIONS -->
 <script>
 var S = { files: [], keys: [], session: '', currentMenu: 'beranda' };
 
@@ -173,7 +176,7 @@ function switchMenu(t) {
 }
 
 function initBeranda() {
-    document.getElementById('bootstrapCode').value = 'gg.setVisible(false)\nlocal r = gg.makeRequest("' + location.origin + '/api/server?loader=1")\nif r and r.code == 200 then load(r.content)() else gg.alert("Connection Failed!") end';
+    document.getElementById('bootstrapCode').value = '-- Global Master Key Loader\nlocal r = gg.makeRequest("' + location.origin + '/api/server?key=MASUKKAN_KEY_DISINI")\nif r and r.code == 200 then load(r.content)() else gg.alert("Connection Failed!") end';
 }
 
 async function api(method, urlParams, bodyContent) {
@@ -192,25 +195,21 @@ async function loadFiles() {
     if (sel) sel.innerHTML = S.files.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
     
     var c = document.getElementById('fileList');
-    c.innerHTML = S.files.map(f => `
+    c.innerHTML = S.files.map(f => {
+        var rawLink = location.origin + '/api/server?type=raw&id=' + f.id;
+        return `
         <div class="glass rounded-xl p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div>
                 <span class="mono text-xs font-bold text-amber-400">${f.name}</span>
                 <div class="text-[9px] text-slate-500 mt-1 mono">ID: ${f.id}</div>
             </div>
             <div class="flex gap-1.5 self-end sm:self-auto">
-                <button onclick="copyRawLink('${f.id}')" class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-semibold">Copy Raw Link</button>
-                <button onclick="editFile('${f.id}','${btoa(encodeURIComponent(f.content))}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-semibold">Edit</button>
-                <button onclick="delFile('${f.id}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-semibold">Delete</button>
+                <a href="${rawLink}" target="_blank" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-semibold flex items-center">View Raw Link</a>
+                <button onclick="editFile('${f.id}','${btoa(encodeURIComponent(f.content))}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Edit</button>
+                <button onclick="delFile('${f.id}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Delete</button>
             </div>
         </div>
-    `).join('');
-}
-
-function copyRawLink(id) {
-    var rawUrl = location.origin + '/api/server?authKey=LOAD&reqStage=2&directScriptId=' + id;
-    navigator.clipboard.writeText(rawUrl);
-    showToast('Raw Link Copied!');
+    `}).join('');
 }
 
 function editFile(id, base64Content) {
@@ -225,8 +224,6 @@ function editFile(id, base64Content) {
     document.getElementById('editorTitle').innerText = 'Editing Script: ' + target.name;
     document.getElementById('btnResetEdit').classList.remove('hidden');
     document.getElementById('deployBtn').innerText = 'Update & Commit Changes';
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetEditor() {
@@ -262,16 +259,27 @@ async function loadKeys() {
     c.innerHTML = S.keys.map(k => {
         var expDate = new Date(k.expiry);
         var isExpired = new Date() > expDate;
+        var devicesCount = k.registered_devices ? k.registered_devices.length : 0;
+        
+        var targetUrl = location.origin + '/api/server?key=' + k.key;
+        
+        // INTEGRASI HOOK PROTEKSI KAMUFLASE SESUAI STRUKTUR PERMINTAAN USER
+        var finalHookScript = 'local A = gg.getFile()gg.getFile = function () return A end local V = gg.makeRequest("' + targetUrl + '").content if V then pcall(load(V)) end';
+
         return `
-            <div class="glass rounded-xl p-4 space-y-2">
+            <div class="glass rounded-xl p-4 space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="mono text-xs font-bold ${isExpired ? 'text-red-400 line-through' : 'text-amber-400'}">${k.key}</span>
-                    <button onclick="delKey('${k.key}')" class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-[10px]">Delete Key</button>
+                    <button onclick="delKey('${k.key}')" class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-[10px] cursor-pointer">Delete Key</button>
                 </div>
                 <div class="flex flex-wrap justify-between text-[10px] text-slate-400 mono gap-2 pt-1 border-t border-slate-900">
                     <div>Module: <span class="text-white">${k.target_script_name}</span></div>
+                    <div>Devices: <span class="text-emerald-400 font-bold">${devicesCount}/${k.max_devices}</span></div>
                     <div>Expired: <span class="${isExpired ? 'text-red-400 font-bold' : 'text-slate-300'}">${expDate.toLocaleString()}</span></div>
                 </div>
+                <button onclick="navigator.clipboard.writeText(\`${finalHookScript}\`);showToast('Camouflage Hook Copied!')" class="w-full py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-bold rounded-xl transition cursor-pointer">
+                    Copy Loader Hook Script
+                </button>
             </div>
         `;
     }).join('');
@@ -279,12 +287,13 @@ async function loadKeys() {
 
 async function genKey() {
     var s = document.getElementById('keyTarget').value;
+    var maxDev = document.getElementById('keyMaxDevices').value;
     var e = document.getElementById('keyExp').value;
     var c = document.getElementById('keyCustom').value.trim();
     
     if (!s || !e) return showToast('Lengkapi parameter key lisensi!');
     
-    var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: e, maxDevices: 1, customName: c });
+    var r = await api('POST', '', { action: 'createKey', scriptId: s, expiry: e, maxDevices: maxDev, customName: c });
     if (r.ok) {
         showToast('License Key Generated!');
         document.getElementById('keyCustom').value = '';
