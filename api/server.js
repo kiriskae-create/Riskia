@@ -16,23 +16,17 @@ export default async function handler(req, res) {
     const { id, type, key, device, reqStage, deleteKey } = req.query;
     const host = req.headers.host;
 
-    // ==========================================
-    // JALUR PUBLIC BYPASS: RAW SCRIPT VIEW
-    // ==========================================
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script tidak ditemukan atau kosong.');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script tidak ditemukan.');
     }
 
-    // ==========================================
-    // JALUR UTAMA GAME GUARDIAN ENGINE (LICENSE VALIDATION)
-    // ==========================================
     if (key) {
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (checkKey.length === 0) {
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak ditemukan di Cloud Database!")\nos.exit()');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak valid!")\nos.exit()');
         }
 
         const license = checkKey[0];
@@ -40,7 +34,7 @@ export default async function handler(req, res) {
         
         if (new Date() > expDate) {
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi ini telah kedaluwarsa!"); os.exit()');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi kedaluwarsa!"); os.exit()');
         }
 
         const clientHwid = device || 'NX-INIT-DEVICE';
@@ -49,48 +43,40 @@ export default async function handler(req, res) {
         if (device && !registeredDevices.includes(clientHwid)) {
             if (registeredDevices.length >= license.max_devices) {
                 res.setHeader('Content-Type', 'text/plain');
-                return res.status(200).send('gg.alert("❌ [NEXUS X] Batas perangkat penuh! Maksimum ' + license.max_devices + ' Perangkat."); os.exit()');
+                return res.status(200).send('gg.alert("❌ Max Device Terlampaui!"); os.exit()');
             }
             registeredDevices.push(clientHwid);
             await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
         }
 
-        // STAGE 1: Initial Hook Loader
         if (!reqStage) {
             const payloadStage1 = `gg.setVisible(false)
 local raw_hwid = "NX-" .. tostring(gg.getTargetPackage())
 local encoded_hwid = ""
-for i = 1, #raw_hwid do
-    encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i))
-end
+for i = 1, #raw_hwid do encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i)) end
 local r = gg.makeRequest("https://${host}/api/server?key=${key}&device="..encoded_hwid.."&reqStage=2")
-if r and r.code == 200 then load(r.content)() else gg.alert("❌ [NEXUS X] Koneksi Secureserver Gagal!") os.exit() end`;
+if r and r.code == 200 then load(r.content)() else gg.alert("❌ Jaringan Terputus!") os.exit() end`;
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(payloadStage1);
         }
 
-        // STAGE 2: Splash Toast & Verify Redirect
         if (reqStage === '2') {
-            const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            const payloadStage2 = `gg.toast("✨ ACCESS GRANTED PREMIER SYSTEM ✨\\n🔑 LISENSI: ${key}\\n⏳ HINGGA: ${formattedDate}")
+            const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            const payloadStage2 = `gg.toast("✨ ACCESS GRANTED ✨\\n⏳ EXP: ${formattedDate}")
 local sysTime = os.time() while os.time() < sysTime + 2 do end
 local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
-if r and r.code == 200 then load(r.content)() else gg.alert("❌ Terjadi kesalahan sinkronisasi payload tahap akhir!") os.exit() end`;
+if r and r.code == 200 then load(r.content)() else os.exit() end`;
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(payloadStage2);
         }
 
-        // STAGE 3: Final Payload Delivery
         if (reqStage === '3') {
             const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Konten Script kosong di Database Cloud!"); os.exit()');
+            return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Script Kosong!"); os.exit()');
         }
     }
 
-    // ==========================================
-    // BACKEND DASHBOARD ADMINISTRATOR MANAGEMENT
-    // ==========================================
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
@@ -102,7 +88,6 @@ if r and r.code == 200 then load(r.content)() else gg.alert("❌ Terjadi kesalah
 
     if (req.method === 'POST') {
         const { action, email, password, name, content, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
-        
         if (action === 'register') {
             const secretCode = Math.random().toString(36).substring(2, 8).toUpperCase();
             await sql`INSERT INTO accounts (email, password, code) VALUES (${email}, ${hashPass(password)}, ${secretCode}) ON CONFLICT (email) DO NOTHING`;
@@ -113,9 +98,7 @@ if r and r.code == 200 then load(r.content)() else gg.alert("❌ Terjadi kesalah
             if (acc.length > 0 && acc[0].password === hashPass(password)) return res.status(200).json({ session: makeSession(email, acc[0].password) });
             return res.status(401).json({ error: 'Auth failed' });
         }
-        
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
-
         if (name && content) {
             if (existingScriptId) {
                 await sql`UPDATE scripts SET name = ${name}, content = ${content}, updated_at = CURRENT_TIMESTAMP WHERE id = ${existingScriptId}`;
@@ -124,7 +107,6 @@ if r and r.code == 200 then load(r.content)() else gg.alert("❌ Terjadi kesalah
             }
             return res.status(200).json({ success: true });
         }
-        
         if (action === 'createKey') {
             const finalKey = customName || 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
