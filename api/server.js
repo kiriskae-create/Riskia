@@ -99,9 +99,11 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
             return res.status(401).json({ error: 'Auth failed' });
         }
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
+        
+        // PEMBERSIHAN ATAU PERBAIKAN PADA LOGIKA UPDATE SCRIPT
         if (name && content) {
-            if (existingScriptId) {
-                await sql`UPDATE scripts SET name = ${name}, content = ${content}, updated_at = CURRENT_TIMESTAMP WHERE id = ${existingScriptId}`;
+            if (existingScriptId && existingScriptId !== "") {
+                await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId}`;
             } else {
                 await sql`INSERT INTO scripts (id, name, content) VALUES (${'sc_' + Math.random().toString(36).substring(2, 9)}, ${name}, ${content})`;
             }

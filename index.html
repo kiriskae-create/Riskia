@@ -15,8 +15,11 @@
         .menu-active { background: rgba(245, 158, 11, 0.08) !important; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-left: 4px solid #f59e0b; color: #fbbf24; font-weight: 700; }
         .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 700; transition: all 0.2s; cursor: pointer; }
         .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3); }
+        .btn-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; font-weight: 700; transition: all 0.2s; cursor: pointer; }
+        .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); }
         .input-dark { background: rgba(5, 6, 10, 0.8); border: 1px solid rgba(245, 158, 11, 0.1); color: #e2e8f0; }
         .input-dark:focus { outline: none; border-color: rgba(245, 158, 11, 0.4); }
+        .glass-edit { background: rgba(30, 41, 59, 0.7) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -95,8 +98,13 @@
 
         <!-- LUA MANAGEMENT -->
         <div id="view-ggscript" class="space-y-6 hidden">
-            <div class="glass rounded-2xl p-5 space-y-4">
-                <div class="flex justify-between items-center"><h3 class="text-sm font-bold text-white" id="editorTitle">Create New Cloud Script</h3><button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-amber-500 underline cursor-pointer">Buat Baru</button></div>
+            <div id="editorContainer" class="glass rounded-2xl p-5 space-y-4 transition-all duration-300">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2" id="editorTitle">
+                        <span id="editorStatusIcon">✨</span> <span id="editorTitleText">Create New Cloud Script</span>
+                    </h3>
+                    <button onclick="resetEditor()" id="btnResetEdit" class="hidden text-xs text-red-400 hover:text-red-300 underline cursor-pointer">Batal / Buat Baru</button>
+                </div>
                 <input type="hidden" id="editScriptId">
                 <input type="text" id="fileName" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
                 <textarea id="fileContent" rows="10" placeholder="-- Tulis script LUA disini..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
@@ -193,32 +201,52 @@ async function loadFiles() {
             </div>
             <div class="flex gap-1.5">
                 <button onclick="navigator.clipboard.writeText('${plainRawLink}');showToast('Raw Link Copied!')" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Copy Raw Link</button>
-                <button onclick="editFile('${f.id}','${btoa(encodeURIComponent(f.content))}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Edit</button>
+                <button onclick="editFile('${f.id}')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Edit</button>
                 <button onclick="delFile('${f.id}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Delete</button>
             </div>
         </div>`;
     }).join('');
 }
 
-function editFile(id, base64Content) {
-    var dec = decodeURIComponent(atob(base64Content));
+function editFile(id) {
     var target = S.files.find(f => f.id === id);
     if (!target) return;
+    
     document.getElementById('editScriptId').value = id;
     document.getElementById('fileName').value = target.name;
-    document.getElementById('fileContent').value = dec;
-    document.getElementById('editorTitle').innerText = 'Editing Script: ' + target.name;
+    document.getElementById('fileContent').value = target.content;
+    
+    // PERUBAHAN TAMPILAN INTERFACE MODE EDIT
+    var container = document.getElementById('editorContainer');
+    container.classList.add('glass-edit');
+    
+    document.getElementById('editorStatusIcon').innerText = '🛠️';
+    document.getElementById('editorTitleText').innerText = 'Editing Script: ' + target.name;
+    
+    var deployBtn = document.getElementById('deployBtn');
+    deployBtn.className = "w-full py-2.5 rounded-xl btn-blue text-xs";
+    deployBtn.innerText = 'Update & Save Changes to Neon';
+    
     document.getElementById('btnResetEdit').classList.remove('hidden');
-    document.getElementById('deployBtn').innerText = 'Update & Commit Changes';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetEditor() {
     document.getElementById('editScriptId').value = '';
     document.getElementById('fileName').value = '';
     document.getElementById('fileContent').value = '';
-    document.getElementById('editorTitle').innerText = 'Create New Cloud Script';
+    
+    var container = document.getElementById('editorContainer');
+    container.classList.remove('glass-edit');
+    
+    document.getElementById('editorStatusIcon').innerText = '✨';
+    document.getElementById('editorTitleText').innerText = 'Create New Cloud Script';
+    
+    var deployBtn = document.getElementById('deployBtn');
+    deployBtn.className = "w-full py-2.5 rounded-xl btn-gold text-xs";
+    deployBtn.innerText = 'Save & Commit to Neon Cloud';
+    
     document.getElementById('btnResetEdit').classList.add('hidden');
-    document.getElementById('deployBtn').innerText = 'Save & Commit to Neon Cloud';
 }
 
 async function deployFile() {
@@ -227,10 +255,15 @@ async function deployFile() {
     var existingId = document.getElementById('editScriptId').value;
     if (!n || !c) return showToast('Nama & content kosong!');
     var r = await api('POST', '', { name: n, content: c, existingScriptId: existingId });
-    if (r.ok) { showToast('Script Disimpan!'); resetEditor(); loadFiles(); }
+    if (r.ok) { 
+        showToast(existingId ? 'Script berhasil di-update!' : 'Script baru disimpan!'); 
+        resetEditor(); 
+        loadFiles(); 
+    } else {
+        showToast('Gagal menyimpan perubahan.');
+    }
 }
 
-// PERBAIKAN TOTAL SYSTEM COPY STRING HOOK AGAR ANTI BREAK DI JAVASCRIPT
 function copyHookCode(rawTargetUrl) {
     var generatedHook = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + rawTargetUrl + '").content if V then pcall(load(V)) end';
     navigator.clipboard.writeText(generatedHook);
