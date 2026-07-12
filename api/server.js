@@ -3,8 +3,14 @@ import { createHash } from 'crypto';
 
 const sql = neon(process.env.POSTGRES_URL);
 
-function hashPass(pw) { return createHash('sha256').update(pw + '_nx_postgres_salt').digest('hex'); }
-function makeSession(email, hash) { return createHash('md5').update(email + hash + 'session_token').digest('hex'); }
+// KREDENSIAL DIKUNCI MATI (ANTI SQL INJECTION)
+const FIXED_USER = "riski";
+const FIXED_PASS = "2409";
+const SERVER_SESSION_SALT = "nexus_secure_core_session_2026";
+
+function generateSessionToken() {
+    return createHash('sha256').update(FIXED_USER + FIXED_PASS + SERVER_SESSION_SALT).digest('hex');
+}
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,6 +21,7 @@ export default async function handler(req, res) {
     const { id, type, validate, device, deleteKey } = req.query;
     const host = req.headers.host;
 
+    // --- FITUR GG CLIENT / INTERCEPT GET DARI GAME INJECTION ---
     if (req.method === 'GET' && type === 'loader') {
         const targetScriptId = id || 'default';
         const code = [
@@ -32,6 +39,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET' && type === 'menu' && id) {
+        // Amankan parameterized query
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Script Menu Not Found!")');
@@ -99,34 +107,29 @@ export default async function handler(req, res) {
         }
     }
 
+    // --- ALUR LOGIN DIPROTEKSI DARI SQL INJECTION ---
+    if (req.method === 'POST') {
+        const { action, username, password } = req.body;
+        if (action === 'login') {
+            // Evaluasi dilakukan di variabel internal kode JavaScript node.js, bukan query database mentah.
+            if (username === FIXED_USER && password === FIXED_PASS) {
+                return res.status(200).json({ session: generateSessionToken() });
+            }
+            return res.status(401).json({ error: 'Invalid Identity Key' });
+        }
+    }
+
+    // --- VALIDASI SESSION KE SELURUH FITUR ADMIN ---
     const sessionToken = req.headers['x-session'];
-    let authenticatedUser = null;
-    if (sessionToken) {
-        const accounts = await sql`SELECT * FROM accounts`;
-        for (const acc of accounts) {
-            if (makeSession(acc.email, acc.password) === sessionToken) { authenticatedUser = acc.email; break; }
-        }
+    const validToken = generateSessionToken();
+    if (!sessionToken || sessionToken !== validToken) {
+        return res.status(401).json({ error: 'Access Denied / Session Invalid' });
     }
 
-    if (!authenticatedUser) {
-        if (req.method === 'POST') {
-            const { action, email, password } = req.body;
-            if (action === 'register') {
-                const secretCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                await sql`INSERT INTO accounts (email, password, code) VALUES (${email}, ${hashPass(password)}, ${secretCode}) ON CONFLICT (email) DO NOTHING`;
-                return res.status(200).json({ success: true, code: secretCode });
-            }
-            if (action === 'login') {
-                const acc = await sql`SELECT * FROM accounts WHERE email = ${email}`;
-                if (acc.length > 0 && acc[0].password === hashPass(password)) return res.status(200).json({ session: makeSession(email, acc[0].password) });
-                return res.status(401).json({ error: 'Auth failed' });
-            }
-        }
-        return res.status(401).json({ error: 'Access Denied' });
-    }
-
+    // --- FITUR OPERASIONAL BACKEND UTAMA (BERDASARKAN METODE) ---
     if (req.method === 'POST') {
         const { name, content, scriptId, duration, maxDevices, customName, existingScriptId, action } = req.body;
+        
         if (name && content) {
             if (existingScriptId && existingScriptId !== "") {
                 await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId}`;
@@ -135,12 +138,13 @@ export default async function handler(req, res) {
             }
             return res.status(200).json({ success: true });
         }
+        
         if (action === 'createKey') {
             let expiryDate = new Date();
             let finalKey = customName;
             if (duration === 'perm') {
                 expiryDate = new Date('9999-12-31T23:59:59Z');
-                finalKey = 'NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                if(!finalKey) finalKey = 'NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             } else {
                 expiryDate.setDate(expiryDate.getDate() + (parseInt(duration) || 1));
                 if (!finalKey) finalKey = 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -152,6 +156,14 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
+        // --- REALTIME DATABASE STORAGE HEALTH SYSTEM ---
+        if (type === 'dbhealth') {
+            const countScripts = await sql`SELECT COUNT(*) as total FROM scripts`;
+            const countKeys = await sql`SELECT COUNT(*) as total FROM keys`;
+            const totalRows = (parseInt(countScripts[0].total) || 0) + (parseInt(countKeys[0].total) || 0);
+            return res.status(200).json({ totalRows });
+        }
+        
         return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys` : await sql`SELECT * FROM scripts`);
     }
 
