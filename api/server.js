@@ -6,6 +6,42 @@ const sql = neon(process.env.POSTGRES_URL);
 function hashPass(pw) { return createHash('sha256').update(pw + '_nx_postgres_salt').digest('hex'); }
 function makeSession(email, hash) { return createHash('md5').update(email + hash + 'session_token').digest('hex'); }
 
+// Fungsi Enkripsi Sederhana XOR + Obf untuk Lua (Anti-Assembly / Plaintext View)
+function obfuscateLua(code) {
+    const key = Math.floor(Math.random() * 200) + 50;
+    let b64 = Buffer.from(code).toString('base64');
+    let xorArr = [];
+    for (let i = 0; i < b64.length; i++) {
+        xorArr.push(b64.charCodeAt(i) ^ key);
+    }
+    const payload = `
+local _key = ${key}
+local _enc = {${xorArr.join(',')}}
+local _b64 = ""
+for i=1, #_enc do 
+    _b64 = _b64 .. string.char(_enc[i] ~ _key)
+end
+local function _dec(data)
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end):gsub('%d%d%d%d%d%d%d%d', function(x)
+        local r=0
+        for i=1,8 do r=r+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+        return string.char(r)
+    end))
+end
+local _raw = _dec(_b64)
+local _exec, _err = load(_raw, "NexusXGuard")
+if _exec then _exec() else print(_err) end
+`;
+    return payload.trim();
+}
+
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -16,19 +52,25 @@ export default async function handler(req, res) {
     const host = req.headers.host;
 
     // ═══════════════════════════════════════
-    //  LINK 1 — LOADER (DYNAMIC PER SCRIPT ID)
+    //  LINK 1 — LOADER (DYNAMIC GATEWAY)
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
         const targetScriptId = id || 'default';
         const code = [
             'gg.setVisible(false)',
-            'gg.toast("[X] NEXUS X - Connecting...")',
-            'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+            'local function getHwid()',
+            '    local di = gg.getTargetInfo() or {}',
+            '    local raw = tostring(di.uid or "0") .. tostring(di.pid or "0") .. (di.processName or "unknown")',
+            '    local enc = ""',
+            '    for i = 1, #raw do enc = enc .. string.format("%02X", string.byte(raw, i)) end',
+            '    return enc',
+            'end',
+            'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '&device=" .. getHwid())',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
-            '    if fn then fn() else gg.alert("[X] Script Empty!") end',
+            '    if fn then fn() else gg.alert("[X] Gagal membaca muatan server!") end',
             'else',
-            '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
+            '    gg.alert("[X] Server tidak merespon!")',
             'end'
         ].join('\n');
         res.setHeader('Content-Type', 'text/plain');
@@ -36,152 +78,116 @@ export default async function handler(req, res) {
     }
 
     // ═══════════════════════════════════════
-    //  LINK 3 — MENU ROUTER
+    //  LINK 3 — MENU ROUTER (DELIVER EMBEDDED CONTENT)
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'menu' && id) {
-        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
+        const sc = await sql`SELECT content, encrypted FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
+        if (sc.length > 0) {
+            let out = sc[0].content;
+            if (sc[0].encrypted) {
+                out = obfuscateLua(out);
+            }
+            return res.status(200).send(out);
+        }
+        return res.status(200).send('gg.alert("[X] Menu script tidak ditemukan!")');
     }
 
     // ═══════════════════════════════════════
-    //  LINK 2 — LOGIN & HWID AUTO-DETECT REGISTRY
+    //  LINK 2 — LOGIN ENGINE & FIXED HWID DETECT
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
         const targetScriptId = id || '';
         const clientHwid = device || 'NX-UNKNOWN';
 
-        // --- INTERNAL AUTO-DETECT SYSTEM VIA HWID ---
         if (!validate && clientHwid !== 'NX-UNKNOWN') {
-            // Cari apakah HWID ini sudah terdaftar di salah satu valid key untuk script ini
             const activeKeys = await sql`SELECT * FROM keys WHERE script_id = ${targetScriptId}`;
             const matchingKey = activeKeys.find(k => {
                 let devList = k.registered_devices || [];
-                let isExpired = new Date() > new Date(k.expiry);
+                let isExpired = k.expiry ? (new Date() > new Date(k.expiry)) : false;
                 return devList.includes(clientHwid) && !isExpired;
             });
 
             if (matchingKey) {
-                const expDate = new Date(matchingKey.expiry);
-                const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+                const expString = matchingKey.expiry ? new Date(matchingKey.expiry).toLocaleDateString('id-ID') : 'Permanen';
                 const c = [
-                    'gg.toast("[X] Auto-Detect: Device Recognized!")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nWELCOME BACK\\nExp: ' + fd + '")',
+                    'gg.toast("⚡ Terverifikasi Otomatis Perangkat!")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + matchingKey.script_id + '")',
                     'local fn = load(r.content)',
-                    'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
+                    'if fn then fn() else gg.alert("[X] Gagal memuat menu script!") end'
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
             }
         }
 
-        // --- EXPLICIT KEY VALIDATION METHOD ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
-            
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
-                const c = [
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense Key tidak valid untuk Script ini!")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
-                    'if r and r.code == 200 then load(r.content)() end'
-                ].join('\n');
-                res.setHeader('Content-Type', 'text/plain');
-                return res.status(200).send(c);
+                return res.status(200).send(`gg.alert("[X] Lisensi Salah!"); load(gg.makeRequest("https://${host}/api/server?type=login&id=${targetScriptId}").content)()`);
             }
-            
             const license = checkKey[0];
-            const expDate = new Date(license.expiry);
-
-            if (new Date() > expDate) {
-                const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-                const c = [
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
-                    'if r and r.code == 200 then load(r.content)() end'
-                ].join('\n');
-                res.setHeader('Content-Type', 'text/plain');
-                return res.status(200).send(c);
+            if (license.expiry && new Date() > new Date(license.expiry)) {
+                return res.status(200).send(`gg.alert("[X] Masa aktif lisensi habis!"); load(gg.makeRequest("https://${host}/api/server?type=login&id=${targetScriptId}").content)()`);
             }
 
             let registeredDevices = license.registered_devices || [];
             if (clientHwid !== 'NX-UNKNOWN' && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
-                    const c = [
-                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!")',
-                        'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
-                        'if r and r.code == 200 then load(r.content)() end'
-                    ].join('\n');
-                    res.setHeader('Content-Type', 'text/plain');
-                    return res.status(200).send(c);
+                    return res.status(200).send(`gg.alert("[X] Batas maksimal perangkat tercapai!"); load(gg.makeRequest("https://${host}/api/server?type=login&id=${targetScriptId}").content)()`);
                 }
                 registeredDevices.push(clientHwid);
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-            const c = [
-                'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + fd + '")',
-                'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
-                'local fn = load(r.content)',
-                'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
-            ].join('\n');
-            res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send(c);
+            return res.status(200).send(`gg.alert("🔓 Akses Diberikan!"); load(gg.makeRequest("https://${host}/api/server?type=menu&id=${license.script_id}").content)()`);
         }
 
-        // --- LOGIN PROMPT NATIVE (Kicked if auto-detect fails) ---
-        const loginLua = `gg.setVisible(false)
+        // Halaman login prompt asli saat auto-detect gagal
+        const loginLua = `
+gg.setVisible(false)
 local BASE = "https://${host}"
 local SCRIPT_ID = "${targetScriptId}"
 
 local function getHwid()
-    local raw = "NX-" .. tostring(gg.getTargetPackage())
+    local di = gg.getTargetInfo() or {}
+    local raw = tostring(di.uid or "0") .. tostring(di.pid or "0") .. (di.processName or "unknown")
     local enc = ""
     for i = 1, #raw do enc = enc .. string.format("%02X", string.byte(raw, i)) end
     return enc
 end
 
-local function doValidate(k)
-    gg.toast("[X] Verifying license...")
-    local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
-    if r and r.code == 200 then
-        local fn = load(r.content)
-        if fn then fn() end
-        return true
+while true do
+    if not gg.isVisible() then
+        local input = gg.prompt({"[NEXUS PROMPT]\\nMasukkan Lisensi Valid:"}, {""}, {"text"})
+        if not input then
+            gg.setVisible(true) -- Saat tombol back ditekan, UI icon mengambang GG dimunculkan kembali, script tidak ended
+            break
+        else
+            local key = (input[1]):match("^%s*(.-)%s*$")
+            if key ~= "" then
+                gg.toast("Memverifikasi lisensi...")
+                local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. key .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
+                if r and r.code == 200 then
+                    local fn = load(r.content)
+                    if fn then fn() break end
+                end
+            end
+        end
     end
-    return false
-end
-
-local function showLogin()
-    local input = gg.prompt(
-        {"[NEXUS X CLOUD]\\nMasukkan License Key Anda:"},
-        {""},
-        {"text"}
-    )
-    if input and input[1] then 
-        return (input[1]):match("^%s*(.-)%s*$") 
-    end
-    return nil
-end
-
-local inputKey = showLogin()
-if not inputKey or inputKey == "" then
-    if inputKey == "" then gg.alert("[X] Key tidak boleh kosong!") end
-    return
-end
-
-if not doValidate(inputKey) then
-    gg.alert("[X] Hubungan terputus atau Key salah!")
+    gg.sleep(200)
 end`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(loginLua);
     }
 
     if (req.method === 'GET' && type === 'raw' && id) {
-        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
+        const sc = await sql`SELECT content, encrypted FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script not found.');
+        if (sc.length > 0) {
+            return res.status(200).send(sc[0].encrypted ? obfuscateLua(sc[0].content) : sc[0].content);
+        }
+        return res.status(200).send('-- Script tidak tersedia.');
     }
 
     const sessionToken = req.headers['x-session'];
@@ -194,7 +200,7 @@ end`;
     }
 
     if (req.method === 'POST') {
-        const { action, email, password, name, content, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
+        const { action, email, password, name, content, encrypted, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
         if (action === 'register') {
             const secretCode = Math.random().toString(36).substring(2, 8).toUpperCase();
             await sql`INSERT INTO accounts (email, password, code) VALUES (${email}, ${hashPass(password)}, ${secretCode}) ON CONFLICT (email) DO NOTHING`;
@@ -206,18 +212,21 @@ end`;
             return res.status(401).json({ error: 'Auth failed' });
         }
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
-        if (name && content) {
+
+        if (name && content !== undefined) {
+            const isEnc = encrypted ? true : false;
             if (existingScriptId && existingScriptId !== "") {
-                await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId}`;
+                await sql`UPDATE scripts SET name = ${name}, content = ${content}, encrypted = ${isEnc} WHERE id = ${existingScriptId}`;
             } else {
-                await sql`INSERT INTO scripts (id, name, content) VALUES (${'sc_' + Math.random().toString(36).substring(2, 9)}, ${name}, ${content})`;
+                await sql`INSERT INTO scripts (id, name, content, encrypted) VALUES (${'sc_' + Math.random().toString(36).substring(2, 9)}, ${name}, ${content}, ${isEnc})`;
             }
             return res.status(200).json({ success: true });
         }
         if (action === 'createKey') {
             const finalKey = customName || 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
-            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${new Date(expiry)}, ${parseInt(maxDevices) || 1})`;
+            const expiryValue = expiry === 'permanent' ? null : new Date(expiry);
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${expiryValue}, ${parseInt(maxDevices) || 1})`;
             return res.status(200).json({ key: finalKey });
         }
     }
