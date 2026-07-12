@@ -23,7 +23,7 @@
             box-shadow: 0 4px 30px rgba(15, 23, 42, 0.03);
         }
         .sidebar-blur {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
             border-right: 1px solid rgba(99, 102, 241, 0.1);
@@ -55,7 +55,6 @@
             border-color: #6366f1;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
-        
         .btn-storage-premium {
             position: relative;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -76,15 +75,101 @@
             opacity: 1;
             transform: scale(1);
         }
+
+        /* ===== STORAGE HEALTH BAR ===== */
+        .storage-section {
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border-radius: 14px;
+            padding: 12px;
+            border: 1px solid transparent;
+        }
+        .storage-section:active {
+            background: rgba(99, 102, 241, 0.04);
+            border-color: rgba(99, 102, 241, 0.1);
+        }
+        .storage-bar-track {
+            height: 10px;
+            background: #f1f5f9;
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .storage-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1), background 0.6s ease;
+            position: relative;
+            min-width: 0;
+        }
+        .storage-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+            border-radius: 999px 999px 0 0;
+        }
+        .storage-bar-fill.level-safe { background: linear-gradient(90deg, #10b981, #34d399); }
+        .storage-bar-fill.level-warn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .storage-bar-fill.level-danger { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .storage-bar-fill.level-critical {
+            background: linear-gradient(90deg, #dc2626, #ef4444);
+            animation: storage-pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes storage-pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+            50% { opacity: 0.75; box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.15); }
+        }
+        .storage-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, padding 0.3s;
+            opacity: 0;
+            padding-top: 0;
+        }
+        .storage-detail.expanded {
+            max-height: 200px;
+            opacity: 1;
+            padding-top: 10px;
+        }
+        .storage-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+        .storage-segment-bar {
+            display: flex;
+            height: 6px;
+            border-radius: 999px;
+            overflow: hidden;
+            gap: 1px;
+            background: #f1f5f9;
+        }
+        .storage-segment-bar div {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.8s ease;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .storage-bar-fill, .storage-detail, .storage-section { transition: none !important; }
+            .storage-bar-fill.level-critical { animation: none !important; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
+<!-- TOAST -->
 <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl opacity-0 transition-all duration-300 z-[250] text-xs font-bold pointer-events-none flex items-center gap-2">
     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
     <span id="tM"></span>
 </div>
 
+<!-- MENU BUTTON -->
 <div class="fixed top-4 left-4 z-50">
     <button onclick="openNav()" class="relative group w-12 h-12 rounded-xl bg-slate-900 shadow-lg border border-indigo-500/30 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 active:scale-95 hover:border-indigo-400 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -96,10 +181,13 @@
     </button>
 </div>
 
+<!-- SIDEBAR OVERLAY -->
 <div id="sidebarOverlay" onclick="closeNav()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+<!-- SIDEBAR -->
 <aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 sidebar-blur z-50 flex flex-col justify-between p-5 -translate-x-full shadow-2xl transition-transform duration-300">
     <div>
-        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-xs mono shadow-md shadow-indigo-200">NX</div>
                 <h2 class="text-xs font-extrabold text-slate-900 tracking-wider">NEXUS PANEL</h2>
@@ -107,7 +195,7 @@
             <button onclick="closeNav()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 cursor-pointer">✕</button>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="grid grid-cols-2 gap-2 mb-5">
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2">
                 <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -128,17 +216,45 @@
             </div>
         </div>
 
-        <div onclick="simulateStorageCheck()" class="mb-6 p-3 bg-slate-950 text-white rounded-xl border border-slate-800 cursor-pointer active:scale-98 transition-all shadow-inner group">
-            <div class="flex justify-between items-center mb-1">
-                <span class="text-[9px] uppercase tracking-wider font-extrabold text-indigo-400 group-hover:text-indigo-300">Cloud Storage Vol</span>
-                <span id="storagePercentText" class="text-[10px] mono font-bold text-emerald-400">42% Used</span>
+        <!-- ===== STORAGE HEALTH BAR ===== -->
+        <div class="storage-section mb-5 bg-slate-50/80" onclick="toggleStorageDetail()" id="storageSection">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Cloud Storage</span>
+                </div>
+                <span class="text-[10px] font-extrabold mono" id="storagePctText" style="color:#10b981">0%</span>
             </div>
-            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-1.5 p-[1px]">
-                <div id="storageBar" class="bg-gradient-to-r from-emerald-500 via-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500" style="width: 42%"></div>
+            <div class="storage-bar-track">
+                <div class="storage-bar-fill level-safe" id="storageBarFill" style="width:0%"></div>
             </div>
-            <div class="flex justify-between text-[8px] text-slate-400 mono">
-                <span id="storageUsedStr">Allocated: 4.2 MB</span>
-                <span>Limit: 10.0 MB</span>
+            <div class="storage-detail" id="storageDetail">
+                <div class="border-t border-slate-200/60 pt-2 mt-1 space-y-1">
+                    <div class="storage-detail-row">
+                        <span class="text-[9px] text-slate-400">Terpakai</span>
+                        <span class="text-[9px] font-bold text-slate-700 mono" id="storageUsedText">0 B</span>
+                    </div>
+                    <div class="storage-detail-row">
+                        <span class="text-[9px] text-slate-400">Kapasitas</span>
+                        <span class="text-[9px] font-bold text-slate-700 mono" id="storageMaxText">2 MB</span>
+                    </div>
+                    <div class="storage-detail-row">
+                        <span class="text-[9px] text-slate-400">Total File</span>
+                        <span class="text-[9px] font-bold text-slate-700 mono" id="storageFileCount">0</span>
+                    </div>
+                    <div class="storage-detail-row">
+                        <span class="text-[9px] text-slate-400">Terbesar</span>
+                        <span class="text-[9px] font-bold text-indigo-600 mono truncate ml-2 text-right max-w-[120px]" id="storageLargest">-</span>
+                    </div>
+                    <div class="mt-2">
+                        <div class="storage-segment-bar" id="storageSegmentBar"></div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-[7px] text-slate-300">0</span>
+                            <span class="text-[7px] text-slate-300">50%</span>
+                            <span class="text-[7px] text-slate-300">100%</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -157,39 +273,62 @@
             </button>
         </nav>
     </div>
-    
+
     <div class="pt-4 border-t border-slate-100">
-        <p class="text-[10px] text-slate-400 truncate mb-2 mono" id="aE">session@nexus.io</p>
+        <div class="flex items-center gap-2 mb-2">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-200"></div>
+            <p class="text-[10px] text-slate-400 truncate mono" id="aE">session@nexus.io</p>
+        </div>
         <button onclick="doOut()" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition cursor-pointer text-center">Log Out</button>
     </div>
 </aside>
 
+<!-- ===== AUTH GATE ===== -->
 <div id="authGate" class="fixed inset-0 z-[100] bg-slate-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm">
         <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-600 text-white font-black shadow-lg mb-3">NX</div>
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white font-black text-lg shadow-xl shadow-indigo-200 mb-3">NX</div>
             <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">NEXUS X SERVICE</h1>
             <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wider">Cloud Dashboard Access</p>
         </div>
-        
+
         <div class="flex mb-4 gap-1 bg-slate-200/60 p-1 rounded-xl">
             <button id="tabReg" onclick="stab('reg')" class="flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm">Register</button>
             <button id="tabLog" onclick="stab('log')" class="flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500">Login</button>
         </div>
 
+        <!-- REGISTER FORM -->
         <div id="fReg" class="glass-panel rounded-2xl p-5 space-y-3">
             <input type="email" id="rE" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
             <input type="password" id="rP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
-            <button onclick="doReg()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Verify via Resend Email</button>
+            <button onclick="doReg()" id="regBtn" class="w-full py-2.5 rounded-xl btn-purple text-xs">Send Verification Code</button>
         </div>
 
-        <div id="fCode" class="glass-panel rounded-2xl p-6 space-y-4 hidden text-center">
-            <h3 class="text-xs font-bold text-slate-800">Security Code Sent!</h3>
-            <p class="text-[11px] text-slate-400">Check your email inbox or spam folder.</p>
-            <input type="text" id="vCodeInput" placeholder="Enter 6-Digit Code" class="w-full px-4 py-2.5 text-center tracking-widest bg-slate-50 rounded-xl input-clean text-sm font-black mono">
-            <button onclick="verifyAndActivateToken()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Confirm & Activate</button>
+        <!-- VERIFY CODE FORM -->
+        <div id="fVerify" class="glass-panel rounded-2xl p-5 space-y-4 hidden">
+            <div class="text-center space-y-2">
+                <div class="mx-auto w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <h3 class="text-xs font-bold text-slate-800">Kode Verifikasi Dikirim!</h3>
+                <p class="text-[10px] text-slate-400" id="verifyTarget">Cek inbox email kamu</p>
+            </div>
+            <input type="text" id="vC" placeholder="Masukkan 6 digit kode" maxlength="6" class="w-full px-4 py-3 rounded-xl input-clean text-center text-lg font-black mono tracking-[0.3em]">
+            <button onclick="doVerify()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Verifikasi Akun</button>
+            <button onclick="doResend()" class="w-full py-2 text-indigo-500 hover:text-indigo-700 text-[10px] font-bold transition cursor-pointer">Kirim Ulang Kode</button>
         </div>
 
+        <!-- VERIFIED SUCCESS -->
+        <div id="fVerified" class="glass-panel rounded-2xl p-6 space-y-4 hidden text-center">
+            <div class="mx-auto w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 class="text-sm font-bold text-slate-800">Akun Terverifikasi!</h3>
+            <p class="text-[10px] text-slate-400">Kamu bisa login sekarang</p>
+            <button onclick="goLog()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Lanjut ke Login</button>
+        </div>
+
+        <!-- LOGIN FORM -->
         <div id="fLog" class="glass-panel rounded-2xl p-5 space-y-3 hidden">
             <input type="email" id="lE" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
             <input type="password" id="lP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
@@ -198,8 +337,27 @@
     </div>
 </div>
 
+<!-- ===== RESTRICTED VIEW (NON-OWNER) ===== -->
+<div id="restrictedView" class="hidden fixed inset-0 z-[100] bg-slate-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm text-center space-y-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 shadow-inner">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <div>
+            <h1 class="text-lg font-extrabold text-slate-900">Access Restricted</h1>
+            <p class="text-xs text-slate-400 mt-3 leading-relaxed">Instance NEXUS ini dimiliki dan dikelola secara privat. Akun kamu tidak memiliki otorisasi untuk mengakses panel kontrol ini.</p>
+        </div>
+        <div class="p-3 bg-slate-100 rounded-xl">
+            <p class="text-[10px] text-slate-400">Logged in as</p>
+            <p class="text-xs font-bold text-slate-600 mono mt-0.5" id="restrictedEmail">-</p>
+        </div>
+        <button onclick="doOut()" class="px-8 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-lg">Log Out</button>
+    </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
 <div id="mainApp" class="hidden flex-1 w-full pt-24 px-4 pb-8 max-w-5xl mx-auto space-y-6">
-    
+
     <div id="view-beranda" class="space-y-4 hidden">
         <h2 class="text-base font-extrabold text-slate-900">System Gateway Architecture</h2>
         <div class="glass-panel rounded-2xl p-5 space-y-4">
@@ -210,6 +368,23 @@
                     <code class="text-[10px] text-slate-600 mono bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60 truncate flex-1" id="dL3">-</code>
                 </div>
             </div>
+            <div class="pt-3 border-t border-slate-100">
+                <span class="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md uppercase">Security</span>
+                <div class="mt-2 space-y-2">
+                    <div class="flex items-center gap-2 text-[10px]">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                        <span class="text-slate-600">Script payload hanya tersedia melalui validasi license key</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px]">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                        <span class="text-slate-600">Data terisolasi per-akun owner (single tenant)</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px]">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                        <span class="text-slate-600">Direct menu endpoint memerlukan session token owner</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -217,9 +392,8 @@
         <div class="w-full bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">Cloud Scripts Modules</h2>
-                <p class="text-[10px] text-slate-400">Manage and deploy isolated raw lua micro-services</p>
+                <p class="text-[10px] text-slate-400">Manage and deploy raw lua micro-services</p>
             </div>
-            
             <div class="flex flex-col md:flex-row gap-3 w-full">
                 <div class="relative flex-1 min-w-[140px]">
                     <select id="cloudSelector" onchange="handleScriptSelect()" class="w-full pl-9 pr-10 py-2.5 bg-indigo-50/80 hover:bg-indigo-100/70 border border-indigo-200 text-indigo-950 text-xs font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition mono cursor-pointer appearance-none shadow-sm">
@@ -232,14 +406,12 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2 shrink-0 w-full md:w-auto">
                     <input type="file" id="localFilePicker" accept=".lua,.txt" class="hidden" onchange="handleLocalFileLoad(event)">
                     <button onclick="document.getElementById('localFilePicker').click()" class="btn-storage-premium flex-1 md:flex-none px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-md shadow-emerald-100 border border-emerald-400 cursor-pointer" title="Upload dari Internal Storage">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                         <span>Internal File</span>
                     </button>
-                    
                     <button onclick="openCreateModal()" class="flex-1 md:flex-none px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-indigo-100">
                         <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span>New File</span>
@@ -247,7 +419,6 @@
                 </div>
             </div>
         </div>
-        
         <div id="fList" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
     </div>
 
@@ -287,6 +458,7 @@
     </div>
 </div>
 
+<!-- EDITOR MODAL -->
 <div id="editorModalOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[150] opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center p-4">
     <div id="editorModalContainer" class="w-full max-w-2xl bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 flex flex-col max-h-[90vh]">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -309,7 +481,7 @@
             </div>
             <div class="flex-1 flex flex-col min-h-[250px]">
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Source Code Buffers</label>
-                <textarea id="fC" placeholder="-- Tulis baris kode lua disini..." class="w-full flex-1 p-4 rounded-xl input-clean text-xs mono stream-editor min-h-[280px] focus:ring-2 focus:ring-indigo-500/10"></textarea>
+                <textarea id="fC" placeholder="-- Tulis baris kode lua disini..." class="w-full flex-1 p-4 rounded-xl input-clean text-xs mono min-h-[280px] focus:ring-2 focus:ring-indigo-500/10"></textarea>
             </div>
         </div>
         <div class="px-5 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
@@ -319,6 +491,7 @@
     </div>
 </div>
 
+<!-- CONFIRM MODAL -->
 <div id="confirmModalOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center p-4">
     <div id="confirmModalContainer" class="w-full max-w-sm bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 p-5 text-center space-y-4">
         <div class="mx-auto w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shadow-inner">
@@ -336,18 +509,21 @@
 </div>
 
 <script>
-var S={files:[],keys:[],session:'',cur:'ggscript',tempEmail:''};
-var pendingDeleteTarget=null;
-var pendingDeleteType=null;
+var S = { files: [], keys: [], session: '', cur: 'ggscript', owner: false };
+var pendingDeleteTarget = null;
+var pendingDeleteType = null;
+var pendingRegEmail = '';
+var pendingRegPass = '';
+var STORAGE_MAX = 2 * 1024 * 1024; // 2MB
 
-function toast(m){
-    var t=document.getElementById('toast');
-    document.getElementById('tM').innerText=m;
-    t.style.opacity='1';
-    setTimeout(function(){t.style.opacity='0'},2500);
+function toast(m) {
+    var t = document.getElementById('toast');
+    document.getElementById('tM').innerText = m;
+    t.style.opacity = '1';
+    setTimeout(function() { t.style.opacity = '0'; }, 2500);
 }
 
-function cp(t){
+function cp(t) {
     navigator.clipboard.writeText(t);
     toast('Copied to Clipboard!');
 }
@@ -357,7 +533,6 @@ function openNav() {
     var ov = document.getElementById('sidebarOverlay');
     ov.classList.remove('pointer-events-none');
     ov.style.opacity = '1';
-    simulateStorageCheck();
 }
 
 function closeNav() {
@@ -367,39 +542,102 @@ function closeNav() {
     ov.style.opacity = '0';
 }
 
-function simulateStorageCheck() {
-    let baseCount = S.files.length || 0;
-    let computedPercent = Math.min(Math.max((baseCount * 12) + Math.floor(Math.random() * 8) + 10, 15), 98);
-    let sizeMb = (computedPercent / 10).toFixed(1);
-    
-    document.getElementById('storagePercentText').innerText = computedPercent + "% Used";
-    document.getElementById('storageBar').style.width = computedPercent + "%";
-    document.getElementById('storageUsedStr').innerText = "Allocated: " + sizeMb + " MB";
-    
-    if(computedPercent > 80) {
-        document.getElementById('storagePercentText').className = "text-[10px] mono font-bold text-rose-500";
-    } else {
-        document.getElementById('storagePercentText').className = "text-[10px] mono font-bold text-emerald-400";
-    }
-    toast('Cloud Data Blocks Synced!');
+/* ===== STORAGE HEALTH BAR ===== */
+function toggleStorageDetail() {
+    var detail = document.getElementById('storageDetail');
+    detail.classList.toggle('expanded');
 }
 
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    var k = 1024;
+    var sizes = ['B', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    i = Math.min(i, sizes.length - 1);
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function updateStorageBar() {
+    var totalBytes = 0;
+    var largestName = '-';
+    var largestSize = 0;
+    S.files.forEach(function(f) {
+        var sz = f.content ? new Blob([f.content]).size : 0;
+        totalBytes += sz;
+        if (sz > largestSize) {
+            largestSize = sz;
+            largestName = f.name;
+        }
+    });
+
+    var pct = Math.min(100, (totalBytes / STORAGE_MAX) * 100);
+    var pctRound = Math.round(pct * 10) / 10;
+
+    var fill = document.getElementById('storageBarFill');
+    var pctText = document.getElementById('storagePctText');
+    var usedText = document.getElementById('storageUsedText');
+    var maxText = document.getElementById('storageMaxText');
+    var fileCount = document.getElementById('storageFileCount');
+    var largest = document.getElementById('storageLargest');
+    var segBar = document.getElementById('storageSegmentBar');
+
+    fill.style.width = pctRound + '%';
+    pctText.innerText = pctRound + '%';
+    usedText.innerText = formatBytes(totalBytes);
+    maxText.innerText = formatBytes(STORAGE_MAX);
+    fileCount.innerText = S.files.length + ' file';
+    largest.innerText = largestSize > 0 ? largestName : '-';
+
+    // Warna berdasarkan level
+    fill.classList.remove('level-safe', 'level-warn', 'level-danger', 'level-critical');
+    if (pct < 40) {
+        fill.classList.add('level-safe');
+        pctText.style.color = '#10b981';
+    } else if (pct < 70) {
+        fill.classList.add('level-warn');
+        pctText.style.color = '#f59e0b';
+    } else if (pct < 90) {
+        fill.classList.add('level-danger');
+        pctText.style.color = '#ef4444';
+    } else {
+        fill.classList.add('level-critical');
+        pctText.style.color = '#dc2626';
+    }
+
+    // Segment bar (per file)
+    if (S.files.length > 0) {
+        var segments = '';
+        var colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'];
+        S.files.forEach(function(f, i) {
+            var sz = f.content ? new Blob([f.content]).size : 0;
+            var w = Math.max(1, (sz / STORAGE_MAX) * 100);
+            var c = colors[i % colors.length];
+            segments += '<div style="width:' + w + '%;background:' + c + '" title="' + f.name + ': ' + formatBytes(sz) + '"></div>';
+        });
+        segBar.innerHTML = segments;
+    } else {
+        segBar.innerHTML = '';
+    }
+}
+
+/* ===== MODALS ===== */
 function openCreateModal() {
-    document.getElementById('edId').value=''; 
-    document.getElementById('fN').value=''; 
-    document.getElementById('fC').value='';
-    document.getElementById('edN').innerText='Deploy New Module';
-    document.getElementById('edSub').innerText='Editor Engine Terminal';
+    document.getElementById('edId').value = '';
+    document.getElementById('fN').value = '';
+    document.getElementById('fC').value = '';
+    document.getElementById('edN').innerText = 'Deploy New Module';
+    document.getElementById('edSub').innerText = 'Editor Engine Terminal';
     toggleEditorModal(true);
 }
 
 function openEditModal(id) {
-    var t=S.files.find(function(f){return f.id===id}); if(!t) return;
-    document.getElementById('edId').value=id;
-    document.getElementById('fN').value=t.name;
-    document.getElementById('fC').value=t.content;
-    document.getElementById('edN').innerText='Editing Active Module';
-    document.getElementById('edSub').innerText=t.name + ' (' + t.id + ')';
+    var t = S.files.find(function(f) { return f.id === id; });
+    if (!t) return;
+    document.getElementById('edId').value = id;
+    document.getElementById('fN').value = t.name;
+    document.getElementById('fC').value = t.content;
+    document.getElementById('edN').innerText = 'Editing Active Module';
+    document.getElementById('edSub').innerText = t.name + ' (' + t.id + ')';
     toggleEditorModal(true);
 }
 
@@ -408,7 +646,7 @@ function closeEditorModal() { toggleEditorModal(false); }
 function toggleEditorModal(show) {
     var ov = document.getElementById('editorModalOverlay');
     var box = document.getElementById('editorModalContainer');
-    if(show) {
+    if (show) {
         ov.classList.remove('pointer-events-none');
         ov.style.opacity = '1';
         box.classList.remove('scale-95', 'opacity-0');
@@ -427,7 +665,6 @@ function askDelete(target, type) {
     ov.classList.remove('pointer-events-none');
     ov.style.opacity = '1';
     box.classList.remove('scale-95', 'opacity-0');
-    
     document.getElementById('confirmDelBtn').onclick = async function() {
         if (pendingDeleteType === 'file') {
             await api('DELETE', '?id=' + pendingDeleteTarget);
@@ -453,7 +690,7 @@ function closeConfirmModal() {
 
 function handleScriptSelect() {
     var val = document.getElementById('cloudSelector').value;
-    if(val) openEditModal(val);
+    if (val) openEditModal(val);
 }
 
 function handleLocalFileLoad(event) {
@@ -470,45 +707,48 @@ function handleLocalFileLoad(event) {
         toast('Local file loaded!');
     };
     reader.readAsText(file);
+    event.target.value = '';
 }
 
 function toggleDurationView() {
     var dur = document.getElementById('kDur').value;
     document.getElementById('customKeyWrapper').style.display = (dur === 'perm') ? 'none' : 'block';
-    if(dur === 'perm') document.getElementById('kC').value = '';
+    if (dur === 'perm') document.getElementById('kC').value = '';
 }
 
-function sw(t){
-    S.cur=t;
-    ['beranda','ggscript','keysystem'].forEach(function(m){
-        document.getElementById('view-'+m).classList.add('hidden');
-        var btn = document.getElementById('btn-'+m);
-        if(btn) btn.classList.remove('nav-active');
+/* ===== VIEW SWITCHING ===== */
+function sw(t) {
+    S.cur = t;
+    ['beranda', 'ggscript', 'keysystem'].forEach(function(m) {
+        document.getElementById('view-' + m).classList.add('hidden');
+        var btn = document.getElementById('btn-' + m);
+        if (btn) btn.classList.remove('nav-active');
     });
-    document.getElementById('view-'+t).classList.remove('hidden');
-    var actBtn = document.getElementById('btn-'+t);
-    if(actBtn) actBtn.classList.add('nav-active');
-    
-    if(t==='beranda') initB();
-    if(t==='ggscript') loadF();
-    if(t==='keysystem') { loadF(); loadK(); }
+    document.getElementById('view-' + t).classList.remove('hidden');
+    var actBtn = document.getElementById('btn-' + t);
+    if (actBtn) actBtn.classList.add('nav-active');
+    if (t === 'beranda') initB();
+    if (t === 'ggscript') loadF();
+    if (t === 'keysystem') { loadF(); loadK(); }
     closeNav();
 }
 
-function initB(){
+function initB() {
     document.getElementById('dL3').innerText = location.origin + '/api/server?type=menu&id={script_id}';
 }
 
-async function api(m,u,b){
-    var o={method:m,headers:{'Content-Type':'application/json'}};
-    if(S.session) o.headers['X-Session']=S.session;
-    if(b) o.body=JSON.stringify(b);
-    return fetch('/api/server'+u,o);
+/* ===== API ===== */
+async function api(m, u, b) {
+    var o = { method: m, headers: { 'Content-Type': 'application/json' } };
+    if (S.session) o.headers['X-Session'] = S.session;
+    if (b) o.body = JSON.stringify(b);
+    return fetch('/api/server' + u, o);
 }
 
+/* ===== HOOK SCRIPTS ===== */
 function triggerCopyRawHook(scriptId) {
     var b = location.origin;
-    var rawLua = 'local r = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '")\nif r and r.code == 200 then\n    local fn = load(r.content)\n    if fn then fn() end\nend';
+    var rawLua = 'local r = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '&s=' + S.session + '")\nif r and r.code == 200 then\n    local fn = load(r.content)\n    if fn then fn() end\nend';
     cp(rawLua);
 }
 
@@ -518,24 +758,26 @@ function triggerCopyLicenseHook(scriptId) {
     cp(licenseLua);
 }
 
-async function loadF(){
-    var r=await api('GET',''); if(!r.ok) return;
-    S.files=await r.json();
+/* ===== LOAD FILES ===== */
+async function loadF() {
+    var r = await api('GET', '');
+    if (!r.ok) return;
+    S.files = await r.json();
     document.getElementById('statScr').innerText = S.files.length;
-    
+    updateStorageBar();
+
     var sel = document.getElementById('cloudSelector');
-    if(sel) {
-        sel.innerHTML = '<option value="">-- Select Cloud File --</option>' + 
-            S.files.map(function(f){return '<option value="'+f.id+'">'+f.name+'</option>'}).join('');
+    if (sel) {
+        sel.innerHTML = '<option value="">-- Select Cloud File --</option>' +
+            S.files.map(function(f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('');
     }
-    
-    var s=document.getElementById('kT');
-    if(s) s.innerHTML=S.files.map(function(f){return'<option value="'+f.id+'">'+f.name+'</option>'}).join('');
-    
-    var c=document.getElementById('fList');
-    if(!c) return;
-    
-    c.innerHTML=S.files.map(function(f){
+    var s = document.getElementById('kT');
+    if (s) s.innerHTML = S.files.map(function(f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('');
+
+    var c = document.getElementById('fList');
+    if (!c) return;
+    c.innerHTML = S.files.map(function(f) {
+        var sz = f.content ? new Blob([f.content]).size : 0;
         return '<div class="glass-panel rounded-2xl p-4 flex flex-col justify-between space-y-4 border border-slate-100 shadow-sm">' +
             '<div class="flex items-start justify-between gap-2">' +
                 '<div class="flex items-center gap-3 min-w-0">' +
@@ -543,21 +785,21 @@ async function loadF(){
                         '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/></svg>' +
                     '</div>' +
                     '<div class="min-w-0">' +
-                        '<span class="mono text-xs font-extrabold text-slate-800 truncate block">'+f.name+'</span>' +
-                        '<span class="text-[9px] text-slate-400 mono block mt-0.5">'+f.id+'</span>' +
+                        '<span class="mono text-xs font-extrabold text-slate-800 truncate block">' + f.name + '</span>' +
+                        '<span class="text-[9px] text-slate-400 mono block mt-0.5">' + f.id + ' &middot; ' + formatBytes(sz) + '</span>' +
                     '</div>' +
                 '</div>' +
                 '<div class="flex items-center gap-1 shrink-0">' +
-                    '<button onclick="openEditModal(\''+f.id+'\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-indigo-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
+                    '<button onclick="openEditModal(\'' + f.id + '\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-indigo-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
                         '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7.5M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
                     '</button>' +
-                    '<button onclick="askDelete(\''+f.id+'\', \'file\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
+                    '<button onclick="askDelete(\'' + f.id + '\', \'file\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
                         '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
                     '</button>' +
                 '</div>' +
             '</div>' +
             '<div class="pt-3 border-t border-slate-100/80 flex items-center justify-end">' +
-                '<button onclick="triggerCopyRawHook(\''+f.id+'\')" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5">' +
+                '<button onclick="triggerCopyRawHook(\'' + f.id + '\')" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5">' +
                     '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
                     'Copy Hook Script (Raw)' +
                 '</button>' +
@@ -566,42 +808,42 @@ async function loadF(){
     }).join('');
 }
 
-async function dep(){
-    var n=document.getElementById('fN').value.trim(), c=document.getElementById('fC').value, e=document.getElementById('edId').value;
-    if(!n||!c) return toast('Nama & isi skrip tidak boleh kosong!');
-    var r=await api('POST','',{name:n,content:c,existingScriptId:e});
-    if(r.ok){ toast(e?'Module Updated!':'Module Deployed Live!'); closeEditorModal(); loadF(); } else toast('Gagal memproses data.');
+/* ===== DEPLOY ===== */
+async function dep() {
+    var n = document.getElementById('fN').value.trim(), c = document.getElementById('fC').value, e = document.getElementById('edId').value;
+    if (!n || !c) return toast('Nama & isi skrip tidak boleh kosong!');
+    var r = await api('POST', '', { name: n, content: c, existingScriptId: e });
+    if (r.ok) { toast(e ? 'Module Updated!' : 'Module Deployed Live!'); closeEditorModal(); loadF(); } else toast('Gagal memproses data.');
 }
 
-async function loadK(){
-    var r=await api('GET','?type=keys'); if(!r.ok) return;
-    S.keys=await r.json();
+/* ===== LOAD KEYS ===== */
+async function loadK() {
+    var r = await api('GET', '?type=keys');
+    if (!r.ok) return;
+    S.keys = await r.json();
     document.getElementById('statKeys').innerText = S.keys.length;
-    
-    var c=document.getElementById('kList');
-    if(!c) return;
-    
-    c.innerHTML=S.keys.map(function(k){
-        var isPerm = k.expiry.startsWith('9999');
-        var badge = isPerm ? '<span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded shadow-sm">PERMANENT</span>' : 
-            (new Date()>new Date(k.expiry) ? '<span class="text-[9px] font-bold bg-rose-50 text-rose-600 px-2 py-0.5 rounded">EXPIRED</span>' : '<span class="text-[9px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded">ACTIVE</span>');
+    var c = document.getElementById('kList');
+    if (!c) return;
+    c.innerHTML = S.keys.map(function(k) {
+        var isPerm = k.expiry && k.expiry.startsWith('9999');
+        var badge = isPerm ? '<span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded shadow-sm">PERMANENT</span>' :
+            (new Date() > new Date(k.expiry) ? '<span class="text-[9px] font-bold bg-rose-50 text-rose-600 px-2 py-0.5 rounded">EXPIRED</span>' : '<span class="text-[9px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded">ACTIVE</span>');
         var expString = isPerm ? 'PERMANENT' : new Date(k.expiry).toLocaleDateString('id-ID');
-        var dc=k.registered_devices?k.registered_devices.length:0;
-        
+        var dc = k.registered_devices ? k.registered_devices.length : 0;
         return '<div class="glass-panel rounded-xl p-4 space-y-3 border border-slate-100 shadow-sm">' +
             '<div class="flex justify-between items-start gap-2">' +
-                '<div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold text-slate-800 break-all">'+k.key+'</span>'+badge+'</div></div>' +
-                '<button onclick="askDelete(\''+k.key+'\', \'key\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
+                '<div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold text-slate-800 break-all">' + k.key + '</span>' + badge + '</div></div>' +
+                '<button onclick="askDelete(\'' + k.key + '\', \'key\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
                     '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
                 '</button>' +
             '</div>' +
             '<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500 mono py-2 border-y border-slate-100">' +
-                '<div>Target: <span class="text-slate-800 font-bold">'+k.target_script_name+'</span></div>' +
-                '<div>Devices: <span class="text-indigo-600 font-bold">'+dc+'/'+k.max_devices+'</span></div>' +
-                '<div>Expiry: <span class="font-bold text-slate-800">'+expString+'</span></div>' +
+                '<div>Target: <span class="text-slate-800 font-bold">' + (k.target_script_name || '-') + '</span></div>' +
+                '<div>Devices: <span class="text-indigo-600 font-bold">' + dc + '/' + k.max_devices + '</span></div>' +
+                '<div>Expiry: <span class="font-bold text-slate-800">' + expString + '</span></div>' +
             '</div>' +
             '<div class="pt-1 flex items-center justify-end">' +
-                '<button onclick="triggerCopyLicenseHook(\''+k.script_id+'\')" class="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-sm">' +
+                '<button onclick="triggerCopyLicenseHook(\'' + k.script_id + '\')" class="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-sm">' +
                     '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>' +
                     'Copy Protected Hook Script' +
                 '</button>' +
@@ -610,89 +852,147 @@ async function loadK(){
     }).join('');
 }
 
-async function genK(){
-    var s=document.getElementById('kT').value, m=document.getElementById('kM').value, dur=document.getElementById('kDur').value, c=document.getElementById('kC').value.trim();
-    if(!s) return toast('Target modul wajib terisi!');
-    var r=await api('POST','',{action:'createKey',scriptId:s,duration:dur,maxDevices:m,customName:c});
-    if(r.ok){ toast('License Key Generated!'); document.getElementById('kC').value=''; loadK(); }
+/* ===== GENERATE KEY ===== */
+async function genK() {
+    var s = document.getElementById('kT').value, m = document.getElementById('kM').value, dur = document.getElementById('kDur').value, c = document.getElementById('kC').value.trim();
+    if (!s) return toast('Target modul wajib terisi!');
+    var r = await api('POST', '', { action: 'createKey', scriptId: s, duration: dur, maxDevices: m, customName: c });
+    if (r.ok) { toast('License Key Generated!'); document.getElementById('kC').value = ''; loadK(); }
 }
 
-function stab(t){
-    document.getElementById('fReg').classList.toggle('hidden',t!=='reg');
-    document.getElementById('fLog').classList.toggle('hidden',t!=='log');
-    document.getElementById('fCode').classList.add('hidden');
-    document.getElementById('tabReg').className=t==='reg'?'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm':'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';
-    document.getElementById('tabLog').className=t==='log'?'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm':'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';
+/* ===== AUTH TABS ===== */
+function stab(t) {
+    document.getElementById('fReg').classList.toggle('hidden', t !== 'reg');
+    document.getElementById('fVerify').classList.add('hidden');
+    document.getElementById('fVerified').classList.add('hidden');
+    document.getElementById('fLog').classList.toggle('hidden', t !== 'log');
+    document.getElementById('tabReg').className = t === 'reg' ? 'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm' : 'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';
+    document.getElementById('tabLog').className = t === 'log' ? 'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm' : 'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';
 }
 
-async function doReg(){
-    var e=document.getElementById('rE').value.trim(), p=document.getElementById('rP').value;
-    if(!e || !p) return toast('Lengkapi Form Pendaftaran!');
-    S.tempEmail = e;
-    
-    var r=await fetch('/api/server',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'register',email:e,password:p})
-    });
-    if(r.ok){
-        toast('Verification email dispatched!');
-        document.getElementById('fReg').classList.add('hidden');
-        document.getElementById('fCode').classList.remove('hidden');
-    } else {
-        toast('Email already registered or error occurred.');
-    }
-}
+/* ===== REGISTER (kirim kode via email) ===== */
+async function doReg() {
+    var e = document.getElementById('rE').value.trim(), p = document.getElementById('rP').value;
+    if (!e || !p) return toast('Email & password wajib diisi!');
+    if (p.length < 4) return toast('Password minimal 4 karakter!');
 
-async function verifyAndActivateToken() {
-    var code = document.getElementById('vCodeInput').value.trim();
-    if(!code) return toast('Masukkan kode verifikasi!');
-    
+    var btn = document.getElementById('regBtn');
+    btn.innerText = 'Sending...';
+    btn.disabled = true;
+
+    pendingRegEmail = e;
+    pendingRegPass = p;
+
     var r = await fetch('/api/server', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'verifyToken', email: S.tempEmail, code: code})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'register', email: e, password: p })
     });
-    
-    if(r.ok) {
-        toast('Token Activated! Please Log In.');
-        stab('log');
+
+    btn.innerText = 'Send Verification Code';
+    btn.disabled = false;
+
+    if (r.ok) {
+        document.getElementById('verifyTarget').innerText = 'Kode dikirim ke ' + e;
+        document.getElementById('fReg').classList.add('hidden');
+        document.getElementById('fVerify').classList.remove('hidden');
+        document.getElementById('vC').value = '';
+        toast('Kode verifikasi dikirim ke email!');
     } else {
-        toast('Invalid code token match.');
+        var d = await r.json().catch(function() { return {}; });
+        toast(d.error || 'Gagal mengirim kode verifikasi');
     }
 }
 
-async function doLog(){
-    var e=document.getElementById('lE').value.trim(), p=document.getElementById('lP').value;
-    var r=await fetch('/api/server',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'login',email:e,password:p})
+/* ===== VERIFY CODE ===== */
+async function doVerify() {
+    var code = document.getElementById('vC').value.trim();
+    if (!code || code.length !== 6) return toast('Masukkan 6 digit kode!');
+    var r = await fetch('/api/server', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', email: pendingRegEmail, code: code })
     });
-    if(r.ok){
-        var d=await r.json();
-        S.session=d.session;
-        localStorage.setItem('nx_session',d.session);
+    if (r.ok) {
+        document.getElementById('fVerify').classList.add('hidden');
+        document.getElementById('fVerified').classList.remove('hidden');
+        toast('Akun berhasil diverifikasi!');
+    } else {
+        toast('Kode verifikasi salah!');
+    }
+}
+
+/* ===== RESEND CODE ===== */
+async function doResend() {
+    var r = await fetch('/api/server', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'resend', email: pendingRegEmail, password: pendingRegPass })
+    });
+    if (r.ok) {
+        toast('Kode baru dikirim ke email!');
+    } else {
+        toast('Gagal mengirim ulang kode');
+    }
+}
+
+/* ===== LOGIN ===== */
+async function doLog() {
+    var e = document.getElementById('lE').value.trim(), p = document.getElementById('lP').value;
+    if (!e || !p) return toast('Email & password wajib diisi!');
+    var r = await fetch('/api/server', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email: e, password: p })
+    });
+    if (r.ok) {
+        var d = await r.json();
+        S.session = d.session;
+        S.owner = d.owner === true;
+        localStorage.setItem('nx_session', d.session);
+        localStorage.setItem('nx_owner', d.owner ? '1' : '0');
         document.getElementById('authGate').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('aE').innerText=e;
-        sw('ggscript');
+
+        if (S.owner) {
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('aE').innerText = e;
+            sw('ggscript');
+        } else {
+            document.getElementById('restrictedView').classList.remove('hidden');
+            document.getElementById('restrictedEmail').innerText = e;
+        }
     } else {
-        toast('Authentication Failed!');
+        toast('Otentikasi Gagal! Cek email/password atau verifikasi akun.');
     }
 }
 
-function doOut(){ localStorage.removeItem('nx_session'); location.reload(); }
-
-window.onload=function(){ 
-    var c=localStorage.getItem('nx_session'); 
-    if(c){ 
-        S.session=c; 
-        document.getElementById('authGate').classList.add('hidden'); 
-        document.getElementById('mainApp').classList.remove('hidden'); 
-        sw('ggscript'); 
-    } 
+function goLog() {
+    document.getElementById('fVerified').classList.add('hidden');
+    stab('log');
 }
+
+function doOut() {
+    localStorage.removeItem('nx_session');
+    localStorage.removeItem('nx_owner');
+    location.reload();
+}
+
+/* ===== INIT ===== */
+window.onload = function() {
+    var c = localStorage.getItem('nx_session');
+    var o = localStorage.getItem('nx_owner');
+    if (c) {
+        S.session = c;
+        S.owner = o === '1';
+        document.getElementById('authGate').classList.add('hidden');
+        if (S.owner) {
+            document.getElementById('mainApp').classList.remove('hidden');
+            sw('ggscript');
+        } else {
+            document.getElementById('restrictedView').classList.remove('hidden');
+        }
+    }
+};
 </script>
 </body>
 </html>
