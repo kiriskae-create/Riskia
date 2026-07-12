@@ -16,19 +16,20 @@ export default async function handler(req, res) {
     const host = req.headers.host;
 
     // ═══════════════════════════════════════
-    //  LINK 1 — LOADER (UNIQUE PER KEY)
+    //  LINK 1 — LOADER
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
-        const loaderKey = req.query.key;
+        const lk = req.query.key;
 
-        if (loaderKey) {
+        // Loader dengan key tertanam — auto validasi, tanpa dialog
+        if (lk) {
             const code = [
                 'gg.setVisible(false)',
                 'gg.toast("[X] NEXUS X - Authenticating...")',
                 'local raw = "NX-" .. tostring(gg.getTargetPackage())',
                 'local hwid = ""',
                 'for i = 1, #raw do hwid = hwid .. string.format("%02X", string.byte(raw, i)) end',
-                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&validate=' + loaderKey + '&device="..hwid.."&embed=1")',
+                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&validate=' + lk + '&device="..hwid.."&embed=1")',
                 'if r and r.code == 200 then',
                 '    local fn = load(r.content)',
                 '    if fn then fn() end',
@@ -40,6 +41,7 @@ export default async function handler(req, res) {
             return res.status(200).send(code);
         }
 
+        // Generic loader — tampilkan dialog login
         const code = [
             'gg.setVisible(false)',
             'gg.toast("[X] NEXUS X - Connecting...")',
@@ -55,24 +57,17 @@ export default async function handler(req, res) {
     }
 
     // ═══════════════════════════════════════
-    //  LINK 3 — MENU
-    // ═══════════════════════════════════════
-    if (req.method === 'GET' && type === 'menu' && id) {
-        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
-        res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
-    }
-
-    // ═══════════════════════════════════════
     //  LINK 2 — LOGIN & VALIDASI
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
         const isEmbed = embed === '1';
+        // Jika bukan embed mode, error akan redirect ke login dialog
         const errTail = isEmbed ? '' : [
             'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
             'if r and r.code == 200 then load(r.content) end'
         ].join('\n');
 
+        // --- VALIDATE KEY ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             if (checkKey.length === 0) {
@@ -114,6 +109,7 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
+            // VALID — tampilkan alert, lalu load menu (LINK 3)
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
@@ -127,6 +123,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
+        // --- LOGIN UI (gg.dialog = text keyboard) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -191,6 +188,15 @@ if not doValidate(inputKey) then
 end`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(loginLua);
+    }
+
+    // ═══════════════════════════════════════
+    //  LINK 3 — MENU SCRIPT
+    // ═══════════════════════════════════════
+    if (req.method === 'GET' && type === 'menu' && id) {
+        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
     }
 
     // ═══════════════════════════════════════
