@@ -2,40 +2,64 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS CONTROL HUB v3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEXUS DASHBOARD CONTROL HUB</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #07080a; color: #cbd5e1; }
-        .glass { background: rgba(13, 16, 23, 0.8); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.03); }
+        @import url('https://fonts.googleapis.com/css2 family=Inter:wght@400;600;700;900&family=JetBrains+Mono&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #07080a; color: #cbd5e1; overflow-x: hidden; }
+        .glass { background: rgba(13, 16, 23, 0.8); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.03); }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 700; transition: all 0.2s; cursor: pointer; }
+        .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 700; cursor: pointer; transition: all 0.2s; }
         .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25); }
         .menu-active { background: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; color: #f59e0b; font-weight: 700; }
+        
+        /* Modifikasi Visual Area Edit LUA */
+        .code-editor-view { background: #020406 !important; border: 1px solid #3b82f6 !important; box-shadow: 0 0 35px rgba(59, 130, 246, 0.15); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row">
 
-<!-- AUTHENTICATION GATE -->
+<!-- BACKGROUND BLUR COVER INTERAKTIF UNTUK MENU SAMPING -->
+<div id="sidebarOverlay" onclick="toggleSidebarMenu()" class="fixed inset-0 bg-black/60 backdrop-blur-md z-40 hidden transition-all duration-300"></div>
+
+<!-- AUTHENTICATION DIALOG -->
 <div id="authGate" class="fixed inset-0 z-[100] bg-[#07080a] flex items-center justify-center">
     <div class="w-full max-w-sm mx-4 glass p-6 rounded-2xl space-y-4 shadow-2xl">
         <div class="text-center">
             <h1 class="text-lg font-black text-white tracking-widest">NEXUS ENTERPRISE</h1>
-            <p class="text-[10px] text-slate-500 mt-1">Sesi Kontrol Panel Terenkripsi</p>
         </div>
         <div class="space-y-2">
-            <input type="email" id="logEmail" placeholder="Email Administrator" class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-500">
-            <input type="password" id="logPass" placeholder="Token Sandi Akses" class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-500">
-            <button onclick="doLogin()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Authorize Panel Session</button>
+            <input type="email" id="logEmail" placeholder="Administrator Email" class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-500">
+            <input type="password" id="logPass" placeholder="Security Password Token" class="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-500">
+            <button onclick="doLogin()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Verify & Open Access</button>
         </div>
     </div>
 </div>
 
-<!-- SIDEBAR BAR -->
-<aside id="sidebarMenu" class="w-full md:w-64 bg-[#0a0c10] p-5 flex flex-col justify-between border-r border-white/5 shrink-0">
+<!-- TOP NAVIGATION TRIGER UNTUK MOBILE (KLIK LOGO / ICON UNTUK OPEN MENU) -->
+<header class="flex md:hidden items-center justify-between p-4 bg-[#0a0c10] border-b border-white/5 z-30">
+    <!-- JIKA DI-KLIK AKAN MUNCUL MENU DARI KIRI & LATAR KANANNYA BLUR FULL -->
+    <div onclick="toggleSidebarMenu()" class="flex items-center gap-3 cursor-pointer select-none">
+        <div class="w-8 h-8 flex items-center justify-center bg-amber-500/10 rounded-xl border border-amber-500/20">
+            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11V7a4 4 0 00-8 0v4c0 2.408.47 4.704 1.321 6.809m9.479-3.956a14.002 14.002 0 004.144-6.809V7a4 4 0 10-8 0v4c0 1.258-.166 2.477-.478 3.637m0 0A13.93 13.93 0 0112 21c-.482 0-.957-.054-1.414-.159m0 0L15 16"></path>
+            </svg>
+        </div>
+        <span class="text-sm font-black tracking-widest text-white uppercase flex items-center gap-1">
+            Nexus
+            <svg class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944a11.954 11.954 0 007.834 3.056A11.977 11.977 0 0118 10a11.952 11.952 0 01-2.166 6.944A11.954 11.954 0 0010 18.056a11.954 11.954 0 00-5.834-3.112A11.977 11.977 0 012 10c0-1.787.391-3.483 1.092-5.001zM10 5a1 1 0 00-1 1v3a1 1 0 001 1h2a1 1 0 100-2h-1V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+        </span>
+    </div>
+    <div class="text-[10px] uppercase font-bold tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">Mobile Menu Trigger</div>
+</header>
+
+<!-- SIDEBAR MODAL - BERGESER DARI KIRI -->
+<aside id="sidebarMenu" class="fixed md:relative top-0 bottom-0 left-0 w-64 bg-[#0a0c10] p-5 flex flex-col justify-between border-r border-white/5 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
-        <!-- PREMIUM LOGO DENGAN KANAN KIRI SVG (NO EMOJI) -->
+        <!-- BRANDING LOGO DENGAN ICON SVG MODERN -->
         <div class="flex items-center gap-3 mb-8 px-1">
             <div class="w-8 h-8 flex items-center justify-center bg-amber-500/10 rounded-xl border border-amber-500/20">
                 <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -44,7 +68,7 @@
             </div>
             <span class="text-sm font-black tracking-widest text-white uppercase flex items-center gap-1">
                 Nexus
-                <svg class="w-3.5 h-3.5 text-amber-500 inline" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <svg class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944a11.954 11.954 0 007.834 3.056A11.977 11.977 0 0118 10a11.952 11.952 0 01-2.166 6.944A11.954 11.954 0 0010 18.056a11.954 11.954 0 00-5.834-3.112A11.977 11.977 0 012 10c0-1.787.391-3.483 1.092-5.001zM10 5a1 1 0 00-1 1v3a1 1 0 001 1h2a1 1 0 100-2h-1V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                 </svg>
             </span>
@@ -56,40 +80,59 @@
         </nav>
     </div>
     <div class="pt-4 border-t border-white/5">
-        <button onclick="doLogout()" class="w-full py-2 rounded-xl bg-red-950/20 border border-red-500/20 text-red-400 text-xs font-bold cursor-pointer">Disconnect Session</button>
+        <button onclick="doLogout()" class="w-full py-2 rounded-xl bg-red-950/20 border border-red-500/20 text-red-400 text-xs font-bold cursor-pointer">Disconnect Panel</button>
     </div>
 </aside>
 
-<!-- MAIN APP VIEW PORT -->
-<main class="flex-1 p-6 md:p-8 overflow-y-auto w-full">
-    <!-- LINK 1: LOADER GENERATOR VIEW -->
+<!-- MAIN DISPLAY PLATFORM -->
+<main class="flex-1 p-5 md:p-8 overflow-y-auto w-full">
+    <!-- VIEW: OVERVIEW HUB (LINK 1 GENERATOR & DISPLAY URL) -->
     <div id="view-beranda" class="space-y-6">
         <div class="glass p-6 rounded-2xl space-y-4">
             <h2 class="text-xs font-bold text-amber-500 tracking-wider uppercase flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-                Link 1: Lightweight Loader Code (Eksternal)
+                Link 1: Lightweight External Loader Code
             </h2>
-            <p class="text-xs text-slate-400">Salin kode mandiri di bawah ini ke dalam file LUA distribusi luar Anda. Berfungsi murni memicu **LINK 2 (`/login.php`)**.</p>
+            <p class="text-xs text-slate-400">Salin kode ini untuk Anda taruh di file luar awal. Berfungsi memicu **LINK 2 (`/login.php`)** secara dinamis.</p>
             <textarea id="link1Code" rows="4" readonly class="w-full p-3 bg-black/40 border border-white/5 rounded-xl text-[11px] mono text-emerald-400 resize-none focus:outline-none"></textarea>
-            <button onclick="navigator.clipboard.writeText(document.getElementById('link1Code').value);showToast('Link 1 Loader Copied!')" class="w-full py-2.5 rounded-xl btn-gold text-xs">Copy Link 1 (Loader)</button>
+            <button onclick="navigator.clipboard.writeText(document.getElementById('link1Code').value);showToast('Link 1 Loader Copied!')" class="w-full py-2.5 rounded-xl btn-gold text-xs">Copy Link 1 Code (Loader)</button>
+        </div>
+        
+        <div class="glass p-6 rounded-2xl space-y-3">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Sistem Integrasi Alur 3 Link Raw Terpisah</h3>
+            <div class="grid grid-cols-1 gap-2 text-xs">
+                <div class="p-3 bg-black/30 rounded-xl border border-white/[0.02]">
+                    <span class="text-amber-400 font-bold">Link 1 (Loader):</span> Memanggil endpoint validasi tanpa membawa payload menu utama.
+                </div>
+                <div class="p-3 bg-black/30 rounded-xl border border-white/[0.02]">
+                    <span class="text-blue-400 font-bold">Link 2 (login.php):</span> Mengelola GUI input lisensi & mencocokkan HWID ke database.
+                </div>
+                <div class="p-3 bg-black/30 rounded-xl border border-white/[0.02]">
+                    <span class="text-emerald-400 font-bold">Link 3 (menu.php):</span> Hanya menyemburkan source code LUA asli jika dipicu token terverifikasi dari Link 2.
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- VIEW: MANAGING SCRIPT MENUS -->
+    <!-- VIEW: EDIT / CREATE MENUS SCRIPT -->
     <div id="view-ggscript" class="space-y-5 hidden">
-        <div class="glass p-5 rounded-2xl space-y-4">
-            <h3 class="text-xs font-bold text-white uppercase">Upload Menu Script Content (Link 3 Target)</h3>
-            <input type="text" id="fileName" placeholder="Script Module Identity (e.g., CoreVipMenu.lua)" class="w-full px-4 py-2.5 bg-black/40 border border-white/10 text-xs rounded-xl text-white focus:outline-none">
-            <textarea id="fileContent" rows="12" placeholder="-- Taruh seluruh kode menu Game Guardian asli Anda di sini..." class="w-full p-4 bg-black/40 border border-white/10 text-xs mono rounded-xl text-white resize-none focus:outline-none"></textarea>
-            <button onclick="deployFile()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Deploy Live Menu Script</button>
+        <div id="editorBox" class="glass p-5 rounded-2xl space-y-4 transition-all duration-300">
+            <div class="flex justify-between items-center">
+                <h3 id="editorBoxTitle" class="text-xs font-bold text-white uppercase tracking-wider">Create New Menu Script Core</h3>
+                <button onclick="cancelEditMode()" id="btnCancelEdit" class="hidden text-xs text-red-400 hover:underline cursor-pointer">Batal Perubahan</button>
+            </div>
+            <input type="hidden" id="editScriptId">
+            <input type="text" id="fileName" placeholder="Script Name (e.g., FreeFireVipCore.lua)" class="w-full px-4 py-2.5 bg-black/40 border border-white/10 text-xs rounded-xl text-white focus:outline-none">
+            <textarea id="fileContent" rows="12" placeholder="-- Taruh seluruh kode menu utama Game Guardian Anda di sini..." class="w-full p-4 bg-black/40 border border-white/10 text-xs mono rounded-xl text-white resize-none focus:outline-none"></textarea>
+            <button id="btnSubmitFile" onclick="deployFile()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Deploy Live Menu Script</button>
         </div>
         <div id="fileList" class="space-y-2"></div>
     </div>
 
-    <!-- VIEW: KEY GENERATION -->
+    <!-- VIEW: LICENSING CONTROL PANEL -->
     <div id="view-keysystem" class="space-y-5 hidden">
         <div class="glass p-5 rounded-2xl space-y-4">
-            <h3 class="text-xs font-bold text-white uppercase">Generate Access License (Link 2 Router)</h3>
+            <h3 class="text-xs font-bold text-white uppercase">Generate Access License</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-[10px] text-slate-500 mb-1">Target Script Module (Link 3 Linker)</label>
@@ -114,7 +157,7 @@
     </div>
 </main>
 
-<div id="toast" class="fixed bottom-5 right-5 bg-amber-500 text-black px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl opacity-0 transition-opacity duration-200"></div>
+<div id="toast" class="fixed bottom-5 right-5 bg-amber-500 text-black px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl opacity-0 transition-opacity duration-200 z-[100]"></div>
 
 <script>
 var S = { files: [], keys: [], session: '' };
@@ -124,6 +167,18 @@ function showToast(m) {
     setTimeout(function(){ t.style.opacity = '0'; }, 2000);
 }
 
+function toggleSidebarMenu() {
+    var sidebar = document.getElementById('sidebarMenu');
+    var overlay = document.getElementById('sidebarOverlay');
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    }
+}
+
 function switchMenu(t) {
     ['beranda', 'ggscript', 'keysystem'].forEach(m => {
         document.getElementById('view-'+m).classList.add('hidden');
@@ -131,8 +186,15 @@ function switchMenu(t) {
     });
     document.getElementById('view-'+t).classList.remove('hidden');
     document.getElementById('btn-'+t).classList.add('menu-active');
-    if (t === 'beranda') document.getElementById('link1Code').value = 'local r = gg.makeRequest("' + location.origin + '/login.php")\nif r and r.code == 200 then load(r.content)() else gg.alert("❌ Gagal menghubungi validator login.php!") end';
-    if (t === 'ggscript') loadFiles();
+    
+    // Sembunyikan otomatis menu samping di tampilan mobile setelah menu ditekan
+    if (window.innerWidth < 768) {
+        document.getElementById('sidebarMenu').classList.add('-translate-x-full');
+        document.getElementById('sidebarOverlay').classList.add('hidden');
+    }
+
+    if (t === 'beranda') document.getElementById('link1Code').value = 'local r = gg.makeRequest("' + location.origin + '/login.php")\nif r and r.code == 200 then load(r.content)() else gg.alert("❌ Gagal terhubung ke validator login.php!") end';
+    if (t === 'ggscript') { cancelEditMode(); loadFiles(); }
     if (t === 'keysystem') { loadFiles(); loadKeys(); }
 }
 
@@ -147,36 +209,71 @@ async function loadFiles() {
     S.files = await r.json();
     var sel = document.getElementById('keyTarget'); if (sel) sel.innerHTML = S.files.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
     var c = document.getElementById('fileList'); if (!c) return;
-    c.innerHTML = S.files.map(f => `
-        <div class="glass p-4 rounded-xl flex justify-between items-center text-xs">
-            <div><span class="font-bold text-amber-400">${f.name}</span><div class="text-[10px] text-slate-500 mono">Script ID: ${f.id}</div></div>
-            <button onclick="delFile('${f.id}')" class="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg font-bold">Delete</button>
-        </div>
-    `).join('');
+    c.innerHTML = S.files.map(f => {
+        var directMenuLink3 = location.origin + '/menu.php?id=' + f.id + '&auth=MASUKKAN_KEY_DISINI';
+        return `
+        <div class="glass p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center text-xs gap-3">
+            <div><span class="font-bold text-amber-400">${f.name}</span><div class="text-[10px] text-slate-500 mono">ID Module: ${f.id}</div></div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <button onclick="navigator.clipboard.writeText('${directMenuLink3}');showToast('Link 3 URL Copied!')" class="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold rounded-md">Copy Link 3 URL</button>
+                <button onclick="triggerEditMode('${f.id}')" class="px-2 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-md">Edit Content</button>
+                <button onclick="delFile('${f.id}')" class="px-2 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-md font-bold">Delete</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function triggerEditMode(id) {
+    var item = S.files.find(f => f.id === id); if (!item) return;
+    document.getElementById('editScriptId').value = id;
+    document.getElementById('fileName').value = item.name;
+    document.getElementById('fileContent').value = item.content;
+    
+    var box = document.getElementById('editorBox');
+    box.classList.add('code-editor-view');
+    document.getElementById('editorBoxTitle').innerText = "Editor Mode Active: " + item.name;
+    document.getElementById('btnSubmitFile').innerText = "Save & Apply Changes Code";
+    document.getElementById('btnCancelEdit').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelEditMode() {
+    document.getElementById('editScriptId').value = '';
+    document.getElementById('fileName').value = '';
+    document.getElementById('fileContent').value = '';
+    
+    var box = document.getElementById('editorBox');
+    box.classList.remove('code-editor-view');
+    document.getElementById('editorBoxTitle').innerText = "Create New Menu Script Core";
+    document.getElementById('btnSubmitFile').innerText = "Deploy Live Menu Script";
+    document.getElementById('btnCancelEdit').classList.add('hidden');
 }
 
 async function deployFile() {
-    var n = document.getElementById('fileName').value, c = document.getElementById('fileContent').value;
+    var n = document.getElementById('fileName').value, c = document.getElementById('fileContent').value, existingId = document.getElementById('editScriptId').value;
     if(!n || !c) return showToast('Form data modul wajib terisi!');
-    var r = await api('POST', '', { name: n, content: c });
-    if(r.ok) { showToast('Script Deployed Successfully!'); resetForm(); loadFiles(); }
+    var r = await api('POST', '', { name: n, content: c, existingScriptId: existingId });
+    if(r.ok) { showToast(existingId ? 'Script Updated Successfully!' : 'Script Deployed Successfully!'); cancelEditMode(); loadFiles(); }
 }
-
-function resetForm() { document.getElementById('fileName').value = ''; document.getElementById('fileContent').value = ''; }
 
 async function loadKeys() {
     var r = await api('GET', '?id=keys'); if (!r.ok) return;
     S.keys = await r.json();
     var c = document.getElementById('keyList'); if (!c) return;
-    c.innerHTML = S.keys.map(k => `
+    c.innerHTML = S.keys.map(k => {
+        var directLoginLink2 = location.origin + '/login.php?key=' + k.key;
+        return `
         <div class="glass p-4 rounded-xl text-xs space-y-2">
             <div class="flex justify-between font-bold text-white"><span class="mono text-amber-400">${k.key}</span><button onclick="delKey('${k.key}')" class="text-red-400 font-bold">Delete</button></div>
             <div class="text-[11px] text-slate-400 grid grid-cols-2 gap-1 mono">
-                <div>Attached To ID: ${k.script_id}</div>
+                <div>Attached Target Script: ${k.target_script_name}</div>
                 <div>HWID Slots: ${k.registered_devices ? k.registered_devices.length : 0}/${k.max_devices} Dev</div>
             </div>
-        </div>
-    `).join('');
+            <div class="pt-1">
+                <button onclick="navigator.clipboard.writeText('${directLoginLink2}');showToast('Link 2 URL Copied!')" class="w-full py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg font-bold text-[10px] text-center">Copy Link 2 URL (login.php)</button>
+            </div>
+        </div>`;
+    }).join('');
 }
 
 async function genKey() {

@@ -16,45 +16,32 @@ export default async function handler(req, res) {
     const { type, key, device, id, deleteKey, auth } = req.query;
     const host = req.headers.host;
 
-    // ================================================================
     // HANDLER LINK 2: LOGIN & VALIDASI (Output: Lua Script via login.php)
-    // ================================================================
     if (type === 'login') {
         res.setHeader('Content-Type', 'text/plain');
 
-        // Jika dipanggil oleh pengecekan silent (Persistent Login otomatis dari Lua)
         if (key) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
-            if (checkKey.length === 0) {
-                return res.status(200).send('return false, "❌ Lisensi Tidak Valid!"');
-            }
+            if (checkKey.length === 0) return res.status(200).send('return false, "❌ Lisensi Tidak Valid!"');
 
             const license = checkKey[0];
-            if (new Date() > new Date(license.expiry)) {
-                return res.status(200).send('return false, "❌ Lisensi Kedaluwarsa!"');
-            }
+            if (new Date() > new Date(license.expiry)) return res.status(200).send('return false, "❌ Lisensi Kedaluwarsa!"');
 
             const clientHwid = device || 'NX-UNKNOWN';
             let registeredDevices = license.registered_devices || [];
 
             if (device && !registeredDevices.includes(clientHwid)) {
-                if (registeredDevices.length >= license.max_devices) {
-                    return res.status(200).send('return false, "❌ Limit HWID Terlampaui!"');
-                }
+                if (registeredDevices.length >= license.max_devices) return res.status(200).send('return false, "❌ Limit HWID Terlampaui!"');
                 registeredDevices.push(clientHwid);
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
             }
-
-            // Jika validasi sukses, kembalikan status true dan ID script target untuk dipanggil di LINK 3
             return res.status(200).send('return true, "' + license.script_id + '"');
         }
 
-        // Jika dipanggil pertama kali tanpa parameter key (Menghasilkan UI Form Login Game Guardian)
         const loginUiLua = `
 local savedKey = gg.settingLoad("nx_stored_key") or ""
 local hwid = "NX-" .. tostring(gg.getTargetPackage())
 
--- 1. PERSISTENT LOGIN CHECK
 if savedKey ~= "" then
     gg.toast("🔄 Auto-login: Memeriksa lisensi tersimpan...")
     local checkReq = gg.makeRequest("https://${host}/login.php?key="..savedKey.."&device="..hwid)
@@ -69,17 +56,16 @@ if savedKey ~= "" then
                     load(menuReq.content)()
                     return
                 else
-                    gg.alert("❌ Gagal memuat Menu Utama dari server!")
+                    gg.alert("❌ Gagal memuat Menu Utama!")
                 end
             else
                 gg.toast(scriptTargetOrMsg)
-                gg.settingSave("nx_stored_key", "") -- Hapus key jika sudah tidak valid/expired
+                gg.settingSave("nx_stored_key", "")
             end
         end
     end
 end
 
--- 2. TAMPILAN INTERFACE LOGIN JIKA KEY BELUM TERSEDIA / DIHAPUS
 ::login_screen::
 local input = gg.prompt({"🔑 ENTER PREMIUM LICENSE KEY:"}, {""}, {"text"})
 if not input then os.exit() end
@@ -98,16 +84,10 @@ if r and r.code == 200 then
     if f then
         local success, msg = f()
         if success then
-            gg.settingSave("nx_stored_key", userKey) -- Simpan Key ke memori lokal GG
+            gg.settingSave("nx_stored_key", userKey)
             gg.toast("✨ LOGIN BERHASIL!")
-            
-            -- Ambil Menu Utama dari LINK 3
             local menuReq = gg.makeRequest("https://${host}/menu.php?id="..msg.."&auth="..userKey)
-            if menuReq and menuReq.code == 200 then
-                load(menuReq.content)()
-            else
-                gg.alert("❌ Gagal mengambil Menu Utama!")
-            end
+            if menuReq and menuReq.code == 200 then load(menuReq.content)() else gg.alert("❌ Gagal mengambil Menu Utama!") end
         else
             gg.alert(msg)
             goto login_screen
@@ -121,29 +101,19 @@ end`;
         return res.status(200).send(loginUiLua);
     }
 
-    // ================================================================
     // HANDLER LINK 3: SCRIPT MENU UTAMA (Output: Lua Script via menu.php)
-    // ================================================================
     if (type === 'menu') {
         res.setHeader('Content-Type', 'text/plain');
+        if (!id || !auth) return res.status(200).send('gg.alert("❌ Akses ilegal ditolak!"); os.exit()');
 
-        if (!id || !auth) {
-            return res.status(200).send('gg.alert("❌ Akses ilegal tanpa token ditolak!"); os.exit()');
-        }
-
-        // Validasi berlapis: Pastikan token auth dari parameter benar-benar terdaftar untuk script ini
         const verifyKey = await sql`SELECT * FROM keys WHERE key = ${auth} AND script_id = ${id}`;
-        if (verifyKey.length === 0) {
-            return res.status(200).send('gg.alert("❌ Verifikasi Integritas Menu Gagal!"); os.exit()');
-        }
+        if (verifyKey.length === 0) return res.status(200).send('gg.alert("❌ Verifikasi Integritas Menu Gagal!"); os.exit()');
 
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS] Isi Menu Utama Belum Dikonfigurasi.');
     }
 
-    // ================================================================
-    // SISTEM MANAGEMENT PANEL DASHBOARD WEB ADMIN
-    // ================================================================
+    // BACKEND DASHBOARD HANDLER
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
