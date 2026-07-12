@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/login.php", "destination": "/api/server?type=login" },
+    { "source": "/menu.php", "destination": "/api/server?type=menu" }
+  ]
+}
