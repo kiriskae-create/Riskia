@@ -19,13 +19,12 @@ export default async function handler(req, res) {
         const targetScriptId = id || 'default';
         const code = [
             'gg.setVisible(false)',
-            'gg.toast("[X] NEXUS X - Connecting...")',
-            'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+            'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + targetScriptId + '")',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
-            '    if fn then fn() else gg.alert("[X] Script Empty!") end',
+            '    if fn then fn() else gg.alert("Script Kosong!") end',
             'else',
-            '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
+            '    gg.alert("Koneksi Gagal!")',
             'end'
         ].join('\n');
         res.setHeader('Content-Type', 'text/plain');
@@ -35,7 +34,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu tidak ditemukan!")');
     }
 
     if (req.method === 'GET' && type === 'login') {
@@ -43,18 +42,18 @@ export default async function handler(req, res) {
 
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
-
+            
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense Key tidak valid untuk Script ini!")',
+                    'gg.alert("License Key tidak valid untuk Script ini!")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
             }
-
+            
             const license = checkKey[0];
             const expDate = new Date(license.expiry);
 
@@ -62,7 +61,7 @@ export default async function handler(req, res) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '\\n\\nContact admin for renewal.")',
+                    'gg.alert("License EXPIRED!\\nExpired: ' + fd + '")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
@@ -76,7 +75,7 @@ export default async function handler(req, res) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
                         'os.remove("/sdcard/.nexus_auth")',
-                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!\\n\\nContact admin to reset devices.")',
+                        'gg.alert("Batas Maksimal Perangkat Tercapai!")',
                         'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                         'if r and r.code == 200 then load(r.content)() end'
                     ].join('\n');
@@ -91,10 +90,10 @@ export default async function handler(req, res) {
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
                 'if f then f:write("' + validate + '"); f:close() end',
-                'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + fd + '")',
+                'gg.toast("ACCESS GRANTED | Exp: ' + fd + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
-                'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
+                'if fn then fn() else gg.alert("Gagal memuat menu utama!") end'
             ].join('\n');
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(c);
@@ -113,7 +112,7 @@ local function getHwid()
 end
 
 local function doValidate(k)
-    gg.toast("[X] Verifying license...")
+    gg.toast("Memverifikasi lisensi...")
     local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
     if r and r.code == 200 then
         local fn = load(r.content)
@@ -123,35 +122,22 @@ local function doValidate(k)
     return false
 end
 
-local function showLogin()
-    local input = gg.prompt(
-        {"[NEXUS X CLOUD]\\nMasukkan License Key Anda:"},
-        {""},
-        {"text"}
-    )
-    if input and input[1] then
-        return (input[1]):match("^%s*(.-)%s*$")
-    end
-    return nil
-end
-
 local savedKey = nil
 local f = io.open(KEY_FILE, "r")
 if f then savedKey = f:read("*a"):match("^%s*(.-)%s*$"); f:close() end
 
 if savedKey and savedKey ~= "" then
-    gg.toast("[X] Restoring session...")
     if doValidate(savedKey) then return end
 end
 
-local inputKey = showLogin()
-if not inputKey or inputKey == "" then
-    if inputKey == "" then gg.alert("[X] Key tidak boleh kosong!") end
-    return
-end
-
-if not doValidate(inputKey) then
-    gg.alert("[X] Hubungan terputus atau Key salah!")
+local input = gg.prompt({"[NEXUS X CLOUD]\\nMasukkan Kunci Lisensi:"}, {""}, {"text"})
+if input and input[1] then
+    local inputKey = (input[1]):match("^%s*(.-)%s*$")
+    if inputKey ~= "" then
+        if not doValidate(inputKey) then gg.alert("Kunci Lisensi Salah atau Terputus!") end
+    else
+        gg.alert("Key tidak boleh kosong!")
+    end
 end`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(loginLua);
@@ -160,7 +146,7 @@ end`;
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script not found.');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script tidak ditemukan.');
     }
 
     const sessionToken = req.headers['x-session'];
