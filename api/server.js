@@ -12,14 +12,44 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session');
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { id, type, key, device, reqStage, deleteKey, validate } = req.query;
+    const { id, type, key, device, reqStage, deleteKey, validate, embed } = req.query;
     const host = req.headers.host;
 
     // ═══════════════════════════════════════
-    //  LINK 1 — LOADER
+    //  LINK 1 — LOADER (UNIQUE PER KEY)
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
-        const code = 'gg.setVisible(false)\ngg.toast("[X] NEXUS X - Connecting...")\nlocal r = gg.makeRequest("https://' + host + '/api/server?type=login")\nif r and r.code == 200 then\n    load(r.content)()\nelse\n    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")\nend';
+        const loaderKey = req.query.key;
+
+        if (loaderKey) {
+            const code = [
+                'gg.setVisible(false)',
+                'gg.toast("[X] NEXUS X - Authenticating...")',
+                'local raw = "NX-" .. tostring(gg.getTargetPackage())',
+                'local hwid = ""',
+                'for i = 1, #raw do hwid = hwid .. string.format("%02X", string.byte(raw, i)) end',
+                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&validate=' + loaderKey + '&device="..hwid.."&embed=1")',
+                'if r and r.code == 200 then',
+                '    local fn = load(r.content)',
+                '    if fn then fn() end',
+                'else',
+                '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
+                'end'
+            ].join('\n');
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send(code);
+        }
+
+        const code = [
+            'gg.setVisible(false)',
+            'gg.toast("[X] NEXUS X - Connecting...")',
+            'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
+            'if r and r.code == 200 then',
+            '    load(r.content)()',
+            'else',
+            '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
+            'end'
+        ].join('\n');
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(code);
     }
@@ -37,16 +67,19 @@ export default async function handler(req, res) {
     //  LINK 2 — LOGIN & VALIDASI
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
+        const isEmbed = embed === '1';
+        const errTail = isEmbed ? '' : [
+            'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
+            'if r and r.code == 200 then load(r.content) end'
+        ].join('\n');
 
-        // --- VALIDATE KEY ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             if (checkKey.length === 0) {
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
                     'gg.alert("[X] NEXUS X CLOUD\\n\\nInvalid license key!")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
-                    'if r and r.code == 200 then load(r.content)() end'
+                    errTail
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
@@ -58,9 +91,8 @@ export default async function handler(req, res) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '\\n\\nContact admin for renewal.")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
-                    'if r and r.code == 200 then load(r.content)() end'
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '")',
+                    errTail
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
@@ -72,9 +104,8 @@ export default async function handler(req, res) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
                         'os.remove("/sdcard/.nexus_auth")',
-                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!\\n\\nContact admin to reset devices.")',
-                        'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
-                        'if r and r.code == 200 then load(r.content)() end'
+                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!")',
+                        errTail
                     ].join('\n');
                     res.setHeader('Content-Type', 'text/plain');
                     return res.status(200).send(c);
@@ -83,7 +114,6 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            // VALID — alert tengah, setelah OK baru load menu
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
@@ -97,7 +127,6 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI (gg.dialog = system keyboard) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -127,7 +156,7 @@ local function showLogin()
                 "  [X]  NEXUS X CLOUD",
                 "  License Verification",
                 "",
-                {text = "", hint = "Enter your license key", tag = "key"}
+                {text = "", hint = "Enter your license key", tag = "key", type = "text"}
             },
             "AUTHENTICATION",
             {"VERIFY", "EXIT"}
@@ -165,7 +194,7 @@ end`;
     }
 
     // ═══════════════════════════════════════
-    //  RAW SCRIPT CONTENT
+    //  RAW SCRIPT
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
@@ -199,20 +228,24 @@ end`;
             await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
         }
         if (!reqStage) {
-            const p = `gg.setVisible(false)
-local raw_hwid = "NX-" .. tostring(gg.getTargetPackage())
-local encoded_hwid = ""
-for i = 1, #raw_hwid do encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i)) end
-local r = gg.makeRequest("https://${host}/api/server?key=${key}&device="..encoded_hwid.."&reqStage=2")
-if r and r.code == 200 then load(r.content)() else gg.alert("[X] Jaringan Terputus!") os.exit() end`;
+            const p = [
+                'gg.setVisible(false)',
+                'local raw_hwid = "NX-" .. tostring(gg.getTargetPackage())',
+                'local encoded_hwid = ""',
+                'for i = 1, #raw_hwid do encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i)) end',
+                'local r = gg.makeRequest("https://' + host + '/api/server?key=' + key + '&device="..encoded_hwid.."&reqStage=2")',
+                'if r and r.code == 200 then load(r.content)() else gg.alert("[X] Jaringan Terputus!") os.exit() end'
+            ].join('\n');
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(p);
         }
         if (reqStage === '2') {
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-            const p = `gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ${fd}")
-local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
-if r and r.code == 200 then load(r.content)() else os.exit() end`;
+            const p = [
+                'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + fd + '")',
+                'local r = gg.makeRequest("https://' + host + '/api/server?key=' + key + '&device=' + clientHwid + '&reqStage=3")',
+                'if r and r.code == 200 then load(r.content)() else os.exit() end'
+            ].join('\n');
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(p);
         }
