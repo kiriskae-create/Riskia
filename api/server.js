@@ -13,107 +13,70 @@ export default async function handler(req, res) {
     
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { type, key, device, id, deleteKey, auth } = req.query;
+    const { id, type, key, device, reqStage, deleteKey } = req.query;
     const host = req.headers.host;
 
-    // HANDLER LINK 2: LOGIN & VALIDASI (Output: Lua Script via login.php)
-    if (type === 'login') {
+    if (req.method === 'GET' && type === 'raw' && id) {
+        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script tidak ditemukan.');
+    }
 
-        if (key) {
-            const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
-            if (checkKey.length === 0) return res.status(200).send('return false, "❌ Lisensi Tidak Valid!"');
-
-            const license = checkKey[0];
-            if (new Date() > new Date(license.expiry)) return res.status(200).send('return false, "❌ Lisensi Kedaluwarsa!"');
-
-            const clientHwid = device || 'NX-UNKNOWN';
-            let registeredDevices = license.registered_devices || [];
-
-            if (device && !registeredDevices.includes(clientHwid)) {
-                if (registeredDevices.length >= license.max_devices) return res.status(200).send('return false, "❌ Limit HWID Terlampaui!"');
-                registeredDevices.push(clientHwid);
-                await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
-            }
-            return res.status(200).send('return true, "' + license.script_id + '"');
+    if (key) {
+        const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
+        if (checkKey.length === 0) {
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Lisensi tidak valid!")\nos.exit()');
         }
 
-        const loginUiLua = `
-local savedKey = gg.settingLoad("nx_stored_key") or ""
-local hwid = "NX-" .. tostring(gg.getTargetPackage())
+        const license = checkKey[0];
+        const expDate = new Date(license.expiry);
+        
+        if (new Date() > expDate) {
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi kedaluwarsa!"); os.exit()');
+        }
 
-if savedKey ~= "" then
-    gg.toast("🔄 Auto-login: Memeriksa lisensi tersimpan...")
-    local checkReq = gg.makeRequest("https://${host}/login.php?key="..savedKey.."&device="..hwid)
-    if checkReq and checkReq.code == 200 then
-        local checkFunc = load(checkReq.content)
-        if checkFunc then
-            local isSuccess, scriptTargetOrMsg = checkFunc()
-            if isSuccess then
-                gg.toast("✨ Sesi Valid! Memuat Menu Utama...")
-                local menuReq = gg.makeRequest("https://${host}/menu.php?id="..scriptTargetOrMsg.."&auth="..savedKey)
-                if menuReq and menuReq.code == 200 then
-                    load(menuReq.content)()
-                    return
-                else
-                    gg.alert("❌ Gagal memuat Menu Utama!")
-                end
-            else
-                gg.toast(scriptTargetOrMsg)
-                gg.settingSave("nx_stored_key", "")
-            end
-        end
-    end
-end
+        const clientHwid = device || 'NX-INIT-DEVICE';
+        let registeredDevices = license.registered_devices || [];
+        
+        if (device && !registeredDevices.includes(clientHwid)) {
+            if (registeredDevices.length >= license.max_devices) {
+                res.setHeader('Content-Type', 'text/plain');
+                return res.status(200).send('gg.alert("❌ Max Device Terlampaui!"); os.exit()');
+            }
+            registeredDevices.push(clientHwid);
+            await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${key}`;
+        }
 
-::login_screen::
-local input = gg.prompt({"🔑 ENTER PREMIUM LICENSE KEY:"}, {""}, {"text"})
-if not input then os.exit() end
+        if (!reqStage) {
+            const payloadStage1 = `gg.setVisible(false)
+local raw_hwid = "NX-" .. tostring(gg.getTargetPackage())
+local encoded_hwid = ""
+for i = 1, #raw_hwid do encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i)) end
+local r = gg.makeRequest("https://${host}/api/server?key=${key}&device="..encoded_hwid.."&reqStage=2")
+if r and r.code == 200 then load(r.content)() else gg.alert("❌ Jaringan Terputus!") os.exit() end`;
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send(payloadStage1);
+        }
 
-local userKey = input[1]
-if userKey == "" then 
-    gg.alert("❌ Key tidak boleh kosong!") 
-    goto login_screen 
-end
+        if (reqStage === '2') {
+            const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            const payloadStage2 = `gg.toast("✨ ACCESS GRANTED ✨\\n⏳ EXP: ${formattedDate}")
+local sysTime = os.time() while os.time() < sysTime + 2 do end
+local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
+if r and r.code == 200 then load(r.content)() else os.exit() end`;
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send(payloadStage2);
+        }
 
-gg.toast("⏳ Memvalidasi Lisensi ke Database...")
-local r = gg.makeRequest("https://${host}/login.php?key="..userKey.."&device="..hwid)
-
-if r and r.code == 200 then
-    local f = load(r.content)
-    if f then
-        local success, msg = f()
-        if success then
-            gg.settingSave("nx_stored_key", userKey)
-            gg.toast("✨ LOGIN BERHASIL!")
-            local menuReq = gg.makeRequest("https://${host}/menu.php?id="..msg.."&auth="..userKey)
-            if menuReq and menuReq.code == 200 then load(menuReq.content)() else gg.alert("❌ Gagal mengambil Menu Utama!") end
-        else
-            gg.alert(msg)
-            goto login_screen
-        end
-    else
-        gg.alert("❌ Respons enkripsi server rusak.")
-    end
-else
-    gg.alert("❌ Gagal terhubung ke Auth Server!")
-end`;
-        return res.status(200).send(loginUiLua);
+        if (reqStage === '3') {
+            const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Script Kosong!"); os.exit()');
+        }
     }
 
-    // HANDLER LINK 3: SCRIPT MENU UTAMA (Output: Lua Script via menu.php)
-    if (type === 'menu') {
-        res.setHeader('Content-Type', 'text/plain');
-        if (!id || !auth) return res.status(200).send('gg.alert("❌ Akses ilegal ditolak!"); os.exit()');
-
-        const verifyKey = await sql`SELECT * FROM keys WHERE key = ${auth} AND script_id = ${id}`;
-        if (verifyKey.length === 0) return res.status(200).send('gg.alert("❌ Verifikasi Integritas Menu Gagal!"); os.exit()');
-
-        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
-        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS] Isi Menu Utama Belum Dikonfigurasi.');
-    }
-
-    // BACKEND DASHBOARD HANDLER
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
@@ -137,6 +100,7 @@ end`;
         }
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
         
+        // PEMBERSIHAN ATAU PERBAIKAN PADA LOGIKA UPDATE SCRIPT
         if (name && content) {
             if (existingScriptId && existingScriptId !== "") {
                 await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId}`;
@@ -155,7 +119,7 @@ end`;
 
     if (req.method === 'GET') {
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
-        return res.status(200).json(id === 'keys' ? await sql`SELECT * FROM keys` : await sql`SELECT * FROM scripts`);
+        return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys` : await sql`SELECT * FROM scripts`);
     }
 
     if (req.method === 'DELETE') {
