@@ -15,9 +15,6 @@ export default async function handler(req, res) {
     const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
-    // ═══════════════════════════════════════
-    //  LINK 1 — LOADER (DYNAMIC PER SCRIPT ID)
-    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
         const targetScriptId = id || 'default';
         const code = [
@@ -35,26 +32,18 @@ export default async function handler(req, res) {
         return res.status(200).send(code);
     }
 
-    // ═══════════════════════════════════════
-    //  LINK 3 — MENU
-    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
     }
 
-    // ═══════════════════════════════════════
-    //  LINK 2 — LOGIN & VALIDASI KETAT
-    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
         const targetScriptId = id || '';
 
-        // --- VALIDATE KEY & TARGET SCRIPT SYSTEM ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
-            
-            // Proteksi 1: Cek apakah key terdaftar atau apakah key tersebut ditujukan untuk script id yang sedang diakses
+
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
@@ -65,11 +54,10 @@ export default async function handler(req, res) {
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
             }
-            
+
             const license = checkKey[0];
             const expDate = new Date(license.expiry);
 
-            // Proteksi 2: Masa kedaluwarsa
             if (new Date() > expDate) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
@@ -82,7 +70,6 @@ export default async function handler(req, res) {
                 return res.status(200).send(c);
             }
 
-            // Proteksi 3: Batasan Perangkat (HWID)
             const clientHwid = device || 'NX-UNKNOWN';
             let registeredDevices = license.registered_devices || [];
             if (device && !registeredDevices.includes(clientHwid)) {
@@ -100,7 +87,6 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            // Sukses -> Stream Script Utama (Menu)
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
@@ -114,7 +100,6 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI (NATIVE KEYBOARD FORCED VIA gg.prompt) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -144,8 +129,8 @@ local function showLogin()
         {""},
         {"text"}
     )
-    if input and input[1] then 
-        return (input[1]):match("^%s*(.-)%s*$") 
+    if input and input[1] then
+        return (input[1]):match("^%s*(.-)%s*$")
     end
     return nil
 end
