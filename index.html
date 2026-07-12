@@ -56,7 +56,7 @@
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
         
-        /* EFEK BULAT RING MENONJOL SAAT DI TAP (LOCAL STORAGE BROWSE) */
+        /* EFEK TAP RING MENONJOL (LOCAL STORAGE BROWSE) */
         .btn-storage-premium {
             position: relative;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -65,14 +65,13 @@
         .btn-storage-premium::after {
             content: '';
             position: absolute;
-            inset: -8px;
-            border: 3px solid #6366f1;
-            border-radius: 9999px;
+            inset: -6px;
+            border: 2px solid #10b981;
+            border-radius: 12px;
             opacity: 0;
             transform: scale(0.8);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
             pointer-events: none;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.6);
         }
         .btn-storage-premium:active::after {
             opacity: 1;
@@ -80,7 +79,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex">
+<body class="min-h-screen flex flex-col">
 
 <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl opacity-0 transition-all duration-300 z-[250] text-xs font-bold pointer-events-none flex items-center gap-2">
     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
@@ -185,7 +184,7 @@
     </div>
 </div>
 
-<div id="mainApp" class="hidden flex-1 w-full min-h-screen pt-20 px-4 pb-8 max-w-5xl mx-auto transition-all duration-300">
+<div id="mainApp" class="hidden flex-1 w-full pt-24 px-4 pb-8 max-w-5xl mx-auto space-y-6">
     
     <div id="view-beranda" class="space-y-4 hidden">
         <h2 class="text-base font-extrabold text-slate-900">System Gateway Architecture</h2>
@@ -201,15 +200,15 @@
     </div>
 
     <div id="view-ggscript" class="space-y-4">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm w-full">
-            <div class="min-w-0">
-                <h2 class="text-base font-extrabold text-slate-900">Cloud Scripts Modules</h2>
-                <p class="text-[10px] text-slate-400 mt-0.5">Manage and deploy raw lua micro-services</p>
+        <div class="w-full bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+            <div class="flex flex-col gap-0.5">
+                <h2 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">Cloud Scripts Modules</h2>
+                <p class="text-[10px] text-slate-400">Manage and deploy raw lua micro-services</p>
             </div>
             
-            <div class="flex items-center gap-3 w-full sm:w-auto justify-start sm:justify-end">
-                <div class="relative w-full sm:w-56 min-w-[170px]">
-                    <select id="cloudSelector" onchange="handleScriptSelect()" class="w-full pl-9 pr-8 py-2.5 bg-indigo-50/80 hover:bg-indigo-100/70 border border-indigo-200 text-indigo-900 text-xs font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition mono cursor-pointer appearance-none shadow-sm text-ellipsis overflow-hidden whitespace-nowrap">
+            <div class="flex flex-col md:flex-row gap-3 w-full">
+                <div class="relative flex-1 min-w-[140px]">
+                    <select id="cloudSelector" onchange="handleScriptSelect()" class="w-full pl-9 pr-10 py-2.5 bg-indigo-50/80 hover:bg-indigo-100/70 border border-indigo-200 text-indigo-950 text-xs font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition mono cursor-pointer appearance-none shadow-sm">
                         <option value="">-- Select Cloud File --</option>
                     </select>
                     <div class="absolute left-3 top-3.5 text-indigo-500 pointer-events-none">
@@ -220,18 +219,22 @@
                     </div>
                 </div>
 
-                <input type="file" id="localFilePicker" accept=".lua,.txt" class="hidden" onchange="handleLocalFileLoad(event)">
-                <button onclick="document.getElementById('localFilePicker').click()" class="btn-storage-premium w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-200 border border-emerald-400 hover:bg-emerald-600 transition shrink-0 cursor-pointer" title="Upload dari Internal Storage">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m3-33H9m3-3l3 3m-3-3l-3 3"/></svg>
-                </button>
-                
-                <button onclick="openCreateModal()" class="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-md shadow-indigo-100 shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    New File
-                </button>
+                <div class="flex items-center gap-2 shrink-0 w-full md:w-auto">
+                    <input type="file" id="localFilePicker" accept=".lua,.txt" class="hidden" onchange="handleLocalFileLoad(event)">
+                    <button onclick="document.getElementById('localFilePicker').click()" class="btn-storage-premium flex-1 md:flex-none px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-md shadow-emerald-100 border border-emerald-400 cursor-pointer" title="Upload dari Internal Storage">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                        <span>Internal File</span>
+                    </button>
+                    
+                    <button onclick="openCreateModal()" class="flex-1 md:flex-none px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-indigo-100">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>New File</span>
+                    </button>
+                </div>
             </div>
         </div>
-        <div id="fList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        
+        <div id="fList" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
     </div>
 
     <div id="view-keysystem" class="space-y-4 hidden">
@@ -292,7 +295,7 @@
             </div>
             <div class="flex-1 flex flex-col min-h-[250px]">
                 <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Source Code Buffers</label>
-                <textarea id="fC" placeholder="-- Tulis baris kode lua disini..." class="w-full flex-1 p-4 rounded-xl input-clean text-xs mono resize-none min-h-[280px] focus:ring-2 focus:ring-indigo-500/10"></textarea>
+                <textarea id="fC" placeholder="-- Tulis baris kode lua disini..." class="w-full flex-1 p-4 rounded-xl input-clean text-xs mono stream-editor min-h-[280px] focus:ring-2 focus:ring-indigo-500/10"></textarea>
             </div>
         </div>
         <div class="px-5 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
@@ -309,7 +312,7 @@
         </div>
         <div>
             <h3 class="text-sm font-extrabold text-slate-900">Hapus File Permanen?</h3>
-            <p class="text-xs text-slate-400 mt-1">Tindakan ini tidak bisa dibatalkan dan akan merusak script loader eksternal yang terhubung.</p>
+            <p class="text-xs text-slate-400 mt-1">Tindakan ini tidak bisa dibatalkan.</p>
         </div>
         <div class="grid grid-cols-2 gap-2 pt-2">
             <button onclick="closeConfirmModal()" class="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-bold transition border border-slate-200/50 cursor-pointer">Batal</button>
@@ -429,18 +432,17 @@ function handleLocalFileLoad(event) {
         document.getElementById('edId').value = '';
         document.getElementById('fN').value = file.name;
         document.getElementById('fC').value = e.target.result;
-        document.getElementById('edN').innerText = 'Imported Local Storage File';
-        document.getElementById('edSub').innerText = 'Ready to Deploy: ' + file.name;
+        document.getElementById('edN').innerText = 'Imported Local Storage';
+        document.getElementById('edSub').innerText = file.name;
         toggleEditorModal(true);
-        toast('Local storage file loaded successfully!');
+        toast('Local file loaded!');
     };
     reader.readAsText(file);
 }
 
 function toggleDurationView() {
     var dur = document.getElementById('kDur').value;
-    var wrapper = document.getElementById('customKeyWrapper');
-    wrapper.style.display = (dur === 'perm') ? 'none' : 'block';
+    document.getElementById('customKeyWrapper').style.display = (dur === 'perm') ? 'none' : 'block';
     if(dur === 'perm') document.getElementById('kC').value = '';
 }
 
@@ -506,7 +508,7 @@ async function loadF(){
             '<div class="flex items-start justify-between gap-2">' +
                 '<div class="flex items-center gap-3 min-w-0">' +
                     '<div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 shadow-sm">' +
-                        '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                        '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/></svg>' +
                     '</div>' +
                     '<div class="min-w-0">' +
                         '<span class="mono text-xs font-extrabold text-slate-800 truncate block">'+f.name+'</span>' +
@@ -514,16 +516,16 @@ async function loadF(){
                     '</div>' +
                 '</div>' +
                 '<div class="flex items-center gap-1 shrink-0">' +
-                    '<button onclick="openEditModal(\''+f.id+'\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:border-indigo-300 hover:text-indigo-600 flex items-center justify-center shadow-sm cursor-pointer transition" title="Edit File">' +
+                    '<button onclick="openEditModal(\''+f.id+'\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-indigo-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
                         '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7.5M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
                     '</button>' +
-                    '<button onclick="askDelete(\''+f.id+'\', \'file\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:border-rose-300 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition" title="Delete File">' +
+                    '<button onclick="askDelete(\''+f.id+'\', \'file\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
                         '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
                     '</button>' +
                 '</div>' +
             '</div>' +
             '<div class="pt-3 border-t border-slate-100/80 flex items-center justify-end">' +
-                '<button onclick="triggerCopyRawHook(\''+f.id+'\')" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center shadow-sm shadow-indigo-100 flex items-center justify-center gap-1.5">' +
+                '<button onclick="triggerCopyRawHook(\''+f.id+'\')" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5">' +
                     '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
                     'Copy Hook Script (Raw)' +
                 '</button>' +
@@ -557,7 +559,7 @@ async function loadK(){
         return '<div class="glass-panel rounded-xl p-4 space-y-3 border border-slate-100 shadow-sm">' +
             '<div class="flex justify-between items-start gap-2">' +
                 '<div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold text-slate-800 break-all">'+k.key+'</span>'+badge+'</div></div>' +
-                '<button onclick="askDelete(\''+k.key+'\', \'key\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:border-rose-300 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition" title="Delete License">' +
+                '<button onclick="askDelete(\''+k.key+'\', \'key\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
                     '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
                 '</button>' +
             '</div>' +
