@@ -6,34 +6,88 @@ const sql = neon(process.env.POSTGRES_URL);
 function hashPass(pw) { return createHash('sha256').update(pw + '_nx_postgres_salt').digest('hex'); }
 function makeSession(email, hash) { return createHash('md5').update(email + hash + 'session_token').digest('hex'); }
 
+// ENGINE ENKRIPSI NEXUS (REPLICA MM-MODS ALGORITHM DYNAMIC)
 function obfuscateLua(code) {
-    const key = Math.floor(Math.random() * 200) + 50;
+    const key = "NexusVip";
     let b64 = Buffer.from(code).toString('base64');
     let xorArr = [];
+    
     for (let i = 0; i < b64.length; i++) {
-        xorArr.push(b64.charCodeAt(i) ^ key);
+        let kChar = key.charCodeAt((i % key.length));
+        xorArr.push(b64.charCodeAt(i) ^ kChar);
     }
+    
+    // Konversi array byte ke string terenkripsi mentah untuk dibungkus base64 sekunder
+    let encryptedRawStr = String.fromCharCode(...xorArr);
+    let finalPayloadBase64 = Buffer.from(encryptedRawStr, 'binary').toString('base64');
+
     return `
-local _key = ${key}
-local _enc = {${xorArr.join(',')}}
-local _b64 = ""
-for i=1, #_enc do _b64 = _b64 .. string.char(_enc[i] ~ _key) end
-local function _dec(data)
-    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-    data = string.gsub(data, '[^'..b..'=]', '')
-    return (data:gsub('.', function(x)
-        if (x == '=') then return '' end
-        local r,f='',(b:find(x)-1)
-        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
-        return r;
-    end):gsub('%d%d%d%d%d%d%d%d', function(x)
-        local r=0
-        for i=1,8 do r=r+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
-        return string.char(r)
-    end))
+gg.setVisible(false)
+
+-- ===============================
+-- LOADER REAL ANTI-DUMP (NEXUS)
+-- ===============================
+local function __Nexus_loader(enc)
+    local key = "${key}"
+
+    local function xorDec(data)
+        local out = {}
+        for i = 1, #data do
+            local k = key:byte(((i - 1) % #key) + 1)
+            out[i] = string.char(bit32.bxor(data:byte(i), k))
+        end
+        return table.concat(out)
+    end
+
+    local decoded = xorDec((function(d)
+        local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+        d=d:gsub('[^'..b..'=]','')
+        return (d:gsub('.',function(x)
+            if x=='=' then return '' end
+            local r,f='',(b:find(x)-1)
+            for i=6,1,-1 do
+                r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0')
+            end
+            return r
+        end):gsub('%d%d%d?%d?%d?%d?%d?%d?',function(x)
+            if #x~=8 then return '' end
+            local c=0
+            for i=1,8 do
+                c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0)
+            end
+            return string.char(c)
+        end))
+    end)(enc))
+
+    local tmp_dir = gg.EXT_CACHE_DIR or gg.EXT_STORAGE or "/sdcard"
+    local tmp = tmp_dir .. "/.nx_" .. tostring(os.time()) .. "_" .. tostring(math.random(1000,9999)) .. ".tmp"
+
+    local f = io.open(tmp, "wb")
+    if not f then return end
+    f:write(decoded)
+    f:close()
+
+    local loader = loadfile(tmp)
+    os.remove(tmp)
+
+    if loader then
+        pcall(loader)
+    end
 end
-local _exec, _err = load(_dec(_b64), "NexusXGuard")
-if _exec then _exec() else print(_err) end
+
+-- ===============================
+-- PAYLOAD CRIPTOGRAFADO (NEXUS FULL)
+-- ===============================
+local PAYLOAD = [[${finalPayloadBase64}]]
+
+__Nexus_loader(PAYLOAD)
+
+-- ===============================
+-- RETORNO FAKE (ANTI-DUMP)
+-- ===============================
+return {
+    msg = "Protegido por NexusXGuard - Uso nao autorizado proibido."
+}
 `.trim();
 }
 
@@ -46,6 +100,7 @@ export default async function handler(req, res) {
     const { id, type, device, validate, deleteKey } = req.query;
     const host = req.headers.host;
 
+    // INTERFACE DYNAMIC LOADER GENERATOR
     if (req.method === 'GET' && type === 'loader') {
         const targetScriptId = id || 'default';
         const code = [
@@ -69,6 +124,7 @@ export default async function handler(req, res) {
         return res.status(200).send(code);
     }
 
+    // DELIVER FINAL SCRIPT MENU CONTENT (ROUTE)
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content, encrypted FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
@@ -78,6 +134,7 @@ export default async function handler(req, res) {
         return res.status(200).send('gg.alert("[X] Menu tidak ditemukan!")');
     }
 
+    // AUTO VERIFY & LOGIN ALGORITHM
     if (req.method === 'GET' && type === 'login') {
         const targetScriptId = id || '';
         const clientHwid = device || 'NX-UNKNOWN';
@@ -85,7 +142,10 @@ export default async function handler(req, res) {
         if (!validate && clientHwid !== 'NX-UNKNOWN') {
             const activeKeys = await sql`SELECT * FROM keys WHERE script_id = ${targetScriptId}`;
             const matchingKey = activeKeys.find(k => {
-                let devList = k.registered_devices || [];
+                let devList = [];
+                try {
+                    devList = typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices) : (k.registered_devices || []);
+                } catch(e) { devList = []; }
                 let isExpired = k.expiry ? (new Date() > new Date(k.expiry)) : false;
                 return devList.includes(clientHwid) && !isExpired;
             });
@@ -112,7 +172,11 @@ export default async function handler(req, res) {
                 return res.status(200).send(`gg.alert("[X] Masa aktif habis!"); load(gg.makeRequest("https://${host}/api/server?type=login&id=${targetScriptId}").content)()`);
             }
 
-            let registeredDevices = license.registered_devices || [];
+            let registeredDevices = [];
+            try {
+                registeredDevices = typeof license.registered_devices === 'string' ? JSON.parse(license.registered_devices) : (license.registered_devices || []);
+            } catch(e) { registeredDevices = []; }
+
             if (clientHwid !== 'NX-UNKNOWN' && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
                     return res.status(200).send(`gg.alert("[X] Batas perangkat tercapai!"); load(gg.makeRequest("https://${host}/api/server?type=login&id=${targetScriptId}").content)()`);
@@ -124,6 +188,7 @@ export default async function handler(req, res) {
             return res.status(200).send(`gg.alert("🔓 Akses Diberikan!"); load(gg.makeRequest("https://${host}/api/server?type=menu&id=${license.script_id}").content)()`);
         }
 
+        // Fix Sesuai Permintaan: Saat klik back (tombol cancel/tidak isi key) -> Panggil gg.setVisible(true) agar Icon GG mengambang keluar kembali dan loop berlanjut
         const loginLua = `
 gg.setVisible(false)
 local BASE = "https://${host}"
@@ -139,7 +204,7 @@ end
 
 while true do
     if not gg.isVisible() then
-        local input = gg.prompt({"[NEXUS PANELS]\\nMasukkan Kode Lisensi Anda:"}, {""}, {"text"})
+        local input = gg.prompt({"[NEXUS CONTROLLER]\\nMasukkan Kode Lisensi Anda:"}, {""}, {"text"})
         if not input then
             gg.setVisible(true)
             break

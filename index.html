@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEXUS CONTROLLER V2</title>
+    <title>NEXUS DASHBOARD MASTER</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -27,19 +27,20 @@
         <button onclick="toggleMenu(true)" class="w-10 h-10 rounded-xl bg-purple-600/10 border border-purple-500/20 flex items-center justify-center cursor-pointer shadow-md">
             <span class="text-purple-400 font-black text-sm tracking-tighter">GG</span>
         </button>
-        <span class="text-xs font-bold tracking-wide text-slate-300">NEXUS CONTROLLER</span>
+        <span class="text-xs font-bold tracking-wide text-slate-300">NEXUS CONTROLLER V2</span>
     </div>
     <div class="text-[11px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg">
-        Expired: <span id="dashExpCount">0</span>
+        Expired Total: <span id="dashExpCount">0</span>
     </div>
 </header>
 
 <div id="blurBg" onclick="toggleMenu(false)" class="blur-overlay fixed inset-0 bg-black/40 z-40"></div>
 
+<!-- COMPONENT DRAW SIDEBAR SLIDING REPLICA -->
 <aside id="sideMenu" class="sidebar-drawer fixed top-0 bottom-0 left-0 w-72 bg-[#171a2b] z-50 flex flex-col justify-between shadow-2xl border-r border-white/5">
     <div>
         <div class="purple-header p-5 flex items-center justify-between text-white shadow-inner">
-            <span class="text-base font-extrabold tracking-wider">MENU UTAMA</span>
+            <span class="text-base font-extrabold tracking-wider">MENU NAVIGASI</span>
             <button onclick="toggleMenu(false)" class="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 cursor-pointer">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -70,7 +71,7 @@
 
 <div id="authGate" class="fixed inset-0 z-50 bg-[#0c0e17] flex items-center justify-center px-4">
     <div class="w-full max-w-sm glass rounded-2xl p-6 space-y-4">
-        <h2 class="text-center text-sm font-bold text-white tracking-wider">NEXUS SIGN IN</h2>
+        <h2 class="text-center text-sm font-bold text-white tracking-wider">NEXUS SECURE CONTROL</h2>
         <input type="email" id="lE" placeholder="Alamat Gmail" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs">
         <input type="password" id="lP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs">
         <button onclick="doLogin()" class="w-full py-2.5 rounded-xl btn-purple text-xs font-bold text-white">Masuk System</button>
@@ -85,16 +86,16 @@
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Server Link Gateway</h3>
             <div class="text-xs">
                 <span class="text-slate-400 block mb-1">Loader Script Base URL:</span>
-                <code id="loadUrlCode" class="block p-3 bg-black/30 rounded text-[10px] text-purple-400 break-all select-all">Loading...</code>
+                <code id="loadUrlCode" class="block p-3 bg-black/30 rounded text-[10px] text-purple-400 break-all select-all">Loading URL...</code>
             </div>
         </div>
     </div>
 
-    <!-- VIEW: GG SCRIPT CLOUD MANAGER -->
+    <!-- VIEW: GG SCRIPT WORKING AREA -->
     <div id="view-ggscript" class="space-y-4 hidden">
-        <!-- FORM BERSIH DI DALAM AREA KERJA NYA -->
         <div class="glass rounded-2xl p-5 space-y-4">
             <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                <!-- Sesuai Permintaan: Editor tidak menumpuk di atas melainkan refresh state di dalam tempat kerjanya sendiri -->
                 <h3 class="text-xs font-bold text-white" id="editorTitle">Buat Baru Script Cloud</h3>
                 <button onclick="resetEditor()" class="text-[10px] text-slate-400 hover:text-white underline cursor-pointer">Reset Form</button>
             </div>
@@ -102,14 +103,14 @@
             <input type="text" id="scriptName" placeholder="nama_script.lua" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
             <textarea id="scriptContent" rows="10" placeholder="-- Tulis baris kode lua disini..." class="w-full px-3 py-2.5 rounded-xl input-dark text-xs font-mono"></textarea>
             
-            <!-- ICON MENU TOGGLE SEBAGAI GANTI CHECKBOX -->
+            <!-- BUTTON-LIKE ICON MENU TOGGLE SEBAGAI PENGGANTI BOX CENTANG -->
             <div onclick="toggleIconEnc()" class="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 cursor-pointer hover:bg-purple-500/10 transition">
                 <div class="flex items-center gap-3">
                     <span id="encIconIndicator" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/5 transition-colors">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" id="svgLockIcon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     </span>
                     <div>
-                        <span class="text-xs font-bold block text-slate-200">Proteksi Enkripsi Cloud (XOR & Anti-Assembly)</span>
+                        <span class="text-xs font-bold block text-slate-200">Proteksi Enkripsi Cloud (NexusXGuard Anti-Dump)</span>
                         <span id="encStatusLabel" class="text-[10px] text-slate-500">Status: Tidak Aktif (Plain Script)</span>
                     </div>
                 </div>
@@ -123,7 +124,7 @@
         <div id="scriptContainer" class="space-y-2"></div>
     </div>
 
-    <!-- VIEW: LICENSE SYSTEM WITH LIVE DEVICE REGISTER LIST -->
+    <!-- VIEW: LISENSI DAN LOG DEVICENYA -->
     <div id="view-keysystem" class="space-y-4 hidden">
         <div class="glass rounded-2xl p-5 space-y-4">
             <h3 class="text-xs font-bold text-white">Generate Lisensi Baru</h3>
@@ -138,7 +139,7 @@
                         <input type="number" id="keyMaxDevices" value="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-400 mb-1">Durasi Paket</label>
+                        <label class="block text-[10px] text-slate-400 mb-1">Durasi Paket (Preset)</label>
                         <select id="keyExpiryPreset" onchange="handleExpiryPreset(this.value)" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
                             <option value="1">1 Hari</option>
                             <option value="3">3 Hari</option>
@@ -153,13 +154,13 @@
                 </div>
                 <div>
                     <label class="block text-[10px] text-slate-400 mb-1">Custom Nama Key (Kosongkan untuk acak otomatis)</label>
-                    <input type="text" id="keyCustomName" placeholder="Contoh: VIP-KEYS-01" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
+                    <input type="text" id="keyCustomName" placeholder="Contoh: NEXUS-PREMIUM" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
                 </div>
             </div>
             <button onclick="generateLicense()" class="w-full py-3 rounded-xl btn-purple text-xs font-bold text-white shadow-lg">Generate Lisensi</button>
         </div>
 
-        <h4 class="text-xs font-bold text-slate-400 px-1">Manajemen Pengguna & Riwayat Verifikasi Perangkat</h4>
+        <h4 class="text-xs font-bold text-slate-400 px-1">Manajemen Pengguna & Perangkat Terverifikasi (.js Auto Detect)</h4>
         <div id="licenseContainer" class="space-y-2"></div>
     </div>
 
@@ -177,6 +178,7 @@ function handleExpiryPreset(v) {
     document.getElementById('customExpiryBox').classList.toggle('hidden', v !== 'custom');
 }
 
+// Sesuai Permintaan: Mengubah icon menu secara real-time saat di-tap/di-klik
 function toggleIconEnc(forceState = null) {
     state.encState = forceState !== null ? forceState : !state.encState;
     const box = document.getElementById('encIconIndicator');
@@ -187,7 +189,7 @@ function toggleIconEnc(forceState = null) {
     if (state.encState) {
         box.className = "w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 transition-colors";
         svg.setAttribute('stroke', '#10b981');
-        label.innerText = "Status: Aktif (Script akan otomatis di-XOR saat disave)";
+        label.innerText = "Status: Aktif (Otomatis enkrip ke anti-dump Nexus saat disimpan)";
         badge.className = "text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-emerald-500 text-black";
         badge.innerText = "ENC ACTIVE";
     } else {
@@ -252,7 +254,7 @@ async function fetchScripts() {
             <div class="glass rounded-xl p-4 flex justify-between items-center">
                 <div>
                     <span class="text-xs font-bold text-purple-400 block">${f.name}</span>
-                    <span class="text-[9px] text-slate-500">${f.id} — ${f.encrypted ? '🔒 Terproteksi' : '🔓 Plaintext'}</span>
+                    <span class="text-[9px] text-slate-500">${f.id} — ${f.encrypted ? '🔒 Terproteksi Nexus' : '🔓 Plaintext'}</span>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="editScript('${f.id}')" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Edit</button>
@@ -263,6 +265,7 @@ async function fetchScripts() {
     }
 }
 
+// Sesuai Permintaan: Mengisi form utama kembali secara bersih tanpa menumpuk di area atas
 function editScript(id) {
     let f = state.files.find(x => x.id === id);
     if (!f) return;
@@ -283,7 +286,7 @@ async function saveScript() {
     if (!name || content === '') return alert('Nama dan isi script tidak boleh kosong!');
     let res = await apiCall('POST', '', { name, content, encrypted, existingScriptId: id || null });
     if (res.ok) {
-        alert('Script berhasil disimpan ke cloud database!');
+        alert('Script berhasil diperbarui ke database cloud!');
         resetEditor();
         fetchScripts();
     }
@@ -310,9 +313,10 @@ async function fetchLicenses() {
             devArray = typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices) : (k.registered_devices || []);
         } catch(e) { devArray = []; }
 
+        // Sesuai Permintaan: Cetak daftar hardware log device terverifikasi yang masuk secara rapi (.js parsing)
         let devicesHtml = devArray.length > 0 
-            ? devArray.map(d => `<div class="bg-black/40 px-2 py-1 rounded text-[9px] text-purple-300 font-mono select-all truncate mb-1">💻 ${d} [Verify]</div>`).join('')
-            : `<span class="text-[10px] text-slate-500 italic">Belum ada perangkat terhubung</span>`;
+            ? devArray.map(d => `<div class="bg-black/40 px-2 py-1 rounded text-[9px] text-purple-300 font-mono select-all truncate mb-1">💻 HWID: ${d} [TERVERIFIKASI]</div>`).join('')
+            : `<span class="text-[10px] text-slate-500 italic">Belum ada perangkat terikat (Menunggu login perdana)</span>`;
 
         return `
             <div class="glass rounded-xl p-4 space-y-3">
@@ -321,12 +325,12 @@ async function fetchLicenses() {
                     <button onclick="deleteKey('${k.key}')" class="text-[10px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/10 cursor-pointer">Hapus</button>
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400">
-                    <div>Script: <b class="text-slate-200">${k.target_script_name}</b></div>
-                    <div>Limit Perangkat: <b class="text-slate-200">${devArray.length} / ${k.max_devices}</b></div>
-                    <div class="col-span-2">Masa Aktif: <b class="text-slate-200">${k.expiry ? new Date(k.expiry).toLocaleString('id-ID') : 'Permanen'}</b></div>
+                    <div>Script Terikat: <b class="text-slate-200">${k.target_script_name}</b></div>
+                    <div>Limit Multi-Device: <b class="text-slate-200">${devArray.length} / ${k.max_devices}</b></div>
+                    <div class="col-span-2">Masa Aktif Lisensi: <b class="text-slate-200">${k.expiry ? new Date(k.expiry).toLocaleString('id-ID') : 'Permanen Aktif'}</b></div>
                 </div>
                 <div class="pt-2 border-t border-white/5">
-                    <span class="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Daftar Log Device (Auto Detect):</span>
+                    <span class="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Log Riwayat Perangkat (Auto Detect):</span>
                     ${devicesHtml}
                 </div>
             </div>
@@ -345,7 +349,7 @@ async function generateLicense() {
         expiry = 'permanent';
     } else if (preset === 'custom') {
         expiry = document.getElementById('keyExpiryCustom').value;
-        if (!expiry) return alert('Pilih tanggal kadaluarsa pada kalender!');
+        if (!expiry) return alert('Pilih tanggal kadaluarsa kustom Anda!');
     } else {
         let days = parseInt(preset);
         let d = new Date();
@@ -355,14 +359,14 @@ async function generateLicense() {
 
     let res = await apiCall('POST', '', { action: 'createKey', scriptId, expiry, maxDevices, customName });
     if (res.ok) {
-        alert('Lisensi berhasil dibuat!');
+        alert('Lisensi baru berhasil ditambahkan!');
         document.getElementById('keyCustomName').value = '';
         fetchLicenses();
     }
 }
 
 async function deleteKey(k) {
-    if (confirm('Hapus lisensi ini?')) {
+    if (confirm('Hapus lisensi ini dari database?')) {
         await apiCall('DELETE', '?deleteKey=' + k);
         fetchLicenses();
     }
@@ -380,7 +384,7 @@ async function doLogin() {
         document.getElementById('mainApp').classList.remove('hidden');
         document.getElementById('userEmail').innerText = email;
         sw('beranda');
-    } else alert('Gagal Masuk! Periksa kembali email & sandi.');
+    } else alert('Kombinasi email & password salah!');
 }
 
 function doLogout() {
