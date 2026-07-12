@@ -1,4 +1,227 @@
-<!DOCTYPE html>
+import os
+os.makedirs('api', exist_ok=True)
+
+srv = r'''import { neon } from '@neondatabase/serverless';
+import { createHash } from 'crypto';
+
+const sql = neon(process.env.POSTGRES_URL);
+
+function hashPass(pw) { return createHash('sha256').update(pw + '_nx_postgres_salt').digest('hex'); }
+function makeSession(email, hash) { return createHash('md5').update(email + hash + 'session_token').digest('hex'); }
+
+export default async function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session');
+    if (req.method === 'OPTIONS') return res.status(200).end();
+
+    const { id, type, key, device, deleteKey, validate } = req.query;
+    const host = req.headers.host;
+
+    if (req.method === 'GET' && type === 'loader') {
+        const targetScriptId = id || 'default';
+        const code = [
+            'gg.setVisible(false)',
+            'gg.toast("[X] NEXUS X - Connecting...")',
+            'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+            'if r and r.code == 200 then',
+            '    local fn = load(r.content)',
+            '    if fn then fn() else gg.alert("[X] Script Empty!") end',
+            'else',
+            '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
+            'end'
+        ].join('\n');
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(code);
+    }
+
+    if (req.method === 'GET' && type === 'menu' && id) {
+        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
+    }
+
+    if (req.method === 'GET' && type === 'login') {
+        const targetScriptId = id || '';
+
+        if (validate) {
+            const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
+
+            if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
+                const c = [
+                    'os.remove("/sdcard/.nexus_auth")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense Key tidak valid untuk Script ini!")',
+                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+                    'if r and r.code == 200 then load(r.content)() end'
+                ].join('\n');
+                res.setHeader('Content-Type', 'text/plain');
+                return res.status(200).send(c);
+            }
+
+            const license = checkKey[0];
+            const expDate = new Date(license.expiry);
+
+            if (new Date() > expDate) {
+                const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+                const c = [
+                    'os.remove("/sdcard/.nexus_auth")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '\\n\\nContact admin for renewal.")',
+                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+                    'if r and r.code == 200 then load(r.content)() end'
+                ].join('\n');
+                res.setHeader('Content-Type', 'text/plain');
+                return res.status(200).send(c);
+            }
+
+            const clientHwid = device || 'NX-UNKNOWN';
+            let registeredDevices = license.registered_devices || [];
+            if (device && !registeredDevices.includes(clientHwid)) {
+                if (registeredDevices.length >= license.max_devices) {
+                    const c = [
+                        'os.remove("/sdcard/.nexus_auth")',
+                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!\\n\\nContact admin to reset devices.")',
+                        'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+                        'if r and r.code == 200 then load(r.content)() end'
+                    ].join('\n');
+                    res.setHeader('Content-Type', 'text/plain');
+                    return res.status(200).send(c);
+                }
+                registeredDevices.push(clientHwid);
+                await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
+            }
+
+            const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            const c = [
+                'local f = io.open("/sdcard/.nexus_auth", "w")',
+                'if f then f:write("' + validate + '"); f:close() end',
+                'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + fd + '")',
+                'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
+                'local fn = load(r.content)',
+                'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
+            ].join('\n');
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send(c);
+        }
+
+        const loginLua = `gg.setVisible(false)
+local BASE = "https://${host}"
+local KEY_FILE = "/sdcard/.nexus_auth"
+local SCRIPT_ID = "${targetScriptId}"
+
+local function getHwid()
+    local raw = "NX-" .. tostring(gg.getTargetPackage())
+    local enc = ""
+    for i = 1, #raw do enc = enc .. string.format("%02X", string.byte(raw, i)) end
+    return enc
+end
+
+local function doValidate(k)
+    gg.toast("[X] Verifying license...")
+    local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
+    if r and r.code == 200 then
+        local fn = load(r.content)
+        if fn then fn() end
+        return true
+    end
+    return false
+end
+
+local function showLogin()
+    local input = gg.prompt(
+        {"[NEXUS X CLOUD]\\nMasukkan License Key Anda:"},
+        {""},
+        {"text"}
+    )
+    if input and input[1] then
+        return (input[1]):match("^%s*(.-)%s*$")
+    end
+    return nil
+end
+
+local savedKey = nil
+local f = io.open(KEY_FILE, "r")
+if f then savedKey = f:read("*a"):match("^%s*(.-)%s*$"); f:close() end
+
+if savedKey and savedKey ~= "" then
+    gg.toast("[X] Restoring session...")
+    if doValidate(savedKey) then return end
+end
+
+local inputKey = showLogin()
+if not inputKey or inputKey == "" then
+    if inputKey == "" then gg.alert("[X] Key tidak boleh kosong!") end
+    return
+end
+
+if not doValidate(inputKey) then
+    gg.alert("[X] Hubungan terputus atau Key salah!")
+end`;
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(loginLua);
+    }
+
+    if (req.method === 'GET' && type === 'raw' && id) {
+        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script not found.');
+    }
+
+    const sessionToken = req.headers['x-session'];
+    let authenticatedUser = null;
+    if (sessionToken) {
+        const accounts = await sql`SELECT * FROM accounts`;
+        for (const acc of accounts) {
+            if (makeSession(acc.email, acc.password) === sessionToken) { authenticatedUser = acc.email; break; }
+        }
+    }
+
+    if (req.method === 'POST') {
+        const { action, email, password, name, content, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
+        if (action === 'register') {
+            const secretCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            await sql`INSERT INTO accounts (email, password, code) VALUES (${email}, ${hashPass(password)}, ${secretCode}) ON CONFLICT (email) DO NOTHING`;
+            return res.status(200).json({ success: true, code: secretCode });
+        }
+        if (action === 'login') {
+            const acc = await sql`SELECT * FROM accounts WHERE email = ${email}`;
+            if (acc.length > 0 && acc[0].password === hashPass(password)) return res.status(200).json({ session: makeSession(email, acc[0].password) });
+            return res.status(401).json({ error: 'Auth failed' });
+        }
+        if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
+        if (name && content) {
+            if (existingScriptId && existingScriptId !== "") {
+                await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId}`;
+            } else {
+                await sql`INSERT INTO scripts (id, name, content) VALUES (${'sc_' + Math.random().toString(36).substring(2, 9)}, ${name}, ${content})`;
+            }
+            return res.status(200).json({ success: true });
+        }
+        if (action === 'createKey') {
+            const finalKey = customName || 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${new Date(expiry)}, ${parseInt(maxDevices) || 1})`;
+            return res.status(200).json({ key: finalKey });
+        }
+    }
+
+    if (req.method === 'GET') {
+        if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
+        return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys` : await sql`SELECT * FROM scripts`);
+    }
+
+    if (req.method === 'DELETE') {
+        if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
+        if (deleteKey) await sql`DELETE FROM keys WHERE key = ${deleteKey}`;
+        if (id) await sql`DELETE FROM scripts WHERE id = ${id}`;
+        return res.status(200).json({ success: true });
+    }
+}'''.lstrip('\n')
+
+with open('api/server.js', 'w') as f:
+    f.write(srv)
+print('server.js OK:', srv.count('\n')+1, 'lines')
+
+htm = '''<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -171,7 +394,7 @@ function getHookLua(sid){var b=location.origin;return 'local A=gg.getFile() gg.g
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 async function initB(){var b=location.origin;document.getElementById('dL1').innerText=b+'/api/server?type=loader';document.getElementById('dL2').innerText=b+'/api/server?type=login';document.getElementById('dL3').innerText=b+'/api/server?type=menu&id={id}';document.getElementById('statScripts').innerText='--';document.getElementById('statActive').innerText='--';document.getElementById('statExpired').innerText='--';document.getElementById('expList').innerHTML='<p class="text-[9px] text-slate-600 text-center py-3">Loading...</p>';try{var rS=await api('GET',''),rK=await api('GET','?type=keys');if(rS.ok&&rK.ok){var sc=await rS.json(),ks=await rK.json();var el=[];for(var i=0;i<ks.length;i++){if(new Date()>new Date(ks[i].expiry))el.push(ks[i])}var act=ks.length-el.length;document.getElementById('statScripts').innerText=sc.length;document.getElementById('statActive').innerText=act;document.getElementById('statExpired').innerText=el.length;if(!el.length){document.getElementById('expList').innerHTML='<p class="text-[9px] text-emerald-500/60 text-center py-3">All licenses active</p>'}else{var h='';for(var j=0;j<el.length;j++){var ek=el[j];var ed=new Date(ek.expiry);h+='<div class="flex items-center justify-between p-2.5 bg-red-500/5 rounded-xl border border-red-500/8"><div class="min-w-0 flex-1 mr-2"><div class="flex items-center gap-1.5"><span class="mono text-[10px] font-bold text-red-400 truncate">'+esc(ek.key)+'</span><span class="tag bg-red-500/10 text-red-400 border border-red-500/15">EXPIRED</span></div><p class="text-[8px] text-slate-600 mt-0.5 mono">'+esc(ek.target_script_name||'?')+' &middot; '+ed.toLocaleDateString('id-ID')+'</p></div><button onclick="dlK('+j+')" class="shrink-0 px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/15 rounded text-[8px] font-bold cursor-pointer hover:bg-red-500/20 transition">DEL</button></div>'}document.getElementById('expList').innerHTML=h}}}catch(e){document.getElementById('expList').innerHTML='<p class="text-[9px] text-slate-600 text-center py-3">Error</p>'}}
 async function api(m,u,b){var o={method:m,headers:{'Content-Type':'application/json'}};if(S.session)o.headers['X-Session']=S.session;if(b)o.body=JSON.stringify(b);return fetch('/api/server'+u,o)}
-async function loadF(){var r=await api('GET','');if(!r.ok)return;S.files=await r.json();S.rawCache={};var s=document.getElementById('kT');if(s){var opts='<option value="">-- Select --</option>';for(var i=0;i<S.files.length;i++)opts+='<option value="'+S.files[i].id+'">'+esc(S.files[i].name)+'</option>';s.innerHTML=opts}var c=document.getElementById('fList');if(!S.files.length){c.innerHTML='<div class="text-center py-8 text-slate-700 text-[10px]">No scripts yet</div>';return}var h='';for(var i=0;i<S.files.length;i++){var f=S.files[i];S.rawCache[f.id]=location.origin+'/api/server?type=raw&id='+f.id;h+='<div class="tc script-card" style="transform:translateY(0)"><div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2.5"><div class="min-w-0"><div class="flex items-center gap-2"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg><span class="mono text-[11px] font-bold text-amber-400 truncate">'+esc(f.name)+'</span><span class="tag bg-slate-800 text-slate-500 border border-slate-700">.lua</span></div><p class="text-[8px] text-slate-600 mt-1 mono truncate">'+f.id+'</p></div><div class="flex gap-1.5 shrink-0"><button onclick="cp(S.rawCache[''+f.id+''])" class="px-2.5 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 rounded-lg text-[9px] font-semibold cursor-pointer hover:bg-emerald-500/20 transition">Copy Raw</button><button onclick="edF('+i+')" class="px-2 py-1.5 bg-slate-800/40 text-slate-400 border border-slate-700/40 rounded-lg text-[9px] cursor-pointer hover:bg-slate-700/40 transition"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button onclick="dlF('+i+')" class="px-2 py-1.5 bg-red-500/10 text-red-400/70 border border-red-500/15 rounded-lg text-[9px] cursor-pointer hover:bg-red-500/20 transition"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>'}c.innerHTML=h}
+async function loadF(){var r=await api('GET','');if(!r.ok)return;S.files=await r.json();S.rawCache={};var s=document.getElementById('kT');if(s){var opts='<option value="">-- Select --</option>';for(var i=0;i<S.files.length;i++)opts+='<option value="'+S.files[i].id+'">'+esc(S.files[i].name)+'</option>';s.innerHTML=opts}var c=document.getElementById('fList');if(!S.files.length){c.innerHTML='<div class="text-center py-8 text-slate-700 text-[10px]">No scripts yet</div>';return}var h='';for(var i=0;i<S.files.length;i++){var f=S.files[i];S.rawCache[f.id]=location.origin+'/api/server?type=raw&id='+f.id;h+='<div class="tc script-card" style="transform:translateY(0)"><div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2.5"><div class="min-w-0"><div class="flex items-center gap-2"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg><span class="mono text-[11px] font-bold text-amber-400 truncate">'+esc(f.name)+'</span><span class="tag bg-slate-800 text-slate-500 border border-slate-700">.lua</span></div><p class="text-[8px] text-slate-600 mt-1 mono truncate">'+f.id+'</p></div><div class="flex gap-1.5 shrink-0"><button onclick="cp(S.rawCache[\''+f.id+'\'])" class="px-2.5 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 rounded-lg text-[9px] font-semibold cursor-pointer hover:bg-emerald-500/20 transition">Copy Raw</button><button onclick="edF('+i+')" class="px-2 py-1.5 bg-slate-800/40 text-slate-400 border border-slate-700/40 rounded-lg text-[9px] cursor-pointer hover:bg-slate-700/40 transition"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button onclick="dlF('+i+')" class="px-2 py-1.5 bg-red-500/10 text-red-400/70 border border-red-500/15 rounded-lg text-[9px] cursor-pointer hover:bg-red-500/20 transition"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></div></div>'}c.innerHTML=h}
 function edF(idx){var f=S.files[idx];if(!f)return;document.getElementById('edId').value=f.id;document.getElementById('fN').value=f.name;document.getElementById('fC').value=f.content;document.getElementById('edC').classList.add('glass-edit');document.getElementById('edN').innerText='Editing: '+f.name;var d=document.getElementById('dpBtn');d.className='w-full py-2 rounded-xl btn-blue text-xs';d.innerText='Update Script';document.getElementById('rstBtn').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
 function rstEd(){document.getElementById('edId').value='';document.getElementById('fN').value='';document.getElementById('fC').value='';document.getElementById('edC').classList.remove('glass-edit');document.getElementById('edN').innerText='New Script';var d=document.getElementById('dpBtn');d.className='w-full py-2 rounded-xl btn-gold text-xs';d.innerText='Save & Deploy';document.getElementById('rstBtn').classList.add('hidden')}
 async function dep(){var n=document.getElementById('fN').value.trim(),c=document.getElementById('fC').value,e=document.getElementById('edId').value;if(!n||!c)return toast('Name & content required!');var r=await api('POST','',{name:n,content:c,existingScriptId:e});if(r.ok){toast(e?'Updated!':'Deployed!');rstEd();loadF()}else toast('Failed.')}
@@ -188,4 +411,14 @@ function doOut(){localStorage.removeItem('nx_session');location.reload()}
 window.onload=function(){var c=localStorage.getItem('nx_session');if(c){S.session=c;document.getElementById('authGate').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');sw('beranda')}}
 <\/script>
 </body>
-</html>
+</html>'''.lstrip('\n')
+
+with open('index.html', 'w') as f:
+    f.write(htm)
+print('index.html OK:', htm.count('\n')+1, 'lines')
+
+import subprocess
+subprocess.run(['git','add','-A'],check=True)
+subprocess.run(['git','commit','-m','Fix: scripts=raw only, licenses=hook+key, overview tap expired, .js icon, touch offset'],check=True)
+subprocess.run(['git','push','origin','main','--force'],check=True)
+print('\n=== ALL DONE ===')
