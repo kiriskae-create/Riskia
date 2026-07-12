@@ -1,4 +1,7 @@
-import { neon } from '@neondatabase/serverless';
+import os
+os.makedirs('api', exist_ok=True)
+
+srv = r'''import { neon } from '@neondatabase/serverless';
 import { createHash } from 'crypto';
 import nodemailer from 'nodemailer';
 
@@ -259,4 +262,14 @@ end`;
         if (id) await sql`DELETE FROM scripts WHERE id = ${id}`;
         return res.status(200).json({ success: true });
     }
-}
+}'''.lstrip('\n')
+
+with open('api/server.js', 'w') as f:
+    f.write(srv)
+print('server.js OK:', srv.count('\n')+1, 'lines')
+
+import subprocess
+subprocess.run(['git','add','-A'],check=True)
+subprocess.run(['git','commit','-m','Fix: await email send, add pool, add verify, add emailStatus in response'],check=True)
+subprocess.run(['git','push','origin','main','--force'],check=True)
+print('DONE')
