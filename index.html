@@ -55,6 +55,8 @@
             border-color: #6366f1;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
+        
+        /* EFEK TAP RING MENONJOL (LOCAL STORAGE BROWSE) */
         .btn-storage-premium {
             position: relative;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -98,28 +100,12 @@
 <div id="sidebarOverlay" onclick="closeNav()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
 <aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 sidebar-blur z-50 flex flex-col justify-between p-5 drawer-transition -translate-x-full shadow-2xl transition-transform duration-300">
     <div>
-        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-xs mono shadow-md shadow-indigo-200">NX</div>
                 <h2 class="text-xs font-extrabold text-slate-900 tracking-wider">NEXUS PANEL</h2>
             </div>
             <button onclick="closeNav()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 cursor-pointer">✕</button>
-        </div>
-
-        <div class="p-3.5 bg-slate-900 text-white rounded-xl mb-5 space-y-2 border border-slate-800 shadow-lg">
-            <div class="flex items-center justify-between">
-                <span class="text-[9px] font-bold text-emerald-400 tracking-wider uppercase flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> DB Storage Status
-                </span>
-                <span id="dbHealthPercent" class="text-[10px] mono font-bold text-slate-300">0%</span>
-            </div>
-            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700">
-                <div id="dbHealthBar" class="bg-gradient-to-r from-emerald-400 to-indigo-500 h-2 transition-all duration-500" style="width: 0%"></div>
-            </div>
-            <div class="flex items-center justify-between text-[8px] text-slate-400 mono pt-0.5">
-                <span>Usage: <b id="dbUsedRows" class="text-slate-200">0</b> rows</span>
-                <span>Max: 10,000</span>
-            </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 mb-6">
@@ -160,7 +146,7 @@
     </div>
     
     <div class="pt-4 border-t border-slate-100">
-        <p class="text-[10px] text-slate-400 truncate mb-2 mono" id="aE">riski@nexus.io</p>
+        <p class="text-[10px] text-slate-400 truncate mb-2 mono" id="aE">session@nexus.io</p>
         <button onclick="doOut()" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition cursor-pointer text-center">Log Out</button>
     </div>
 </aside>
@@ -168,26 +154,38 @@
 <div id="authGate" class="fixed inset-0 z-[100] bg-slate-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm">
         <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 text-white font-black shadow-lg mb-3 border border-indigo-500/30">NX</div>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-600 text-white font-black shadow-lg mb-3">NX</div>
             <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">NEXUS X SERVICE</h1>
-            <p class="text-[10px] text-indigo-600 mt-0.5 uppercase tracking-wider font-extrabold">ADMIN PORTAL ENCRYPTED</p>
+            <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wider">Cloud Dashboard Access</p>
+        </div>
+        
+        <div class="flex mb-4 gap-1 bg-slate-200/60 p-1 rounded-xl">
+            <button id="tabReg" onclick="stab('reg')" class="flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm">Register</button>
+            <button id="tabLog" onclick="stab('log')" class="flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500">Login</button>
         </div>
 
-        <div id="fLog" class="glass-panel rounded-2xl p-6 space-y-4 border border-indigo-100">
-            <div>
-                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Username / Identifier</label>
-                <input type="text" id="lE" placeholder="Username" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
-            </div>
-            <div>
-                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Secure Password Key</label>
-                <input type="password" id="lP" placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
-            </div>
-            <button onclick="doLog()" class="w-full py-3 rounded-xl btn-purple text-xs mt-2 uppercase tracking-wider">Access Node Server</button>
+        <div id="fReg" class="glass-panel rounded-2xl p-5 space-y-3">
+            <input type="email" id="rE" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
+            <input type="password" id="rP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
+            <button onclick="doReg()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Register Token</button>
+        </div>
+
+        <div id="fCode" class="glass-panel rounded-2xl p-6 space-y-4 hidden text-center">
+            <h3 class="text-xs font-bold text-slate-800">Security Key Created!</h3>
+            <div class="p-3 bg-slate-50 rounded-xl font-black text-indigo-600 tracking-widest mono text-sm" id="cDisp">------</div>
+            <button onclick="goLog()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Proceed to Login</button>
+        </div>
+
+        <div id="fLog" class="glass-panel rounded-2xl p-5 space-y-3 hidden">
+            <input type="email" id="lE" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
+            <input type="password" id="lP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
+            <button onclick="doLog()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Verify & Enter</button>
         </div>
     </div>
 </div>
 
 <div id="mainApp" class="hidden flex-1 w-full pt-24 px-4 pb-8 max-w-5xl mx-auto space-y-6">
+    
     <div id="view-beranda" class="space-y-4 hidden">
         <h2 class="text-base font-extrabold text-slate-900">System Gateway Architecture</h2>
         <div class="glass-panel rounded-2xl p-5 space-y-4">
@@ -235,6 +233,7 @@
                 </div>
             </div>
         </div>
+        
         <div id="fList" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
     </div>
 
@@ -344,7 +343,6 @@ function openNav() {
     var ov = document.getElementById('sidebarOverlay');
     ov.classList.remove('pointer-events-none');
     ov.style.opacity = '1';
-    updateDatabaseHealth();
 }
 
 function closeNav() {
@@ -408,7 +406,6 @@ function askDelete(target, type) {
         }
         toast('Data Deleted Successfully!');
         closeConfirmModal();
-        updateDatabaseHealth();
     };
 }
 
@@ -477,23 +474,6 @@ async function api(m,u,b){
     return fetch('/api/server'+u,o);
 }
 
-async function updateDatabaseHealth() {
-    if(!S.session) return;
-    try {
-        var r = await api('GET', '?type=dbhealth');
-        if(r.ok) {
-            var data = await r.json();
-            var totalUsed = data.totalRows || 0;
-            var maxCapacity = 10000; 
-            var percentage = Math.min(Math.round((totalUsed / maxCapacity) * 100), 100);
-            
-            document.getElementById('dbUsedRows').innerText = totalUsed.toLocaleString();
-            document.getElementById('dbHealthPercent').innerText = percentage + '%';
-            document.getElementById('dbHealthBar').style.width = percentage + '%';
-        }
-    } catch(e) {}
-}
-
 function triggerCopyRawHook(scriptId) {
     var b = location.origin;
     var rawLua = 'local r = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '")\nif r and r.code == 200 then\n    local fn = load(r.content)\n    if fn then fn() end\nend';
@@ -558,7 +538,7 @@ async function dep(){
     var n=document.getElementById('fN').value.trim(), c=document.getElementById('fC').value, e=document.getElementById('edId').value;
     if(!n||!c) return toast('Nama & isi skrip tidak boleh kosong!');
     var r=await api('POST','',{name:n,content:c,existingScriptId:e});
-    if(r.ok){ toast(e?'Module Updated!':'Module Deployed Live!'); closeEditorModal(); loadF(); updateDatabaseHealth(); } else toast('Gagal memproses data.');
+    if(r.ok){ toast(e?'Module Updated!':'Module Deployed Live!'); closeEditorModal(); loadF(); } else toast('Gagal memproses data.');
 }
 
 async function loadK(){
@@ -602,17 +582,29 @@ async function genK(){
     var s=document.getElementById('kT').value, m=document.getElementById('kM').value, dur=document.getElementById('kDur').value, c=document.getElementById('kC').value.trim();
     if(!s) return toast('Target modul wajib terisi!');
     var r=await api('POST','',{action:'createKey',scriptId:s,duration:dur,maxDevices:m,customName:c});
-    if(r.ok){ toast('License Key Generated!'); document.getElementById('kC').value=''; loadK(); updateDatabaseHealth(); }
+    if(r.ok){ toast('License Key Generated!'); document.getElementById('kC').value=''; loadK(); }
 }
 
+function stab(t){
+    document.getElementById('fReg').classList.toggle('hidden',t!=='reg');
+    document.getElementById('fLog').classList.toggle('hidden',t!=='log');
+    document.getElementById('tabReg').className=t==='reg'?'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm':'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';
+    document.getElementById('tabLog').className=t==='log'?'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm':'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';
+}
+async function doReg(){
+    var e=document.getElementById('rE').value.trim(), p=document.getElementById('rP').value;
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'register',email:e,password:p})});
+    if(r.ok){ var d=await r.json(); document.getElementById('cDisp').innerText=d.code; document.getElementById('fReg').classList.add('hidden'); document.getElementById('fCode').classList.remove('hidden'); }
+}
 async function doLog(){
     var e=document.getElementById('lE').value.trim(), p=document.getElementById('lP').value;
-    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',username:e,password:p})});
-    if(r.ok){ var d=await r.json(); S.session=d.session; localStorage.setItem('nx_session',d.session); document.getElementById('authGate').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); document.getElementById('aE').innerText='riski@nexus.io'; sw('ggscript'); updateDatabaseHealth(); } else toast('Otentikasi Gagal!');
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email:e,password:p})});
+    if(r.ok){ var d=await r.json(); S.session=d.session; localStorage.setItem('nx_session',d.session); document.getElementById('authGate').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); document.getElementById('aE').innerText=e; sw('ggscript'); } else toast('Otentikasi Gagal!');
 }
+function goLog(){ document.getElementById('fCode').classList.add('hidden'); stab('log'); }
 function doOut(){ localStorage.removeItem('nx_session'); location.reload(); }
 
-window.onload=function(){ var c=localStorage.getItem('nx_session'); if(c){ S.session=c; document.getElementById('authGate').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); sw('ggscript'); setTimeout(updateDatabaseHealth, 600); } }
+window.onload=function(){ var c=localStorage.getItem('nx_session'); if(c){ S.session=c; document.getElementById('authGate').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); sw('ggscript'); } }
 </script>
 </body>
 </html>
