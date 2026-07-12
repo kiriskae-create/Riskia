@@ -12,13 +12,13 @@
         .glass{background:rgba(15,17,25,.7);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(245,158,11,.08)}
         .glass-gold{background:linear-gradient(135deg,rgba(245,158,11,.05),rgba(217,119,6,.02));border:1px solid rgba(245,158,11,.15)}
         .glass-blue{background:linear-gradient(135deg,rgba(59,130,246,.05),rgba(29,78,216,.02));border:1px solid rgba(59,130,246,.15)}
-        .glass-edit{background:rgba(30,41,59,.7)!important;border:1px solid rgba(59,130,246,.3)!important}
+        .glass-edit{background:rgba(23,28,48,.95)!important;border:1px solid rgba(139,92,246,.4)!important;box-shadow:0 0 30px rgba(139,92,246,0.15)}
         .gold-text{background:linear-gradient(135deg,#fbbf24,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .menu-active{background:rgba(245,158,11,.08)!important;backdrop-filter:blur(15px);border-left:4px solid #f59e0b;color:#fbbf24;font-weight:700}
         .btn-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-weight:700;transition:all .2s;cursor:pointer}
         .btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(245,158,11,.3)}
-        .btn-blue{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-weight:700;transition:all .2s;cursor:pointer}
-        .btn-blue:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,.3)}
+        .btn-blue{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:700;transition:all .2s;cursor:pointer}
+        .btn-blue:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(139,92,246,.4)}
         .input-dark{background:rgba(5,6,10,.8);border:1px solid rgba(245,158,11,.1);color:#e2e8f0}
         .input-dark:focus{outline:none;border-color:rgba(245,158,11,.4)}
         .tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px}
@@ -109,10 +109,8 @@
         <!-- VIEW: OVERVIEW -->
         <div id="view-beranda" class="space-y-5">
             <h2 class="text-lg font-bold text-white">Overview & Links</h2>
-
             <div class="glass rounded-2xl p-5 space-y-0">
                 <h3 class="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-4">Base Architecture Info</h3>
-
                 <div class="flex items-start gap-3">
                     <div class="flex flex-col items-center pt-0.5">
                         <span class="tag bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">L1</span>
@@ -126,7 +124,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="flex items-start gap-3">
                     <div class="flex flex-col items-center pt-0.5">
                         <span class="tag bg-blue-500/10 text-blue-400 border border-blue-500/20">L2</span>
@@ -140,7 +137,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="flex items-start gap-3">
                     <div class="flex flex-col items-center pt-0.5">
                         <span class="tag bg-amber-500/10 text-amber-400 border border-amber-500/20">L3</span>
@@ -153,20 +149,18 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
-                💡 <b>Sistem Keamanan Validasi Berhasil Diperbarui:</b> Key sekarang terikat penuh ke Script ID yang dituju. Harap salin Loader URL / Hook Script langsung dari tab <b>Scripts</b> atau <b>Licenses</b> di bawah ini.
-            </div>
         </div>
 
         <!-- VIEW: SCRIPTS -->
         <div id="view-ggscript" class="space-y-5 hidden">
             <h2 class="text-lg font-bold text-white">Cloud Scripts Handler</h2>
+            
+            <!-- EDITOR CONTAINER -->
             <div id="edC" class="glass rounded-2xl p-5 space-y-4 transition-all duration-300">
                 <div class="flex justify-between items-center">
                     <h3 class="text-sm font-bold text-white flex items-center gap-2" id="edT">
                         <span id="edI">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                         </span>
                         <span id="edN">Create New Script</span>
                     </h3>
@@ -175,6 +169,21 @@
                 <input type="hidden" id="edId">
                 <input type="text" id="fN" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
                 <textarea id="fC" rows="10" placeholder="-- Tulis script LUA disini..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
+                
+                <!-- BOX INTEGRASI TOGGLE ENKRIPSI MODAL -->
+                <div onclick="toggleEncButtonState()" class="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 cursor-pointer hover:bg-purple-500/10 transition select-none">
+                    <div class="flex items-center gap-3">
+                        <span id="encIndicatorBox" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/5 transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" id="encSvgLock"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <div>
+                            <span class="text-xs font-bold block text-slate-200">Proteksi Enkripsi Cloud (NexusXGuard Anti-Dump)</span>
+                            <span id="encStatusDesc" class="text-[10px] text-slate-500">Status: Tidak Aktif (Plain Script)</span>
+                        </div>
+                    </div>
+                    <span id="encBadgeText" class="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400">PLAIN</span>
+                </div>
+
                 <button id="dpBtn" onclick="dep()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Save & Deploy</button>
             </div>
             <div id="fList" class="space-y-2"></div>
@@ -216,10 +225,32 @@
 <div id="toast" class="fixed bottom-6 right-6 bg-amber-500 text-black px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[200] text-xs font-bold"><span id="tM"></span></div>
 
 <script>
-var S={files:[],keys:[],session:'',cur:'beranda'};
+var S={files:[],keys:[],session:'',cur:'beranda',encryptActiveState:false};
 function toast(m){var t=document.getElementById('toast');document.getElementById('tM').innerText=m;t.style.opacity='1';setTimeout(function(){t.style.opacity='0'},2500)}
 function cp(t){navigator.clipboard.writeText(t);toast('Copied to Clipboard!')}
 function toggleQM(){document.getElementById('qm').classList.toggle('hidden')}
+
+function toggleEncButtonState(forcedState = null) {
+    S.encryptActiveState = forcedState !== null ? forcedState : !S.encryptActiveState;
+    const box = document.getElementById('encIndicatorBox');
+    const svg = document.getElementById('encSvgLock');
+    const desc = document.getElementById('encStatusDesc');
+    const badge = document.getElementById('encBadgeText');
+
+    if (S.encryptActiveState) {
+        box.className = "w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 transition-colors shadow";
+        svg.setAttribute('stroke', '#10b981');
+        desc.innerText = "Status: Aktif (Otomatis enkrip ke anti-dump Nexus saat disimpan)";
+        badge.className = "text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-emerald-500 text-black";
+        badge.innerText = "ENC ACTIVE";
+    } else {
+        box.className = "w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/5 transition-colors";
+        svg.setAttribute('stroke', '#94a3b8');
+        desc.innerText = "Status: Tidak Aktif (Plain Script)";
+        badge.className = "text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+        badge.innerText = "PLAIN";
+    }
+}
 
 function sw(t){
     S.cur=t;
@@ -248,7 +279,6 @@ async function api(m,u,b){
     return fetch('/api/server'+u,o)
 }
 
-// Global helper untuk generate string hook LUA aman tanpa merusak template JS
 function triggerCopyHook(scriptId) {
     var b = location.origin;
     var luaCode = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '").content if V then pcall(load(V)) end';
@@ -264,10 +294,11 @@ async function loadF(){
     c.innerHTML=S.files.map(function(f){
         var rl=location.origin+'/api/server?type=raw&id='+f.id;
         var ldrUrl=location.origin+'/api/server?type=loader&id='+f.id;
-        
+        var isEnc = f.encrypted === true || f.encrypted === 'true' || f.encrypted === 1;
+
         return '<div class="glass rounded-xl p-4 space-y-3">' +
             '<div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">' +
-                '<div><span class="mono text-xs font-bold text-amber-400">'+f.name+'</span><div class="text-[9px] text-slate-500 mt-1 mono">'+f.id+'</div></div>' +
+                '<div><span class="mono text-xs font-bold text-amber-400">'+f.name+'</span><div class="text-[9px] text-slate-500 mt-1 mono">'+f.id+' — '+(isEnc ? '🔒 Encrypted' : '🔓 Plain')+'</div></div>' +
                 '<div class="flex gap-1.5">' +
                     '<button onclick="cp(\''+rl+'\')" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Raw URL</button>' +
                     '<button onclick="edF(\''+f.id+'\')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Edit</button>' +
@@ -287,23 +318,34 @@ function edF(id){
     document.getElementById('edId').value=id;
     document.getElementById('fN').value=t.name;
     document.getElementById('fC').value=t.content;
-    document.getElementById('edC').classList.add('glass-edit');
+    
+    var isEnc = t.encrypted === true || t.encrypted === 'true' || t.encrypted === 1;
+    toggleEncButtonState(isEnc);
+
+    document.getElementById('edC').className='rounded-2xl p-5 space-y-4 transition-all duration-300 glass-edit';
     document.getElementById('edN').innerText='Editing: '+t.name;
-    var d=document.getElementById('dpBtn');d.className='w-full py-2.5 rounded-xl btn-blue text-xs';d.innerText='Update Script';
+    var d=document.getElementById('dpBtn');d.className='w-full py-2.5 rounded-xl btn-blue text-xs';d.innerText='Update & Deploy Changes';
     document.getElementById('rstBtn').classList.remove('hidden');
     window.scrollTo({top:0,behavior:'smooth'})
 }
+
 function rstEd(){
     document.getElementById('edId').value='';document.getElementById('fN').value='';document.getElementById('fC').value='';
-    document.getElementById('edC').classList.remove('glass-edit');document.getElementById('edN').innerText='Create New Script';
+    toggleEncButtonState(false);
+    document.getElementById('edC').className='glass rounded-2xl p-5 space-y-4 transition-all duration-300';
+    document.getElementById('edN').innerText='Create New Script';
     var d=document.getElementById('dpBtn');d.className='w-full py-2.5 rounded-xl btn-gold text-xs';d.innerText='Save & Deploy';
     document.getElementById('rstBtn').classList.add('hidden')
 }
+
 async function dep(){
     var n=document.getElementById('fN').value.trim(),c=document.getElementById('fC').value,e=document.getElementById('edId').value;
-    if(!n||!c)return toast('Nama & content wajib diisi!');
-    var r=await api('POST','',{name:n,content:c,existingScriptId:e});
-    if(r.ok){toast(e?'Updated!':'Deployed!');rstEd();loadF()}else toast('Gagal.')
+    if(!n||c==="")return toast('Nama & content wajib diisi!');
+    
+    if(!n.toLowerCase().endsWith('.lua')) n += '.lua';
+
+    var r=await api('POST','',{name:n,content:c,encrypted:S.encryptActiveState,existingScriptId:e});
+    if(r.ok){toast(e?'Updated Successfully!':'Deployed Successfully!');rstEd();loadF()}else{toast('Gagal menyimpan perubahan script!')}
 }
 
 async function loadK(){
@@ -315,7 +357,6 @@ async function loadK(){
         var kc=exp?'text-red-400 line-through':'text-amber-400';
         var ec=exp?'text-red-400 font-bold':'text-slate-300';
         var badge=exp?'<span class="tag bg-red-500/10 text-red-400 border border-red-500/20">EXPIRED</span>':'<span class="tag bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ACTIVE</span>';
-        
         var ldrUrl=location.origin+'/api/server?type=loader&id='+k.script_id;
 
         return '<div class="glass rounded-xl p-4 space-y-3">' +
