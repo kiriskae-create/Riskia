@@ -82,13 +82,11 @@
 </head>
 <body class="min-h-screen flex">
 
-<!-- SYSTEM TOAST ALERT -->
 <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl opacity-0 transition-all duration-300 z-[250] text-xs font-bold pointer-events-none flex items-center gap-2">
     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
     <span id="tM"></span>
 </div>
 
-<!-- FLOATING TRIGGER SIDEBAR -->
 <div class="fixed top-4 left-4 z-50">
     <button onclick="openNav()" class="relative group w-12 h-12 rounded-xl bg-slate-900 shadow-lg border border-indigo-500/30 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 active:scale-95 hover:border-indigo-400 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -100,7 +98,6 @@
     </button>
 </div>
 
-<!-- LEFT SIDEBAR DRAWER -->
 <div id="sidebarOverlay" onclick="closeNav()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
 <aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 sidebar-blur z-50 flex flex-col justify-between p-5 drawer-transition -translate-x-full shadow-2xl transition-transform duration-300">
     <div>
@@ -155,7 +152,6 @@
     </div>
 </aside>
 
-<!-- AUTH GATE -->
 <div id="authGate" class="fixed inset-0 z-[100] bg-slate-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm">
         <div class="text-center mb-6">
@@ -189,10 +185,8 @@
     </div>
 </div>
 
-<!-- WORKSPACE CONTAINER -->
 <div id="mainApp" class="hidden flex-1 w-full min-h-screen pt-20 px-4 pb-8 max-w-5xl mx-auto transition-all duration-300">
     
-    <!-- VIEW: BASE SYSTEM OVERVIEW -->
     <div id="view-beranda" class="space-y-4 hidden">
         <h2 class="text-base font-extrabold text-slate-900">System Gateway Architecture</h2>
         <div class="glass-panel rounded-2xl p-5 space-y-4">
@@ -206,27 +200,26 @@
         </div>
     </div>
 
-    <!-- VIEW: CLOUD CODES LOGIC -->
     <div id="view-ggscript" class="space-y-4">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <div>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm w-full">
+            <div class="min-w-0">
                 <h2 class="text-base font-extrabold text-slate-900">Cloud Scripts Modules</h2>
                 <p class="text-[10px] text-slate-400 mt-0.5">Manage and deploy raw lua micro-services</p>
             </div>
             
-            <!-- CONTROLLER DENGAN DROPDOWN CLOUD DAN INTEGRASI DRAG STORAGE LOCAL -->
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <!-- DROPDOWN CLOUD LUA YANG MENONJOL -->
-                <div class="relative flex-1 sm:flex-initial">
-                    <select id="cloudSelector" onchange="handleScriptSelect()" class="w-full sm:w-52 pl-9 pr-4 py-2.5 bg-indigo-50/80 hover:bg-indigo-100/70 border border-indigo-200 text-indigo-900 text-xs font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition mono cursor-pointer appearance-none shadow-sm">
-                        <option value="">-- Select Lua File --</option>
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-start sm:justify-end">
+                <div class="relative w-full sm:w-56 min-w-[170px]">
+                    <select id="cloudSelector" onchange="handleScriptSelect()" class="w-full pl-9 pr-8 py-2.5 bg-indigo-50/80 hover:bg-indigo-100/70 border border-indigo-200 text-indigo-900 text-xs font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition mono cursor-pointer appearance-none shadow-sm text-ellipsis overflow-hidden whitespace-nowrap">
+                        <option value="">-- Select Cloud File --</option>
                     </select>
                     <div class="absolute left-3 top-3.5 text-indigo-500 pointer-events-none">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
                     </div>
+                    <div class="absolute right-3 top-3.5 text-indigo-500 pointer-events-none">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                    </div>
                 </div>
 
-                <!-- BROWSE LOCAL FILE DENGAN GLOW RING BULAT SAAT DI TAP -->
                 <input type="file" id="localFilePicker" accept=".lua,.txt" class="hidden" onchange="handleLocalFileLoad(event)">
                 <button onclick="document.getElementById('localFilePicker').click()" class="btn-storage-premium w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-200 border border-emerald-400 hover:bg-emerald-600 transition shrink-0 cursor-pointer" title="Upload dari Internal Storage">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m3-33H9m3-3l3 3m-3-3l-3 3"/></svg>
@@ -241,7 +234,6 @@
         <div id="fList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
     </div>
 
-    <!-- VIEW: SECURITY LICENSES MODULE -->
     <div id="view-keysystem" class="space-y-4 hidden">
         <h2 class="text-base font-extrabold text-slate-900">License Verification Keys</h2>
         <div class="glass-panel rounded-2xl p-5 space-y-3">
@@ -278,7 +270,6 @@
     </div>
 </div>
 
-<!-- CENTRAL OVERLAY MODAL FOR CODE EDITING -->
 <div id="editorModalOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[150] opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center p-4">
     <div id="editorModalContainer" class="w-full max-w-2xl bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 flex flex-col max-h-[90vh]">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -311,7 +302,6 @@
     </div>
 </div>
 
-<!-- PREMIUM CENTRAL CONFIRMATION MODAL (DELETE CONFIRM) -->
 <div id="confirmModalOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center p-4">
     <div id="confirmModalContainer" class="w-full max-w-sm bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 p-5 text-center space-y-4">
         <div class="mx-auto w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shadow-inner">
