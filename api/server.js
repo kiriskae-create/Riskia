@@ -3,7 +3,7 @@ import { createHash } from 'crypto';
 import { Resend } from 'resend';
 
 const sql = neon(process.env.POSTGRES_URL);
-const resend = new Resend(process.env.RESEND_API_KEY || 're_4oSf2AhG_8LZpxypXR9NWadRSB3TaitN9');
+const resend = new Resend('re_4oSf2AhG_8LZpxypXR9NWadRSB3TaitN9');
 const OWNER_EMAIL = (process.env.OWNER_EMAIL || 'kiriskae@gmail.com').toLowerCase();
 
 function hashPass(pw) {
@@ -16,7 +16,6 @@ function genCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-/* ===== AUTO MIGRATION ===== */
 let migrated = false;
 async function ensureMigrations() {
     if (migrated) return;
@@ -29,39 +28,48 @@ async function ensureMigrations() {
         await sql`UPDATE keys SET owner_email = ${OWNER_EMAIL} WHERE owner_email = '' OR owner_email IS NULL`;
         migrated = true;
     } catch (e) {
-        console.error('Migration error:', e);
+        console.error('Migration:', e.message);
         migrated = true;
     }
 }
 
-/* ===== SEND VERIFICATION EMAIL ===== */
 async function sendVerificationEmail(email, code) {
     try {
-        await resend.emails.send({
-            from: 'NEXUS X <onboarding@resend.dev>',
+        const result = await resend.emails.send({
+            from: 'onboarding@resend.dev',
             to: email,
             subject: 'NEXUS X - Kode Verifikasi Akun',
-            html: `<div style="font-family:'Segoe UI',sans-serif;max-width:420px;margin:0 auto;padding:24px;background:#f8fafc;border-radius:16px">
-                <div style="text-align:center;margin-bottom:24px">
-                    <div style="display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;font-weight:900;font-size:20px;padding:10px 20px;border-radius:12px;letter-spacing:2px">NEXUS X</div>
-                    <p style="color:#94a3b8;font-size:11px;margin-top:8px;text-transform:uppercase;letter-spacing:1px">Cloud Service Verification</p>
-                </div>
-                <div style="background:#fff;border-radius:12px;padding:28px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
-                    <p style="color:#334155;font-size:13px;margin:0 0 16px">Kode verifikasi akun kamu:</p>
-                    <div style="font-size:36px;font-weight:900;letter-spacing:10px;color:#4f46e5;font-family:'Courier New',monospace;background:#eef2ff;padding:16px;border-radius:12px;border:2px dashed #c7d2fe">${code}</div>
-                    <p style="color:#94a3b8;font-size:10px;margin-top:16px">Berlaku selama 10 menit. Jangan bagikan kode ini.</p>
-                </div>
-                <p style="color:#cbd5e1;font-size:9px;text-align:center;margin-top:20px">Jika kamu tidak meminta ini, abaikan email ini.</p>
-            </div>`
+            html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,sans-serif">
+<div style="max-width:440px;margin:20px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+<div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:28px 24px;text-align:center">
+<div style="color:#fff;font-weight:900;font-size:22px;letter-spacing:3px">NEXUS X</div>
+<div style="color:rgba(255,255,255,0.7);font-size:10px;margin-top:6px;text-transform:uppercase;letter-spacing:2px">Cloud Verification Service</div>
+</div>
+<div style="padding:32px 24px;text-align:center">
+<p style="color:#374151;font-size:14px;margin:0 0 8px">Masukkan kode ini untuk verifikasi:</p>
+<div style="background:#f5f3ff;border:2px dashed #c4b5fd;border-radius:12px;padding:18px 12px;margin:16px 0">
+<span style="font-size:38px;font-weight:900;letter-spacing:12px;color:#4f46e5;font-family:'Courier New',monospace">${code}</span>
+</div>
+<p style="color:#9ca3af;font-size:11px;margin:12px 0 0">Kode berlaku 10 menit. Jangan bagikan ke siapapun.</p>
+</div>
+<div style="background:#f9fafb;padding:16px 24px;border-top:1px solid #f3f4f6;text-align:center">
+<p style="color:#d1d5db;font-size:9px;margin:0">Jika kamu tidak meminta ini, abaikan email ini.</p>
+</div>
+</div>
+</body></html>`
         });
+        console.log('Resend result:', JSON.stringify(result));
+        if (result.error) {
+            console.error('Resend API error:', result.error);
+            return false;
+        }
         return true;
     } catch (err) {
-        console.error('Resend error:', err);
+        console.error('Resend catch error:', err.message || err);
         return false;
     }
 }
 
-/* ===== AUTHENTICATE SESSION ===== */
 async function getSessionUser(sessionToken) {
     if (!sessionToken) return null;
     const accounts = await sql`SELECT * FROM accounts`;
@@ -84,234 +92,179 @@ export default async function handler(req, res) {
     const { id, type, validate, device, deleteKey, s: sessionParam } = req.query;
     const host = req.headers.host;
 
-    /* ============================================================
-       ENDPOINT UNTUK GAMEGUARDIAN (PUBLIC - TANPA SESSION)
-       ============================================================ */
+    /* ========== GAMEGUARDIAN PUBLIC ENDPOINTS ========== */
 
-    // LOADER: Raw hook yang butuh session owner
     if (req.method === 'GET' && type === 'loader') {
         const ownerSession = sessionParam || '';
         const user = await getSessionUser(ownerSession);
         if (!user || !user.isOwner) {
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send('gg.alert("[X] Unauthorized - Owner session required for raw access")');
+            return res.status(200).send('gg.alert("[X] Unauthorized")');
         }
-        const targetScriptId = id || 'default';
+        const tid = id || 'default';
         const code = [
             'gg.setVisible(false)',
-            'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + targetScriptId + '&s=' + ownerSession + '")',
+            'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + tid + '&s=' + ownerSession + '")',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
             '    if fn then fn() else gg.alert("Script Empty!") end',
-            'else',
-            '    gg.alert("Connection Failed!")',
-            'end'
+            'else gg.alert("Connection Failed!") end'
         ].join('\n');
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(code);
     }
 
-    // MENU: Hanya bisa diakses dengan owner session
     if (req.method === 'GET' && type === 'menu' && id) {
         const ownerSession = sessionParam || '';
         const user = await getSessionUser(ownerSession);
         if (!user || !user.isOwner) {
             res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send('gg.alert("[X] Access Denied - Script content is protected")');
+            return res.status(200).send('gg.alert("[X] Access Denied - Protected Content")');
         }
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id} AND owner_email = ${OWNER_EMAIL}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Script Not Found!")');
     }
 
-    // LOGIN: Endpoint untuk license key system
     if (req.method === 'GET' && type === 'login') {
-        const targetScriptId = id || '';
-
-        // Jika tidak ada parameter validate, kembalikan form input key
+        const tid = id || '';
         if (!validate) {
             const c = [
                 'gg.setVisible(false)',
-                'local key = gg.prompt({"Masukkan License Key:"}, {""}, {"text"})',
+                'local key = gg.prompt({"Masukkan License Key:"},{""},{"text"})',
                 'if not key then return end',
                 'local hwid = ""',
-                'local ok, dev = pcall(function() return gg.getDevice():getSerialNumber() end)',
-                'if ok and dev then hwid = dev else hwid = "NX-UNKNOWN" end',
-                'local url = "https://' + host + '/api/server?type=login&id=' + targetScriptId + '&validate=" .. tostring(key[1]) .. "&device=" .. hwid',
-                'local r = gg.makeRequest(url)',
-                'if r and r.code == 200 then',
-                '    local fn = load(r.content)',
-                '    if fn then fn() end',
-                'end'
+                'local ok,dev = pcall(function() return gg.getDevice():getSerialNumber() end)',
+                'if ok and dev then hwid=dev else hwid="NX-UNKNOWN" end',
+                'local url="https://' + host + '/api/server?type=login&id=' + tid + '&validate="..tostring(key[1]).."&device="..hwid',
+                'local r=gg.makeRequest(url)',
+                'if r and r.code==200 then local fn=load(r.content) if fn then fn() end end'
             ].join('\n');
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(c);
         }
 
-        // Validasi license key
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate} AND owner_email = ${OWNER_EMAIL}`;
-        if (checkKey.length === 0) {
-            const c = [
-                'os.remove("/sdcard/.nexus_auth")',
-                'gg.alert("[X] License Key tidak valid untuk modul ini!")',
-                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
-                'if r and r.code == 200 then load(r.content)() end'
-            ].join('\n');
-            res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send(c);
-        }
-
-        if (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId) {
-            const c = [
-                'os.remove("/sdcard/.nexus_auth")',
-                'gg.alert("[X] Key tidak cocok dengan modul ini!")',
-                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
-                'if r and r.code == 200 then load(r.content)() end'
-            ].join('\n');
+        if (checkKey.length === 0 || (tid !== '' && checkKey[0].script_id !== tid)) {
+            const c = ['os.remove("/sdcard/.nexus_auth")','gg.alert("[X] License Key tidak valid!")','local r=gg.makeRequest("https://' + host + '/api/server?type=login&id=' + tid + '")','if r and r.code==200 then load(r.content)() end'].join('\n');
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(c);
         }
 
         const license = checkKey[0];
-        const isPermanent = license.expiry && license.expiry.startsWith('9999');
-
-        if (!isPermanent && new Date() > new Date(license.expiry)) {
-            const c = [
-                'os.remove("/sdcard/.nexus_auth")',
-                'gg.alert("[X] License Key sudah EXPIRED!")',
-                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
-                'if r and r.code == 200 then load(r.content)() end'
-            ].join('\n');
+        const isPerm = license.expiry && license.expiry.startsWith('9999');
+        if (!isPerm && new Date() > new Date(license.expiry)) {
+            const c = ['os.remove("/sdcard/.nexus_auth")','gg.alert("[X] License EXPIRED!")','local r=gg.makeRequest("https://' + host + '/api/server?type=login&id=' + tid + '")','if r and r.code==200 then load(r.content)() end'].join('\n');
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(c);
         }
 
         const clientHwid = device || 'NX-UNKNOWN';
-        let registeredDevices = license.registered_devices || [];
-        if (device && !registeredDevices.includes(clientHwid)) {
-            if (registeredDevices.length >= license.max_devices) {
-                const c = [
-                    'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] Slot device sudah penuh! Maksimal " .. ' + license.max_devices + ' .. " device.")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
-                    'if r and r.code == 200 then load(r.content)() end'
-                ].join('\n');
+        let devs = license.registered_devices || [];
+        if (device && !devs.includes(clientHwid)) {
+            if (devs.length >= license.max_devices) {
+                const c = ['os.remove("/sdcard/.nexus_auth")','gg.alert("[X] Slot device penuh! Max ' + license.max_devices + '")','local r=gg.makeRequest("https://' + host + '/api/server?type=login&id=' + tid + '")','if r and r.code==200 then load(r.content)() end'].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
             }
-            registeredDevices.push(clientHwid);
-            await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
+            devs.push(clientHwid);
+            await sql`UPDATE keys SET registered_devices = ${devs} WHERE key = ${validate}`;
         }
 
-        // AMAN: Kembalikan script content langsung di response ini
-        // Tidak perlu endpoint terpisah yang bisa diakses langsung
         const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id} AND owner_email = ${OWNER_EMAIL}`;
-        const scriptContent = sc.length > 0 ? sc[0].content : 'gg.alert("[X] Script payload not found!")';
-        const labelExp = isPermanent ? "PERMANENT ACCESS" : "Valid until " + license.expiry;
-
+        const payload = sc.length > 0 ? sc[0].content : 'gg.alert("[X] Payload not found!")';
+        const lbl = isPerm ? "PERMANENT" : "until " + license.expiry;
         const c = [
-            'local f = io.open("/sdcard/.nexus_auth", "w")',
-            'if f then f:write("' + validate + '"); f:close() end',
-            'gg.toast("ACCESS GRANTED | ' + labelExp + '")',
-            '-- NEXUS PROTECTED PAYLOAD START',
-            scriptContent,
-            '-- NEXUS PROTECTED PAYLOAD END'
+            'local f=io.open("/sdcard/.nexus_auth","w")',
+            'if f then f:write("' + validate + '");f:close() end',
+            'gg.toast("ACCESS GRANTED | ' + lbl + '")',
+            payload
         ].join('\n');
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(c);
     }
 
-    /* ============================================================
-       ENDPOINT YANG BUTUH AUTENTIKASI SESSION
-       ============================================================ */
+    /* ========== PUBLIC AUTH (tanpa session) ========== */
 
     const sessionToken = req.headers['x-session'];
     const authUser = await getSessionUser(sessionToken);
 
-    // PUBLIC AUTH ENDPOINTS (register, verify, resend, login)
     if (req.method === 'POST' && !authUser) {
         const { action, email, password, code } = req.body;
-        if (!action) return res.status(400).json({ error: 'No action specified' });
+        if (!action) return res.status(400).json({ error: 'No action' });
 
-        // REGISTER: Buat akun + kirim kode verifikasi via email
         if (action === 'register') {
-            if (!email || !password) return res.status(400).json({ error: 'Email & password required' });
-            const existing = await sql`SELECT email FROM accounts WHERE email = ${email}`;
+            if (!email || !password) return res.status(400).json({ error: 'Email & password wajib diisi' });
+            if (password.length < 4) return res.status(400).json({ error: 'Password min 4 karakter' });
+
+            const existing = await sql`SELECT email, verified FROM accounts WHERE email = ${email}`;
             if (existing.length > 0 && existing[0].verified) {
-                return res.status(400).json({ error: 'Email sudah terdaftar dan terverifikasi' });
+                return res.status(400).json({ error: 'Email sudah terdaftar & terverifikasi' });
             }
+
             const vCode = genCode();
             const hashed = hashPass(password);
-            // Upsert: update jika belum verified, insert jika baru
+
             if (existing.length > 0) {
                 await sql`UPDATE accounts SET password = ${hashed}, verification_code = ${vCode}, verified = false WHERE email = ${email}`;
             } else {
                 await sql`INSERT INTO accounts (email, password, verification_code, verified) VALUES (${email}, ${hashed}, ${vCode}, false)`;
             }
+
             const sent = await sendVerificationEmail(email, vCode);
             if (sent) {
-                return res.status(200).json({ success: true });
+                return res.status(200).json({ success: true, sent: true });
             } else {
-                // Fallback: kembalikan kode langsung jika Resend gagal
-                return res.status(200).json({ success: true, fallback: true, code: vCode });
+                return res.status(200).json({ success: true, sent: false, code: vCode });
             }
         }
 
-        // VERIFY: Validasi kode verifikasi
         if (action === 'verify') {
-            if (!email || !code) return res.status(400).json({ error: 'Missing params' });
+            if (!email || !code) return res.status(400).json({ error: 'Parameter kurang' });
             const acc = await sql`SELECT * FROM accounts WHERE email = ${email}`;
             if (acc.length === 0) return res.status(400).json({ error: 'Akun tidak ditemukan' });
-            if (acc[0].verification_code !== code) return res.status(400).json({ error: 'Kode salah' });
+            if (acc[0].verification_code !== code) return res.status(400).json({ error: 'Kode verifikasi salah!' });
             await sql`UPDATE accounts SET verified = true, verification_code = '' WHERE email = ${email}`;
             return res.status(200).json({ success: true });
         }
 
-        // RESEND: Kirim ulang kode verifikasi
         if (action === 'resend') {
-            if (!email || !password) return res.status(400).json({ error: 'Missing params' });
+            if (!email) return res.status(400).json({ error: 'Email wajib' });
             const acc = await sql`SELECT * FROM accounts WHERE email = ${email}`;
             if (acc.length === 0) return res.status(400).json({ error: 'Akun tidak ditemukan' });
-            if (acc[0].verified) return res.status(400).json({ error: 'Akun sudah terverifikasi' });
+            if (acc[0].verified) return res.status(400).json({ error: 'Sudah terverifikasi' });
+
             const vCode = genCode();
             await sql`UPDATE accounts SET verification_code = ${vCode} WHERE email = ${email}`;
             const sent = await sendVerificationEmail(email, vCode);
             if (sent) {
-                return res.status(200).json({ success: true });
+                return res.status(200).json({ success: true, sent: true });
             } else {
-                return res.status(200).json({ success: true, fallback: true, code: vCode });
+                return res.status(200).json({ success: true, sent: false, code: vCode });
             }
         }
 
-        // LOGIN
         if (action === 'login') {
-            if (!email || !password) return res.status(400).json({ error: 'Missing params' });
+            if (!email || !password) return res.status(400).json({ error: 'Email & password wajib' });
             const acc = await sql`SELECT * FROM accounts WHERE email = ${email}`;
             if (acc.length === 0) return res.status(401).json({ error: 'Akun tidak ditemukan' });
             if (acc[0].password !== hashPass(password)) return res.status(401).json({ error: 'Password salah' });
-            if (!acc[0].verified) return res.status(401).json({ error: 'Akun belum diverifikasi. Cek email kamu.' });
+            if (!acc[0].verified) return res.status(401).json({ error: 'Akun belum diverifikasi! Cek email kamu.' });
             const isOwner = email.toLowerCase() === OWNER_EMAIL;
-            return res.status(200).json({
-                session: makeSession(email, acc[0].password),
-                owner: isOwner
-            });
+            return res.status(200).json({ session: makeSession(email, acc[0].password), owner: isOwner });
         }
 
         return res.status(401).json({ error: 'Access Denied' });
     }
 
-    // Semua endpoint selanjutnya butuh session + harus owner
-    if (!authUser) return res.status(401).json({ error: 'Access Denied' });
-    if (!authUser.isOwner) return res.status(403).json({ error: 'Not authorized - owner only' });
+    /* ========== OWNER-ONLY ENDPOINTS ========== */
 
-    /* ============================================================
-       OWNER-ONLY ENDPOINTS
-       ============================================================ */
+    if (!authUser) return res.status(401).json({ error: 'Access Denied' });
+    if (!authUser.isOwner) return res.status(403).json({ error: 'Owner only' });
 
     if (req.method === 'POST') {
-        const { name, content, scriptId, duration, maxDevices, customName, existingScriptId, action } = req.body;
+        const { name, content, duration, maxDevices, customName, existingScriptId, action, scriptId } = req.body;
 
-        // CREATE / UPDATE SCRIPT
         if (name && content) {
             if (existingScriptId && existingScriptId !== '') {
                 await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId} AND owner_email = ${OWNER_EMAIL}`;
@@ -322,41 +275,33 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true });
         }
 
-        // CREATE LICENSE KEY
         if (action === 'createKey') {
             if (!scriptId) return res.status(400).json({ error: 'Script ID required' });
-            let expiryDate = new Date();
-            let finalKey = customName ? customName.trim() : '';
+            let exp = new Date();
+            let finalKey = (customName || '').trim();
             if (duration === 'perm') {
-                expiryDate = new Date('9999-12-31T23:59:59Z');
+                exp = new Date('9999-12-31T23:59:59Z');
                 if (!finalKey) finalKey = 'NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             } else {
-                expiryDate.setDate(expiryDate.getDate() + (parseInt(duration) || 1));
+                exp.setDate(exp.getDate() + (parseInt(duration) || 1));
                 if (!finalKey) finalKey = 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             }
-            const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId} AND owner_email = ${OWNER_EMAIL}`;
-            if (target.length === 0) return res.status(400).json({ error: 'Script not found' });
-            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices, owner_email) VALUES (${finalKey}, ${scriptId}, ${target[0].name}, ${expiryDate}, ${parseInt(maxDevices) || 1}, ${OWNER_EMAIL})`;
+            const tgt = await sql`SELECT name FROM scripts WHERE id = ${scriptId} AND owner_email = ${OWNER_EMAIL}`;
+            if (tgt.length === 0) return res.status(400).json({ error: 'Script not found' });
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices, owner_email) VALUES (${finalKey}, ${scriptId}, ${tgt[0].name}, ${exp}, ${parseInt(maxDevices) || 1}, ${OWNER_EMAIL})`;
             return res.status(200).json({ key: finalKey });
         }
-
         return res.status(400).json({ error: 'Invalid request' });
     }
 
     if (req.method === 'GET') {
-        if (type === 'keys') {
-            return res.status(200).json(await sql`SELECT * FROM keys WHERE owner_email = ${OWNER_EMAIL}`);
-        }
+        if (type === 'keys') return res.status(200).json(await sql`SELECT * FROM keys WHERE owner_email = ${OWNER_EMAIL}`);
         return res.status(200).json(await sql`SELECT * FROM scripts WHERE owner_email = ${OWNER_EMAIL}`);
     }
 
     if (req.method === 'DELETE') {
-        if (deleteKey) {
-            await sql`DELETE FROM keys WHERE key = ${deleteKey} AND owner_email = ${OWNER_EMAIL}`;
-        }
-        if (id) {
-            await sql`DELETE FROM scripts WHERE id = ${id} AND owner_email = ${OWNER_EMAIL}`;
-        }
+        if (deleteKey) await sql`DELETE FROM keys WHERE key = ${deleteKey} AND owner_email = ${OWNER_EMAIL}`;
+        if (id) await sql`DELETE FROM scripts WHERE id = ${id} AND owner_email = ${OWNER_EMAIL}`;
         return res.status(200).json({ success: true });
     }
 

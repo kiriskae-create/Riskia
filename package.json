@@ -6,6 +6,7 @@
   "type": "module",
   "dependencies": {
     "@neondatabase/serverless": "^0.9.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "resend": "^6.17.2"
   }
 }

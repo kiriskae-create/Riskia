@@ -7,184 +7,55 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #f8fafc;
-            color: #0f172a;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(99, 102, 241, 0.08);
-            box-shadow: 0 4px 30px rgba(15, 23, 42, 0.03);
-        }
-        .sidebar-blur {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-right: 1px solid rgba(99, 102, 241, 0.1);
-        }
-        .nav-active {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05));
-            border-right: 4px solid #6366f1;
-            color: #4f46e5;
-            font-weight: 700;
-        }
-        .btn-purple {
-            background: linear-gradient(135deg, #6366f1, #a855f7);
-            color: #ffffff;
-            font-weight: 600;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-purple:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-        }
-        .input-clean {
-            background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            color: #0f172a;
-            transition: all 0.2s;
-        }
-        .input-clean:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-        .btn-storage-premium {
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: visible;
-        }
-        .btn-storage-premium::after {
-            content: '';
-            position: absolute;
-            inset: -6px;
-            border: 2px solid #10b981;
-            border-radius: 12px;
-            opacity: 0;
-            transform: scale(0.8);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
-            pointer-events: none;
-        }
-        .btn-storage-premium:active::after {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        /* ===== STORAGE HEALTH BAR ===== */
-        .storage-section {
-            cursor: pointer;
-            transition: all 0.25s ease;
-            border-radius: 14px;
-            padding: 12px;
-            border: 1px solid transparent;
-        }
-        .storage-section:active {
-            background: rgba(99, 102, 241, 0.04);
-            border-color: rgba(99, 102, 241, 0.1);
-        }
-        .storage-bar-track {
-            height: 10px;
-            background: #f1f5f9;
-            border-radius: 999px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .storage-bar-fill {
-            height: 100%;
-            border-radius: 999px;
-            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1), background 0.6s ease;
-            position: relative;
-            min-width: 0;
-        }
-        .storage-bar-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%);
-            border-radius: 999px 999px 0 0;
-        }
-        .storage-bar-fill.level-safe { background: linear-gradient(90deg, #10b981, #34d399); }
-        .storage-bar-fill.level-warn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-        .storage-bar-fill.level-danger { background: linear-gradient(90deg, #ef4444, #f87171); }
-        .storage-bar-fill.level-critical {
-            background: linear-gradient(90deg, #dc2626, #ef4444);
-            animation: storage-pulse 1.2s ease-in-out infinite;
-        }
-        @keyframes storage-pulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
-            50% { opacity: 0.75; box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.15); }
-        }
-        .storage-detail {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, padding 0.3s;
-            opacity: 0;
-            padding-top: 0;
-        }
-        .storage-detail.expanded {
-            max-height: 200px;
-            opacity: 1;
-            padding-top: 10px;
-        }
-        .storage-detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-        }
-        .storage-segment-bar {
-            display: flex;
-            height: 6px;
-            border-radius: 999px;
-            overflow: hidden;
-            gap: 1px;
-            background: #f1f5f9;
-        }
-        .storage-segment-bar div {
-            height: 100%;
-            border-radius: 999px;
-            transition: width 0.8s ease;
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .storage-bar-fill, .storage-detail, .storage-section { transition: none !important; }
-            .storage-bar-fill.level-critical { animation: none !important; }
-        }
+        body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#0f172a;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+        .mono{font-family:'JetBrains Mono',monospace}
+        .glass-panel{background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(99,102,241,0.08);box-shadow:0 4px 30px rgba(15,23,42,0.03)}
+        .sidebar-blur{background:rgba(255,255,255,0.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-right:1px solid rgba(99,102,241,0.1)}
+        .nav-active{background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.05));border-right:4px solid #6366f1;color:#4f46e5;font-weight:700}
+        .btn-purple{background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;font-weight:600;transition:all .25s cubic-bezier(.4,0,.2,1)}
+        .btn-purple:hover{transform:translateY(-1px);box-shadow:0 8px 25px rgba(99,102,241,0.3)}
+        .btn-purple:disabled{opacity:.5;transform:none;box-shadow:none;cursor:not-allowed}
+        .input-clean{background:#fff;border:1px solid rgba(15,23,42,0.08);color:#0f172a;transition:all .2s}
+        .input-clean:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+        .btn-storage-premium{position:relative;transition:all .3s cubic-bezier(.4,0,.2,1);overflow:visible}
+        .btn-storage-premium::after{content:'';position:absolute;inset:-6px;border:2px solid #10b981;border-radius:12px;opacity:0;transform:scale(.8);transition:transform .3s cubic-bezier(.175,.885,.32,1.275),opacity .2s;pointer-events:none}
+        .btn-storage-premium:active::after{opacity:1;transform:scale(1)}
+        .storage-section{cursor:pointer;transition:all .25s ease;border-radius:14px;padding:12px;border:1px solid transparent}
+        .storage-section:active{background:rgba(99,102,241,0.04);border-color:rgba(99,102,241,0.1)}
+        .storage-bar-track{height:10px;background:#f1f5f9;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.06)}
+        .storage-bar-fill{height:100%;border-radius:999px;transition:width 1s cubic-bezier(.4,0,.2,1),background .6s ease;position:relative;min-width:0}
+        .storage-bar-fill::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,0.4) 0%,transparent 100%);border-radius:999px 999px 0 0}
+        .storage-bar-fill.level-safe{background:linear-gradient(90deg,#10b981,#34d399)}
+        .storage-bar-fill.level-warn{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+        .storage-bar-fill.level-danger{background:linear-gradient(90deg,#ef4444,#f87171)}
+        .storage-bar-fill.level-critical{background:linear-gradient(90deg,#dc2626,#ef4444);animation:sp 1.2s ease-in-out infinite}
+        @keyframes sp{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(239,68,68,0.3)}50%{opacity:.75;box-shadow:0 0 8px 2px rgba(239,68,68,0.15)}}
+        .storage-detail{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1),opacity .3s,padding .3s;opacity:0;padding-top:0}
+        .storage-detail.expanded{max-height:200px;opacity:1;padding-top:10px}
+        .storage-segment-bar{display:flex;height:6px;border-radius:999px;overflow:hidden;gap:1px;background:#f1f5f9}
+        .storage-segment-bar div{height:100%;border-radius:999px;transition:width .8s ease}
+        .fallback-code-box{background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #f59e0b;border-radius:12px;padding:16px;text-align:center;animation:fcPulse 2s ease-in-out infinite}
+        @keyframes fcPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.2)}50%{box-shadow:0 0 12px 4px rgba(245,158,11,0.15)}}
+        @media(prefers-reduced-motion:reduce){.storage-bar-fill,.storage-detail,.storage-section{transition:none!important}.storage-bar-fill.level-critical{animation:none!important}}
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-<!-- TOAST -->
 <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl opacity-0 transition-all duration-300 z-[250] text-xs font-bold pointer-events-none flex items-center gap-2">
     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
     <span id="tM"></span>
 </div>
 
-<!-- MENU BUTTON -->
 <div class="fixed top-4 left-4 z-50">
     <button onclick="openNav()" class="relative group w-12 h-12 rounded-xl bg-slate-900 shadow-lg border border-indigo-500/30 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 active:scale-95 hover:border-indigo-400 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <svg class="w-4 h-4 text-indigo-400 mb-0.5 group-hover:text-indigo-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <polyline points="16 18 22 12 16 6"></polyline>
-            <polyline points="8 6 2 12 8 18"></polyline>
-        </svg>
+        <svg class="w-4 h-4 text-indigo-400 mb-0.5 group-hover:text-indigo-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
         <span class="text-[9px] mono font-black text-white tracking-widest bg-indigo-600 px-1 rounded-sm">JS</span>
     </button>
 </div>
 
-<!-- SIDEBAR OVERLAY -->
 <div id="sidebarOverlay" onclick="closeNav()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
-<!-- SIDEBAR -->
 <aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 sidebar-blur z-50 flex flex-col justify-between p-5 -translate-x-full shadow-2xl transition-transform duration-300">
     <div>
         <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
@@ -194,29 +65,17 @@
             </div>
             <button onclick="closeNav()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 cursor-pointer">✕</button>
         </div>
-
         <div class="grid grid-cols-2 gap-2 mb-5">
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2">
-                <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                </div>
-                <div>
-                    <span class="block text-[8px] font-bold text-slate-400 uppercase">Scripts</span>
-                    <span id="statScr" class="text-xs font-extrabold text-slate-800 mono">0</span>
-                </div>
+                <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                <div><span class="block text-[8px] font-bold text-slate-400 uppercase">Scripts</span><span id="statScr" class="text-xs font-extrabold text-slate-800 mono">0</span></div>
             </div>
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2">
-                <div class="p-1.5 bg-purple-50 rounded-lg text-purple-600">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg>
-                </div>
-                <div>
-                    <span class="block text-[8px] font-bold text-slate-400 uppercase">Licenses</span>
-                    <span id="statKeys" class="text-xs font-extrabold text-slate-800 mono">0</span>
-                </div>
+                <div class="p-1.5 bg-purple-50 rounded-lg text-purple-600"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg></div>
+                <div><span class="block text-[8px] font-bold text-slate-400 uppercase">Licenses</span><span id="statKeys" class="text-xs font-extrabold text-slate-800 mono">0</span></div>
             </div>
         </div>
 
-        <!-- ===== STORAGE HEALTH BAR ===== -->
         <div class="storage-section mb-5 bg-slate-50/80" onclick="toggleStorageDetail()" id="storageSection">
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-1.5">
@@ -230,60 +89,31 @@
             </div>
             <div class="storage-detail" id="storageDetail">
                 <div class="border-t border-slate-200/60 pt-2 mt-1 space-y-1">
-                    <div class="storage-detail-row">
-                        <span class="text-[9px] text-slate-400">Terpakai</span>
-                        <span class="text-[9px] font-bold text-slate-700 mono" id="storageUsedText">0 B</span>
-                    </div>
-                    <div class="storage-detail-row">
-                        <span class="text-[9px] text-slate-400">Kapasitas</span>
-                        <span class="text-[9px] font-bold text-slate-700 mono" id="storageMaxText">2 MB</span>
-                    </div>
-                    <div class="storage-detail-row">
-                        <span class="text-[9px] text-slate-400">Total File</span>
-                        <span class="text-[9px] font-bold text-slate-700 mono" id="storageFileCount">0</span>
-                    </div>
-                    <div class="storage-detail-row">
-                        <span class="text-[9px] text-slate-400">Terbesar</span>
-                        <span class="text-[9px] font-bold text-indigo-600 mono truncate ml-2 text-right max-w-[120px]" id="storageLargest">-</span>
-                    </div>
+                    <div class="flex justify-between"><span class="text-[9px] text-slate-400">Terpakai</span><span class="text-[9px] font-bold text-slate-700 mono" id="storageUsedText">0 B</span></div>
+                    <div class="flex justify-between"><span class="text-[9px] text-slate-400">Kapasitas</span><span class="text-[9px] font-bold text-slate-700 mono" id="storageMaxText">2 MB</span></div>
+                    <div class="flex justify-between"><span class="text-[9px] text-slate-400">Total File</span><span class="text-[9px] font-bold text-slate-700 mono" id="storageFileCount">0</span></div>
+                    <div class="flex justify-between"><span class="text-[9px] text-slate-400">Terbesar</span><span class="text-[9px] font-bold text-indigo-600 mono truncate ml-2 text-right max-w-[120px]" id="storageLargest">-</span></div>
                     <div class="mt-2">
                         <div class="storage-segment-bar" id="storageSegmentBar"></div>
-                        <div class="flex justify-between mt-1">
-                            <span class="text-[7px] text-slate-300">0</span>
-                            <span class="text-[7px] text-slate-300">50%</span>
-                            <span class="text-[7px] text-slate-300">100%</span>
-                        </div>
+                        <div class="flex justify-between mt-1"><span class="text-[7px] text-slate-300">0</span><span class="text-[7px] text-slate-300">50%</span><span class="text-[7px] text-slate-300">100%</span></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <nav class="space-y-1">
-            <button id="btn-beranda" onclick="sw('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-                System Overview
-            </button>
-            <button id="btn-ggscript" onclick="sw('ggscript')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Cloud Codes (.lua)
-            </button>
-            <button id="btn-keysystem" onclick="sw('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg>
-                License Key Manager
-            </button>
+            <button id="btn-beranda" onclick="sw('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>System Overview</button>
+            <button id="btn-ggscript" onclick="sw('ggscript')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>Cloud Codes (.lua)</button>
+            <button id="btn-keysystem" onclick="sw('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg>License Key Manager</button>
         </nav>
     </div>
-
     <div class="pt-4 border-t border-slate-100">
-        <div class="flex items-center gap-2 mb-2">
-            <div class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-200"></div>
-            <p class="text-[10px] text-slate-400 truncate mono" id="aE">session@nexus.io</p>
-        </div>
+        <div class="flex items-center gap-2 mb-2"><div class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-200"></div><p class="text-[10px] text-slate-400 truncate mono" id="aE">session@nexus.io</p></div>
         <button onclick="doOut()" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition cursor-pointer text-center">Log Out</button>
     </div>
 </aside>
 
-<!-- ===== AUTH GATE ===== -->
+<!-- AUTH GATE -->
 <div id="authGate" class="fixed inset-0 z-[100] bg-slate-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm">
         <div class="text-center mb-6">
@@ -291,26 +121,36 @@
             <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">NEXUS X SERVICE</h1>
             <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wider">Cloud Dashboard Access</p>
         </div>
-
         <div class="flex mb-4 gap-1 bg-slate-200/60 p-1 rounded-xl">
             <button id="tabReg" onclick="stab('reg')" class="flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm">Register</button>
             <button id="tabLog" onclick="stab('log')" class="flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500">Login</button>
         </div>
 
-        <!-- REGISTER FORM -->
         <div id="fReg" class="glass-panel rounded-2xl p-5 space-y-3">
             <input type="email" id="rE" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
             <input type="password" id="rP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
             <button onclick="doReg()" id="regBtn" class="w-full py-2.5 rounded-xl btn-purple text-xs">Send Verification Code</button>
         </div>
 
-        <!-- VERIFY CODE FORM -->
+        <!-- FALLBACK: Kode ditampilkan langsung kalo Resend gagal -->
+        <div id="fFallback" class="hidden space-y-3">
+            <div class="fallback-code-box">
+                <p class="text-[10px] font-bold text-amber-700 mb-2">Email service sedang dalam mode sandbox. Gunakan kode ini:</p>
+                <div class="font-black text-2xl tracking-[0.3em] text-amber-900 mono" id="fallbackCode">------</div>
+            </div>
+            <div class="glass-panel rounded-2xl p-4 space-y-3">
+                <input type="text" id="fVC" placeholder="Masukkan 6 digit kode" maxlength="6" class="w-full px-4 py-3 rounded-xl input-clean text-center text-lg font-black mono tracking-[0.3em]">
+                <button onclick="doFallbackVerify()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Verifikasi Kode</button>
+            </div>
+        </div>
+
+        <!-- EMAIL TERKIRIM -->
         <div id="fVerify" class="glass-panel rounded-2xl p-5 space-y-4 hidden">
             <div class="text-center space-y-2">
                 <div class="mx-auto w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 </div>
-                <h3 class="text-xs font-bold text-slate-800">Kode Verifikasi Dikirim!</h3>
+                <h3 class="text-xs font-bold text-slate-800">Kode Dikirim ke Email!</h3>
                 <p class="text-[10px] text-slate-400" id="verifyTarget">Cek inbox email kamu</p>
             </div>
             <input type="text" id="vC" placeholder="Masukkan 6 digit kode" maxlength="6" class="w-full px-4 py-3 rounded-xl input-clean text-center text-lg font-black mono tracking-[0.3em]">
@@ -318,17 +158,16 @@
             <button onclick="doResend()" class="w-full py-2 text-indigo-500 hover:text-indigo-700 text-[10px] font-bold transition cursor-pointer">Kirim Ulang Kode</button>
         </div>
 
-        <!-- VERIFIED SUCCESS -->
+        <!-- VERIFIED -->
         <div id="fVerified" class="glass-panel rounded-2xl p-6 space-y-4 hidden text-center">
             <div class="mx-auto w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <h3 class="text-sm font-bold text-slate-800">Akun Terverifikasi!</h3>
-            <p class="text-[10px] text-slate-400">Kamu bisa login sekarang</p>
             <button onclick="goLog()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Lanjut ke Login</button>
         </div>
 
-        <!-- LOGIN FORM -->
+        <!-- LOGIN -->
         <div id="fLog" class="glass-panel rounded-2xl p-5 space-y-3 hidden">
             <input type="email" id="lE" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
             <input type="password" id="lP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
@@ -337,7 +176,7 @@
     </div>
 </div>
 
-<!-- ===== RESTRICTED VIEW (NON-OWNER) ===== -->
+<!-- RESTRICTED -->
 <div id="restrictedView" class="hidden fixed inset-0 z-[100] bg-slate-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm text-center space-y-6">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 shadow-inner">
@@ -345,7 +184,7 @@
         </div>
         <div>
             <h1 class="text-lg font-extrabold text-slate-900">Access Restricted</h1>
-            <p class="text-xs text-slate-400 mt-3 leading-relaxed">Instance NEXUS ini dimiliki dan dikelola secara privat. Akun kamu tidak memiliki otorisasi untuk mengakses panel kontrol ini.</p>
+            <p class="text-xs text-slate-400 mt-3 leading-relaxed">Instance NEXUS ini dimiliki secara privat. Akun kamu tidak memiliki otorisasi.</p>
         </div>
         <div class="p-3 bg-slate-100 rounded-xl">
             <p class="text-[10px] text-slate-400">Logged in as</p>
@@ -355,34 +194,22 @@
     </div>
 </div>
 
-<!-- ===== MAIN APP ===== -->
+<!-- MAIN APP -->
 <div id="mainApp" class="hidden flex-1 w-full pt-24 px-4 pb-8 max-w-5xl mx-auto space-y-6">
-
     <div id="view-beranda" class="space-y-4 hidden">
         <h2 class="text-base font-extrabold text-slate-900">System Gateway Architecture</h2>
         <div class="glass-panel rounded-2xl p-5 space-y-4">
             <div>
                 <span class="text-[9px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md uppercase">Core Router</span>
                 <p class="text-xs font-bold text-slate-700 mt-1.5">Universal Script Dynamic Endpoint</p>
-                <div class="mt-2 flex items-center gap-2">
-                    <code class="text-[10px] text-slate-600 mono bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60 truncate flex-1" id="dL3">-</code>
-                </div>
+                <div class="mt-2"><code class="text-[10px] text-slate-600 mono bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60 truncate block" id="dL3">-</code></div>
             </div>
             <div class="pt-3 border-t border-slate-100">
                 <span class="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md uppercase">Security</span>
                 <div class="mt-2 space-y-2">
-                    <div class="flex items-center gap-2 text-[10px]">
-                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-                        <span class="text-slate-600">Script payload hanya tersedia melalui validasi license key</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-[10px]">
-                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-                        <span class="text-slate-600">Data terisolasi per-akun owner (single tenant)</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-[10px]">
-                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-                        <span class="text-slate-600">Direct menu endpoint memerlukan session token owner</span>
-                    </div>
+                    <div class="flex items-center gap-2 text-[10px]"><div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div><span class="text-slate-600">Script payload hanya via validasi license key</span></div>
+                    <div class="flex items-center gap-2 text-[10px]"><div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div><span class="text-slate-600">Data terisolasi per-akun owner</span></div>
+                    <div class="flex items-center gap-2 text-[10px]"><div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div><span class="text-slate-600">Direct endpoint butuh session token owner</span></div>
                 </div>
             </div>
         </div>
@@ -399,12 +226,8 @@
                     <select id="cloudSelector" onchange="handleScriptSelect()" class="w-full pl-9 pr-10 py-2.5 bg-indigo-50/80 hover:bg-indigo-100/70 border border-indigo-200 text-indigo-950 text-xs font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition mono cursor-pointer appearance-none shadow-sm">
                         <option value="">-- Select Cloud File --</option>
                     </select>
-                    <div class="absolute left-3 top-3.5 text-indigo-500 pointer-events-none">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
-                    </div>
-                    <div class="absolute right-3 top-3.5 text-indigo-500 pointer-events-none">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
-                    </div>
+                    <div class="absolute left-3 top-3.5 text-indigo-500 pointer-events-none"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg></div>
+                    <div class="absolute right-3 top-3.5 text-indigo-500 pointer-events-none"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0 w-full md:w-auto">
                     <input type="file" id="localFilePicker" accept=".lua,.txt" class="hidden" onchange="handleLocalFileLoad(event)">
@@ -439,11 +262,7 @@
                     <div>
                         <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Duration / Expiry</label>
                         <select id="kDur" onchange="toggleDurationView()" class="w-full px-3 py-2.5 rounded-xl input-clean text-xs mono">
-                            <option value="1">1 Hari</option>
-                            <option value="3">3 Hari</option>
-                            <option value="7">7 Hari</option>
-                            <option value="30">30 Hari</option>
-                            <option value="perm">PERMANENT (No Expiry)</option>
+                            <option value="1">1 Hari</option><option value="3">3 Hari</option><option value="7">7 Hari</option><option value="30">30 Hari</option><option value="perm">PERMANENT</option>
                         </select>
                     </div>
                 </div>
@@ -463,30 +282,19 @@
     <div id="editorModalContainer" class="w-full max-w-2xl bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 flex flex-col max-h-[90vh]">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div class="flex items-center gap-2">
-                <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/></svg>
-                </div>
-                <div>
-                    <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider" id="edN">Deploy New Module</h3>
-                    <p class="text-[10px] text-slate-400 mono mt-0.5" id="edSub">Editor Engine Terminal</p>
-                </div>
+                <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/></svg></div>
+                <div><h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider" id="edN">Deploy New Module</h3><p class="text-[10px] text-slate-400 mono mt-0.5" id="edSub">Editor Engine Terminal</p></div>
             </div>
             <button onclick="closeEditorModal()" class="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 shadow-sm cursor-pointer font-bold text-xs">✕</button>
         </div>
         <div class="p-5 space-y-4 overflow-y-auto flex-1">
             <input type="hidden" id="edId">
-            <div>
-                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Module Filename</label>
-                <input type="text" id="fN" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
-            </div>
-            <div class="flex-1 flex flex-col min-h-[250px]">
-                <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Source Code Buffers</label>
-                <textarea id="fC" placeholder="-- Tulis baris kode lua disini..." class="w-full flex-1 p-4 rounded-xl input-clean text-xs mono min-h-[280px] focus:ring-2 focus:ring-indigo-500/10"></textarea>
-            </div>
+            <div><label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Module Filename</label><input type="text" id="fN" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono"></div>
+            <div class="flex-1 flex flex-col min-h-[250px]"><label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Source Code Buffers</label><textarea id="fC" placeholder="-- Tulis kode lua disini..." class="w-full flex-1 p-4 rounded-xl input-clean text-xs mono min-h-[280px] focus:ring-2 focus:ring-indigo-500/10"></textarea></div>
         </div>
         <div class="px-5 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
             <button onclick="closeEditorModal()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-600 transition cursor-pointer">Cancel</button>
-            <button id="dpBtn" onclick="dep()" class="px-5 py-2 btn-purple rounded-xl text-xs shadow-md shadow-indigo-100">Save & Live Deploy</button>
+            <button onclick="dep()" class="px-5 py-2 btn-purple rounded-xl text-xs shadow-md shadow-indigo-100">Save & Live Deploy</button>
         </div>
     </div>
 </div>
@@ -494,13 +302,8 @@
 <!-- CONFIRM MODAL -->
 <div id="confirmModalOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center p-4">
     <div id="confirmModalContainer" class="w-full max-w-sm bg-white rounded-2xl border border-slate-100 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 p-5 text-center space-y-4">
-        <div class="mx-auto w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shadow-inner">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.34 9m-4.72 0L9.26 9m9.96-3a1 1 0 00-1-1h-4c-.46 0-.89.23-1.15.61l-.86 1.16H5.25A1.25 1.25 0 004 8.25v.5c0 .41.34.75.75.75h14.5a.75.75 0 00.75-.75v-.5c0-.69-.56-1.25-1.25-1.25zm-1.72 3.19l-.85 9.06A2.25 2.25 0 0115.19 22H8.81a2.25 2.25 0 01-2.23-2.04l-.85-9.06h12.54z"/></svg>
-        </div>
-        <div>
-            <h3 class="text-sm font-extrabold text-slate-900">Hapus File Permanen?</h3>
-            <p class="text-xs text-slate-400 mt-1">Tindakan ini tidak bisa dibatalkan.</p>
-        </div>
+        <div class="mx-auto w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shadow-inner"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.34 9m-4.72 0L9.26 9m9.96-3a1 1 0 00-1-1h-4c-.46 0-.89.23-1.15.61l-.86 1.16H5.25A1.25 1.25 0 004 8.25v.5c0 .41.34.75.75.75h14.5a.75.75 0 00.75-.75v-.5c0-.69-.56-1.25-1.25-1.25zm-1.72 3.19l-.85 9.06A2.25 2.25 0 0115.19 22H8.81a2.25 2.25 0 01-2.23-2.04l-.85-9.06h12.54z"/></svg></div>
+        <div><h3 class="text-sm font-extrabold text-slate-900">Hapus Permanen?</h3><p class="text-xs text-slate-400 mt-1">Tidak bisa dibatalkan.</p></div>
         <div class="grid grid-cols-2 gap-2 pt-2">
             <button onclick="closeConfirmModal()" class="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-bold transition border border-slate-200/50 cursor-pointer">Batal</button>
             <button id="confirmDelBtn" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-rose-100 cursor-pointer">Ya, Hapus</button>
@@ -509,490 +312,154 @@
 </div>
 
 <script>
-var S = { files: [], keys: [], session: '', cur: 'ggscript', owner: false };
-var pendingDeleteTarget = null;
-var pendingDeleteType = null;
-var pendingRegEmail = '';
-var pendingRegPass = '';
-var STORAGE_MAX = 2 * 1024 * 1024; // 2MB
+var S={files:[],keys:[],session:'',cur:'ggscript',owner:false};
+var pendingDeleteTarget=null,pendingDeleteType=null;
+var pendingRegEmail='',pendingRegPass='';
+var STORAGE_MAX=2*1024*1024;
 
-function toast(m) {
-    var t = document.getElementById('toast');
-    document.getElementById('tM').innerText = m;
-    t.style.opacity = '1';
-    setTimeout(function() { t.style.opacity = '0'; }, 2500);
+function toast(m){var t=document.getElementById('toast');document.getElementById('tM').innerText=m;t.style.opacity='1';setTimeout(function(){t.style.opacity='0'},2500)}
+function cp(t){navigator.clipboard.writeText(t);toast('Copied!')}
+function openNav(){document.getElementById('mainSidebar').classList.remove('-translate-x-full');var o=document.getElementById('sidebarOverlay');o.classList.remove('pointer-events-none');o.style.opacity='1'}
+function closeNav(){document.getElementById('mainSidebar').classList.add('-translate-x-full');var o=document.getElementById('sidebarOverlay');o.classList.add('pointer-events-none');o.style.opacity='0'}
+
+function toggleStorageDetail(){document.getElementById('storageDetail').classList.toggle('expanded')}
+function formatBytes(b){if(!b)return'0 B';var k=1024,s=['B','KB','MB','GB'],i=Math.min(Math.floor(Math.log(b)/Math.log(k)),s.length-1);return parseFloat((b/Math.pow(k,i)).toFixed(1))+' '+s[i]}
+
+function updateStorageBar(){
+    var total=0,lName='-',lSize=0;
+    S.files.forEach(function(f){var sz=f.content?new Blob([f.content]).size:0;total+=sz;if(sz>lSize){lSize=sz;lName=f.name}});
+    var pct=Math.min(100,(total/STORAGE_MAX)*100),pr=Math.round(pct*10)/10;
+    var fill=document.getElementById('storageBarFill'),pt=document.getElementById('storagePctText');
+    fill.style.width=pr+'%';pt.innerText=pr+'%';
+    document.getElementById('storageUsedText').innerText=formatBytes(total);
+    document.getElementById('storageMaxText').innerText=formatBytes(STORAGE_MAX);
+    document.getElementById('storageFileCount').innerText=S.files.length+' file';
+    document.getElementById('storageLargest').innerText=lSize>0?lName:'-';
+    fill.classList.remove('level-safe','level-warn','level-danger','level-critical');
+    if(pct<40){fill.classList.add('level-safe');pt.style.color='#10b981'}
+    else if(pct<70){fill.classList.add('level-warn');pt.style.color='#f59e0b'}
+    else if(pct<90){fill.classList.add('level-danger');pt.style.color='#ef4444'}
+    else{fill.classList.add('level-critical');pt.style.color='#dc2626'}
+    var sb=document.getElementById('storageSegmentBar'),cols=['#6366f1','#a855f7','#ec4899','#f43f5e','#f97316','#eab308','#22c55e','#14b8a6','#06b6d4','#3b82f6'];
+    if(S.files.length>0){sb.innerHTML=S.files.map(function(f,i){var sz=f.content?new Blob([f.content]).size:0;return'<div style="width:'+Math.max(1,(sz/STORAGE_MAX)*100)+'%;background:'+cols[i%cols.length]+'" title="'+f.name+': '+formatBytes(sz)+'"></div>'}).join('')}else{sb.innerHTML=''}
 }
 
-function cp(t) {
-    navigator.clipboard.writeText(t);
-    toast('Copied to Clipboard!');
+function openCreateModal(){document.getElementById('edId').value='';document.getElementById('fN').value='';document.getElementById('fC').value='';document.getElementById('edN').innerText='Deploy New Module';document.getElementById('edSub').innerText='Editor Engine Terminal';toggleEditorModal(true)}
+function openEditModal(id){var t=S.files.find(function(f){return f.id===id});if(!t)return;document.getElementById('edId').value=id;document.getElementById('fN').value=t.name;document.getElementById('fC').value=t.content;document.getElementById('edN').innerText='Editing Module';document.getElementById('edSub').innerText=t.name+' ('+t.id+')';toggleEditorModal(true)}
+function closeEditorModal(){toggleEditorModal(false)}
+function toggleEditorModal(show){var o=document.getElementById('editorModalOverlay'),b=document.getElementById('editorModalContainer');if(show){o.classList.remove('pointer-events-none');o.style.opacity='1';b.classList.remove('scale-95','opacity-0')}else{o.classList.add('pointer-events-none');o.style.opacity='0';b.classList.add('scale-95','opacity-0')}}
+
+function askDelete(t,tp){pendingDeleteTarget=t;pendingDeleteType=tp;var o=document.getElementById('confirmModalOverlay'),b=document.getElementById('confirmModalContainer');o.classList.remove('pointer-events-none');o.style.opacity='1';b.classList.remove('scale-95','opacity-0');document.getElementById('confirmDelBtn').onclick=async function(){if(pendingDeleteType==='file'){await api('DELETE','?id='+pendingDeleteTarget);loadF()}else if(pendingDeleteType==='key'){await api('DELETE','?deleteKey='+pendingDeleteTarget);loadK()}toast('Deleted!');closeConfirmModal()}}
+function closeConfirmModal(){var o=document.getElementById('confirmModalOverlay'),b=document.getElementById('confirmModalContainer');o.classList.add('pointer-events-none');o.style.opacity='0';b.classList.add('scale-95','opacity-0');pendingDeleteTarget=null;pendingDeleteType=null}
+
+function handleScriptSelect(){var v=document.getElementById('cloudSelector').value;if(v)openEditModal(v)}
+function handleLocalFileLoad(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){document.getElementById('edId').value='';document.getElementById('fN').value=f.name;document.getElementById('fC').value=ev.target.result;document.getElementById('edN').innerText='Imported Local';document.getElementById('edSub').innerText=f.name;toggleEditorModal(true);toast('File loaded!')};r.readAsText(f);e.target.value=''}
+function toggleDurationView(){var d=document.getElementById('kDur').value;document.getElementById('customKeyWrapper').style.display=(d==='perm')?'none':'block';if(d==='perm')document.getElementById('kC').value=''}
+
+function sw(t){S.cur=t;['beranda','ggscript','keysystem'].forEach(function(m){document.getElementById('view-'+m).classList.add('hidden');var b=document.getElementById('btn-'+m);if(b)b.classList.remove('nav-active')});document.getElementById('view-'+t).classList.remove('hidden');var a=document.getElementById('btn-'+t);if(a)a.classList.add('nav-active');if(t==='beranda')initB();if(t==='ggscript')loadF();if(t==='keysystem'){loadF();loadK()}closeNav()}
+function initB(){document.getElementById('dL3').innerText=location.origin+'/api/server?type=menu&id={script_id}'}
+
+async function api(m,u,b){var o={method:m,headers:{'Content-Type':'application/json'}};if(S.session)o.headers['X-Session']=S.session;if(b)o.body=JSON.stringify(b);return fetch('/api/server'+u,o)}
+
+function triggerCopyRawHook(sid){var b=location.origin;cp('local r = gg.makeRequest("'+b+'/api/server?type=loader&id='+sid+'&s='+S.session+'")\nif r and r.code == 200 then\n    local fn = load(r.content)\n    if fn then fn() end\nend')}
+function triggerCopyLicenseHook(sid){var b=location.origin;cp('local r = gg.makeRequest("'+b+'/api/server?type=login&id='+sid+'")\nif r and r.code == 200 then\n    local fn = load(r.content)\n    if fn then fn() end\nend')}
+
+async function loadF(){
+    var r=await api('GET','');if(!r.ok)return;S.files=await r.json();
+    document.getElementById('statScr').innerText=S.files.length;updateStorageBar();
+    var sel=document.getElementById('cloudSelector');if(sel)sel.innerHTML='<option value="">-- Select Cloud File --</option>'+S.files.map(function(f){return'<option value="'+f.id+'">'+f.name+'</option>'}).join('');
+    var s=document.getElementById('kT');if(s)s.innerHTML=S.files.map(function(f){return'<option value="'+f.id+'">'+f.name+'</option>'}).join('');
+    var c=document.getElementById('fList');if(!c)return;
+    c.innerHTML=S.files.map(function(f){var sz=f.content?new Blob([f.content]).size:0;return'<div class="glass-panel rounded-2xl p-4 flex flex-col justify-between space-y-4 border border-slate-100 shadow-sm"><div class="flex items-start justify-between gap-2"><div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/></svg></div><div class="min-w-0"><span class="mono text-xs font-extrabold text-slate-800 truncate block">'+f.name+'</span><span class="text-[9px] text-slate-400 mono block mt-0.5">'+f.id+' &middot; '+formatBytes(sz)+'</span></div></div><div class="flex items-center gap-1 shrink-0"><button onclick="openEditModal(\''+f.id+'\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-indigo-600 flex items-center justify-center shadow-sm cursor-pointer transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7.5M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button onclick="askDelete(\''+f.id+'\',\'file\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></div><div class="pt-3 border-t border-slate-100/80"><button onclick="triggerCopyRawHook(\''+f.id+'\')" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Copy Hook Script (Raw)</button></div></div>'}).join('');
 }
 
-function openNav() {
-    document.getElementById('mainSidebar').classList.remove('-translate-x-full');
-    var ov = document.getElementById('sidebarOverlay');
-    ov.classList.remove('pointer-events-none');
-    ov.style.opacity = '1';
+async function dep(){var n=document.getElementById('fN').value.trim(),c=document.getElementById('fC').value,e=document.getElementById('edId').value;if(!n||!c)return toast('Nama & isi wajib diisi!');var r=await api('POST','',{name:n,content:c,existingScriptId:e});if(r.ok){toast(e?'Updated!':'Deployed!');closeEditorModal();loadF()}else toast('Gagal!')}
+
+async function loadK(){
+    var r=await api('GET','?type=keys');if(!r.ok)return;S.keys=await r.json();document.getElementById('statKeys').innerText=S.keys.length;
+    var c=document.getElementById('kList');if(!c)return;
+    c.innerHTML=S.keys.map(function(k){var ip=k.expiry&&k.expiry.startsWith('9999'),badge=ip?'<span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded shadow-sm">PERMANENT</span>':(new Date()>new Date(k.expiry)?'<span class="text-[9px] font-bold bg-rose-50 text-rose-600 px-2 py-0.5 rounded">EXPIRED</span>':'<span class="text-[9px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded">ACTIVE</span>'),exp=ip?'PERMANENT':new Date(k.expiry).toLocaleDateString('id-ID'),dc=k.registered_devices?k.registered_devices.length:0;return'<div class="glass-panel rounded-xl p-4 space-y-3 border border-slate-100 shadow-sm"><div class="flex justify-between items-start gap-2"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold text-slate-800 break-all">'+k.key+'</span>'+badge+'</div></div><button onclick="askDelete(\''+k.key+'\',\'key\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div><div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500 mono py-2 border-y border-slate-100"><div>Target: <span class="text-slate-800 font-bold">'+(k.target_script_name||'-')+'</span></div><div>Devices: <span class="text-indigo-600 font-bold">'+dc+'/'+k.max_devices+'</span></div><div>Expiry: <span class="font-bold text-slate-800">'+exp+'</span></div></div><div class="pt-1"><button onclick="triggerCopyLicenseHook(\''+k.script_id+'\')" class="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-sm"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>Copy Protected Hook Script</button></div></div>'}).join('');
 }
 
-function closeNav() {
-    document.getElementById('mainSidebar').classList.add('-translate-x-full');
-    var ov = document.getElementById('sidebarOverlay');
-    ov.classList.add('pointer-events-none');
-    ov.style.opacity = '0';
-}
+async function genK(){var s=document.getElementById('kT').value,m=document.getElementById('kM').value,d=document.getElementById('kDur').value,c=document.getElementById('kC').value.trim();if(!s)return toast('Target wajib!');var r=await api('POST','',{action:'createKey',scriptId:s,duration:d,maxDevices:m,customName:c});if(r.ok){toast('Key Generated!');document.getElementById('kC').value='';loadK()}}
 
-/* ===== STORAGE HEALTH BAR ===== */
-function toggleStorageDetail() {
-    var detail = document.getElementById('storageDetail');
-    detail.classList.toggle('expanded');
-}
+function stab(t){document.getElementById('fReg').classList.toggle('hidden',t!=='reg');document.getElementById('fFallback').classList.add('hidden');document.getElementById('fVerify').classList.add('hidden');document.getElementById('fVerified').classList.add('hidden');document.getElementById('fLog').classList.toggle('hidden',t!=='log');document.getElementById('tabReg').className=t==='reg'?'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm':'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';document.getElementById('tabLog').className=t==='log'?'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm':'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500'}
 
-function formatBytes(bytes) {
-    if (bytes === 0) return '0 B';
-    var k = 1024;
-    var sizes = ['B', 'KB', 'MB', 'GB'];
-    var i = Math.floor(Math.log(bytes) / Math.log(k));
-    i = Math.min(i, sizes.length - 1);
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
-
-function updateStorageBar() {
-    var totalBytes = 0;
-    var largestName = '-';
-    var largestSize = 0;
-    S.files.forEach(function(f) {
-        var sz = f.content ? new Blob([f.content]).size : 0;
-        totalBytes += sz;
-        if (sz > largestSize) {
-            largestSize = sz;
-            largestName = f.name;
+async function doReg(){
+    var e=document.getElementById('rE').value.trim(),p=document.getElementById('rP').value;
+    if(!e||!p)return toast('Email & password wajib!');
+    if(p.length<4)return toast('Password min 4 karakter!');
+    pendingRegEmail=e;pendingRegPass=p;
+    var btn=document.getElementById('regBtn');btn.innerText='Sending...';btn.disabled=true;
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'register',email:e,password:p})});
+    btn.innerText='Send Verification Code';btn.disabled=false;
+    if(r.ok){
+        var d=await r.json();
+        if(d.sent===false&&d.code){
+            // Resend gagal - tampilkan fallback kode
+            document.getElementById('fallbackCode').innerText=d.code;
+            document.getElementById('fVC').value='';
+            document.getElementById('fReg').classList.add('hidden');
+            document.getElementById('fFallback').classList.remove('hidden');
+            toast('Email sandbox mode - gunakan kode di bawah');
+        }else{
+            // Email berhasil dikirim
+            document.getElementById('verifyTarget').innerText='Kode dikirim ke '+e;
+            document.getElementById('fReg').classList.add('hidden');
+            document.getElementById('fVerify').classList.remove('hidden');
+            document.getElementById('vC').value='';
+            toast('Kode verifikasi dikirim ke email!');
         }
-    });
-
-    var pct = Math.min(100, (totalBytes / STORAGE_MAX) * 100);
-    var pctRound = Math.round(pct * 10) / 10;
-
-    var fill = document.getElementById('storageBarFill');
-    var pctText = document.getElementById('storagePctText');
-    var usedText = document.getElementById('storageUsedText');
-    var maxText = document.getElementById('storageMaxText');
-    var fileCount = document.getElementById('storageFileCount');
-    var largest = document.getElementById('storageLargest');
-    var segBar = document.getElementById('storageSegmentBar');
-
-    fill.style.width = pctRound + '%';
-    pctText.innerText = pctRound + '%';
-    usedText.innerText = formatBytes(totalBytes);
-    maxText.innerText = formatBytes(STORAGE_MAX);
-    fileCount.innerText = S.files.length + ' file';
-    largest.innerText = largestSize > 0 ? largestName : '-';
-
-    // Warna berdasarkan level
-    fill.classList.remove('level-safe', 'level-warn', 'level-danger', 'level-critical');
-    if (pct < 40) {
-        fill.classList.add('level-safe');
-        pctText.style.color = '#10b981';
-    } else if (pct < 70) {
-        fill.classList.add('level-warn');
-        pctText.style.color = '#f59e0b';
-    } else if (pct < 90) {
-        fill.classList.add('level-danger');
-        pctText.style.color = '#ef4444';
-    } else {
-        fill.classList.add('level-critical');
-        pctText.style.color = '#dc2626';
-    }
-
-    // Segment bar (per file)
-    if (S.files.length > 0) {
-        var segments = '';
-        var colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'];
-        S.files.forEach(function(f, i) {
-            var sz = f.content ? new Blob([f.content]).size : 0;
-            var w = Math.max(1, (sz / STORAGE_MAX) * 100);
-            var c = colors[i % colors.length];
-            segments += '<div style="width:' + w + '%;background:' + c + '" title="' + f.name + ': ' + formatBytes(sz) + '"></div>';
-        });
-        segBar.innerHTML = segments;
-    } else {
-        segBar.innerHTML = '';
+    }else{
+        var err=await r.json().catch(function(){return{}});
+        toast(err.error||'Gagal mengirim kode');
     }
 }
 
-/* ===== MODALS ===== */
-function openCreateModal() {
-    document.getElementById('edId').value = '';
-    document.getElementById('fN').value = '';
-    document.getElementById('fC').value = '';
-    document.getElementById('edN').innerText = 'Deploy New Module';
-    document.getElementById('edSub').innerText = 'Editor Engine Terminal';
-    toggleEditorModal(true);
+async function doVerify(){
+    var code=document.getElementById('vC').value.trim();
+    if(!code||code.length!==6)return toast('Masukkan 6 digit kode!');
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify',email:pendingRegEmail,code:code})});
+    if(r.ok){document.getElementById('fVerify').classList.add('hidden');document.getElementById('fVerified').classList.remove('hidden');toast('Akun terverifikasi!')}
+    else toast('Kode salah!')
 }
 
-function openEditModal(id) {
-    var t = S.files.find(function(f) { return f.id === id; });
-    if (!t) return;
-    document.getElementById('edId').value = id;
-    document.getElementById('fN').value = t.name;
-    document.getElementById('fC').value = t.content;
-    document.getElementById('edN').innerText = 'Editing Active Module';
-    document.getElementById('edSub').innerText = t.name + ' (' + t.id + ')';
-    toggleEditorModal(true);
+async function doFallbackVerify(){
+    var code=document.getElementById('fVC').value.trim();
+    if(!code||code.length!==6)return toast('Masukkan 6 digit kode!');
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify',email:pendingRegEmail,code:code})});
+    if(r.ok){document.getElementById('fFallback').classList.add('hidden');document.getElementById('fVerified').classList.remove('hidden');toast('Akun terverifikasi!')}
+    else toast('Kode salah!')
 }
 
-function closeEditorModal() { toggleEditorModal(false); }
-
-function toggleEditorModal(show) {
-    var ov = document.getElementById('editorModalOverlay');
-    var box = document.getElementById('editorModalContainer');
-    if (show) {
-        ov.classList.remove('pointer-events-none');
-        ov.style.opacity = '1';
-        box.classList.remove('scale-95', 'opacity-0');
-    } else {
-        ov.classList.add('pointer-events-none');
-        ov.style.opacity = '0';
-        box.classList.add('scale-95', 'opacity-0');
-    }
-}
-
-function askDelete(target, type) {
-    pendingDeleteTarget = target;
-    pendingDeleteType = type;
-    var ov = document.getElementById('confirmModalOverlay');
-    var box = document.getElementById('confirmModalContainer');
-    ov.classList.remove('pointer-events-none');
-    ov.style.opacity = '1';
-    box.classList.remove('scale-95', 'opacity-0');
-    document.getElementById('confirmDelBtn').onclick = async function() {
-        if (pendingDeleteType === 'file') {
-            await api('DELETE', '?id=' + pendingDeleteTarget);
-            loadF();
-        } else if (pendingDeleteType === 'key') {
-            await api('DELETE', '?deleteKey=' + pendingDeleteTarget);
-            loadK();
+async function doResend(){
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'resend',email:pendingRegEmail,password:pendingRegPass})});
+    if(r.ok){
+        var d=await r.json();
+        if(d.sent===false&&d.code){
+            document.getElementById('fallbackCode').innerText=d.code;
+            document.getElementById('fVerify').classList.add('hidden');
+            document.getElementById('fFallback').classList.remove('hidden');
+            document.getElementById('fVC').value='';
+            toast('Sandbox mode - kode ditampilkan');
+        }else{
+            toast('Kode baru dikirim ke email!');
         }
-        toast('Data Deleted Successfully!');
-        closeConfirmModal();
-    };
+    }else toast('Gagal kirim ulang')
 }
 
-function closeConfirmModal() {
-    var ov = document.getElementById('confirmModalOverlay');
-    var box = document.getElementById('confirmModalContainer');
-    ov.classList.add('pointer-events-none');
-    ov.style.opacity = '0';
-    box.classList.add('scale-95', 'opacity-0');
-    pendingDeleteTarget = null;
-    pendingDeleteType = null;
+async function doLog(){
+    var e=document.getElementById('lE').value.trim(),p=document.getElementById('lP').value;
+    if(!e||!p)return toast('Email & password wajib!');
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email:e,password:p})});
+    if(r.ok){var d=await r.json();S.session=d.session;S.owner=d.owner===true;localStorage.setItem('nx_session',d.session);localStorage.setItem('nx_owner',d.owner?'1':'0');document.getElementById('authGate').classList.add('hidden');if(S.owner){document.getElementById('mainApp').classList.remove('hidden');document.getElementById('aE').innerText=e;sw('ggscript')}else{document.getElementById('restrictedView').classList.remove('hidden');document.getElementById('restrictedEmail').innerText=e}}
+    else{var err=await r.json().catch(function(){return{}});toast(err.error||'Login gagal!')}
 }
 
-function handleScriptSelect() {
-    var val = document.getElementById('cloudSelector').value;
-    if (val) openEditModal(val);
-}
+function goLog(){document.getElementById('fVerified').classList.add('hidden');stab('log')}
+function doOut(){localStorage.removeItem('nx_session');localStorage.removeItem('nx_owner');location.reload()}
 
-function handleLocalFileLoad(event) {
-    var file = event.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('edId').value = '';
-        document.getElementById('fN').value = file.name;
-        document.getElementById('fC').value = e.target.result;
-        document.getElementById('edN').innerText = 'Imported Local Storage';
-        document.getElementById('edSub').innerText = file.name;
-        toggleEditorModal(true);
-        toast('Local file loaded!');
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-}
-
-function toggleDurationView() {
-    var dur = document.getElementById('kDur').value;
-    document.getElementById('customKeyWrapper').style.display = (dur === 'perm') ? 'none' : 'block';
-    if (dur === 'perm') document.getElementById('kC').value = '';
-}
-
-/* ===== VIEW SWITCHING ===== */
-function sw(t) {
-    S.cur = t;
-    ['beranda', 'ggscript', 'keysystem'].forEach(function(m) {
-        document.getElementById('view-' + m).classList.add('hidden');
-        var btn = document.getElementById('btn-' + m);
-        if (btn) btn.classList.remove('nav-active');
-    });
-    document.getElementById('view-' + t).classList.remove('hidden');
-    var actBtn = document.getElementById('btn-' + t);
-    if (actBtn) actBtn.classList.add('nav-active');
-    if (t === 'beranda') initB();
-    if (t === 'ggscript') loadF();
-    if (t === 'keysystem') { loadF(); loadK(); }
-    closeNav();
-}
-
-function initB() {
-    document.getElementById('dL3').innerText = location.origin + '/api/server?type=menu&id={script_id}';
-}
-
-/* ===== API ===== */
-async function api(m, u, b) {
-    var o = { method: m, headers: { 'Content-Type': 'application/json' } };
-    if (S.session) o.headers['X-Session'] = S.session;
-    if (b) o.body = JSON.stringify(b);
-    return fetch('/api/server' + u, o);
-}
-
-/* ===== HOOK SCRIPTS ===== */
-function triggerCopyRawHook(scriptId) {
-    var b = location.origin;
-    var rawLua = 'local r = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '&s=' + S.session + '")\nif r and r.code == 200 then\n    local fn = load(r.content)\n    if fn then fn() end\nend';
-    cp(rawLua);
-}
-
-function triggerCopyLicenseHook(scriptId) {
-    var b = location.origin;
-    var licenseLua = 'local r = gg.makeRequest("' + b + '/api/server?type=login&id=' + scriptId + '")\nif r and r.code == 200 then\n    local fn = load(r.content)\n    if fn then fn() end\nend';
-    cp(licenseLua);
-}
-
-/* ===== LOAD FILES ===== */
-async function loadF() {
-    var r = await api('GET', '');
-    if (!r.ok) return;
-    S.files = await r.json();
-    document.getElementById('statScr').innerText = S.files.length;
-    updateStorageBar();
-
-    var sel = document.getElementById('cloudSelector');
-    if (sel) {
-        sel.innerHTML = '<option value="">-- Select Cloud File --</option>' +
-            S.files.map(function(f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('');
-    }
-    var s = document.getElementById('kT');
-    if (s) s.innerHTML = S.files.map(function(f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('');
-
-    var c = document.getElementById('fList');
-    if (!c) return;
-    c.innerHTML = S.files.map(function(f) {
-        var sz = f.content ? new Blob([f.content]).size : 0;
-        return '<div class="glass-panel rounded-2xl p-4 flex flex-col justify-between space-y-4 border border-slate-100 shadow-sm">' +
-            '<div class="flex items-start justify-between gap-2">' +
-                '<div class="flex items-center gap-3 min-w-0">' +
-                    '<div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 shadow-sm">' +
-                        '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/></svg>' +
-                    '</div>' +
-                    '<div class="min-w-0">' +
-                        '<span class="mono text-xs font-extrabold text-slate-800 truncate block">' + f.name + '</span>' +
-                        '<span class="text-[9px] text-slate-400 mono block mt-0.5">' + f.id + ' &middot; ' + formatBytes(sz) + '</span>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="flex items-center gap-1 shrink-0">' +
-                    '<button onclick="openEditModal(\'' + f.id + '\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-indigo-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
-                        '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7.5M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
-                    '</button>' +
-                    '<button onclick="askDelete(\'' + f.id + '\', \'file\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
-                        '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
-                    '</button>' +
-                '</div>' +
-            '</div>' +
-            '<div class="pt-3 border-t border-slate-100/80 flex items-center justify-end">' +
-                '<button onclick="triggerCopyRawHook(\'' + f.id + '\')" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5">' +
-                    '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
-                    'Copy Hook Script (Raw)' +
-                '</button>' +
-            '</div>' +
-        '</div>';
-    }).join('');
-}
-
-/* ===== DEPLOY ===== */
-async function dep() {
-    var n = document.getElementById('fN').value.trim(), c = document.getElementById('fC').value, e = document.getElementById('edId').value;
-    if (!n || !c) return toast('Nama & isi skrip tidak boleh kosong!');
-    var r = await api('POST', '', { name: n, content: c, existingScriptId: e });
-    if (r.ok) { toast(e ? 'Module Updated!' : 'Module Deployed Live!'); closeEditorModal(); loadF(); } else toast('Gagal memproses data.');
-}
-
-/* ===== LOAD KEYS ===== */
-async function loadK() {
-    var r = await api('GET', '?type=keys');
-    if (!r.ok) return;
-    S.keys = await r.json();
-    document.getElementById('statKeys').innerText = S.keys.length;
-    var c = document.getElementById('kList');
-    if (!c) return;
-    c.innerHTML = S.keys.map(function(k) {
-        var isPerm = k.expiry && k.expiry.startsWith('9999');
-        var badge = isPerm ? '<span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded shadow-sm">PERMANENT</span>' :
-            (new Date() > new Date(k.expiry) ? '<span class="text-[9px] font-bold bg-rose-50 text-rose-600 px-2 py-0.5 rounded">EXPIRED</span>' : '<span class="text-[9px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded">ACTIVE</span>');
-        var expString = isPerm ? 'PERMANENT' : new Date(k.expiry).toLocaleDateString('id-ID');
-        var dc = k.registered_devices ? k.registered_devices.length : 0;
-        return '<div class="glass-panel rounded-xl p-4 space-y-3 border border-slate-100 shadow-sm">' +
-            '<div class="flex justify-between items-start gap-2">' +
-                '<div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold text-slate-800 break-all">' + k.key + '</span>' + badge + '</div></div>' +
-                '<button onclick="askDelete(\'' + k.key + '\', \'key\')" class="w-8 h-8 rounded-lg bg-white border border-slate-200/60 hover:text-rose-600 flex items-center justify-center shadow-sm cursor-pointer transition">' +
-                    '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
-                '</button>' +
-            '</div>' +
-            '<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500 mono py-2 border-y border-slate-100">' +
-                '<div>Target: <span class="text-slate-800 font-bold">' + (k.target_script_name || '-') + '</span></div>' +
-                '<div>Devices: <span class="text-indigo-600 font-bold">' + dc + '/' + k.max_devices + '</span></div>' +
-                '<div>Expiry: <span class="font-bold text-slate-800">' + expString + '</span></div>' +
-            '</div>' +
-            '<div class="pt-1 flex items-center justify-end">' +
-                '<button onclick="triggerCopyLicenseHook(\'' + k.script_id + '\')" class="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-sm">' +
-                    '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>' +
-                    'Copy Protected Hook Script' +
-                '</button>' +
-            '</div>' +
-        '</div>';
-    }).join('');
-}
-
-/* ===== GENERATE KEY ===== */
-async function genK() {
-    var s = document.getElementById('kT').value, m = document.getElementById('kM').value, dur = document.getElementById('kDur').value, c = document.getElementById('kC').value.trim();
-    if (!s) return toast('Target modul wajib terisi!');
-    var r = await api('POST', '', { action: 'createKey', scriptId: s, duration: dur, maxDevices: m, customName: c });
-    if (r.ok) { toast('License Key Generated!'); document.getElementById('kC').value = ''; loadK(); }
-}
-
-/* ===== AUTH TABS ===== */
-function stab(t) {
-    document.getElementById('fReg').classList.toggle('hidden', t !== 'reg');
-    document.getElementById('fVerify').classList.add('hidden');
-    document.getElementById('fVerified').classList.add('hidden');
-    document.getElementById('fLog').classList.toggle('hidden', t !== 'log');
-    document.getElementById('tabReg').className = t === 'reg' ? 'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm' : 'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';
-    document.getElementById('tabLog').className = t === 'log' ? 'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer bg-white text-indigo-600 shadow-sm' : 'flex-1 py-2 rounded-lg text-xs font-bold cursor-pointer text-slate-500';
-}
-
-/* ===== REGISTER (kirim kode via email) ===== */
-async function doReg() {
-    var e = document.getElementById('rE').value.trim(), p = document.getElementById('rP').value;
-    if (!e || !p) return toast('Email & password wajib diisi!');
-    if (p.length < 4) return toast('Password minimal 4 karakter!');
-
-    var btn = document.getElementById('regBtn');
-    btn.innerText = 'Sending...';
-    btn.disabled = true;
-
-    pendingRegEmail = e;
-    pendingRegPass = p;
-
-    var r = await fetch('/api/server', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', email: e, password: p })
-    });
-
-    btn.innerText = 'Send Verification Code';
-    btn.disabled = false;
-
-    if (r.ok) {
-        document.getElementById('verifyTarget').innerText = 'Kode dikirim ke ' + e;
-        document.getElementById('fReg').classList.add('hidden');
-        document.getElementById('fVerify').classList.remove('hidden');
-        document.getElementById('vC').value = '';
-        toast('Kode verifikasi dikirim ke email!');
-    } else {
-        var d = await r.json().catch(function() { return {}; });
-        toast(d.error || 'Gagal mengirim kode verifikasi');
-    }
-}
-
-/* ===== VERIFY CODE ===== */
-async function doVerify() {
-    var code = document.getElementById('vC').value.trim();
-    if (!code || code.length !== 6) return toast('Masukkan 6 digit kode!');
-    var r = await fetch('/api/server', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'verify', email: pendingRegEmail, code: code })
-    });
-    if (r.ok) {
-        document.getElementById('fVerify').classList.add('hidden');
-        document.getElementById('fVerified').classList.remove('hidden');
-        toast('Akun berhasil diverifikasi!');
-    } else {
-        toast('Kode verifikasi salah!');
-    }
-}
-
-/* ===== RESEND CODE ===== */
-async function doResend() {
-    var r = await fetch('/api/server', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'resend', email: pendingRegEmail, password: pendingRegPass })
-    });
-    if (r.ok) {
-        toast('Kode baru dikirim ke email!');
-    } else {
-        toast('Gagal mengirim ulang kode');
-    }
-}
-
-/* ===== LOGIN ===== */
-async function doLog() {
-    var e = document.getElementById('lE').value.trim(), p = document.getElementById('lP').value;
-    if (!e || !p) return toast('Email & password wajib diisi!');
-    var r = await fetch('/api/server', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'login', email: e, password: p })
-    });
-    if (r.ok) {
-        var d = await r.json();
-        S.session = d.session;
-        S.owner = d.owner === true;
-        localStorage.setItem('nx_session', d.session);
-        localStorage.setItem('nx_owner', d.owner ? '1' : '0');
-        document.getElementById('authGate').classList.add('hidden');
-
-        if (S.owner) {
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('aE').innerText = e;
-            sw('ggscript');
-        } else {
-            document.getElementById('restrictedView').classList.remove('hidden');
-            document.getElementById('restrictedEmail').innerText = e;
-        }
-    } else {
-        toast('Otentikasi Gagal! Cek email/password atau verifikasi akun.');
-    }
-}
-
-function goLog() {
-    document.getElementById('fVerified').classList.add('hidden');
-    stab('log');
-}
-
-function doOut() {
-    localStorage.removeItem('nx_session');
-    localStorage.removeItem('nx_owner');
-    location.reload();
-}
-
-/* ===== INIT ===== */
-window.onload = function() {
-    var c = localStorage.getItem('nx_session');
-    var o = localStorage.getItem('nx_owner');
-    if (c) {
-        S.session = c;
-        S.owner = o === '1';
-        document.getElementById('authGate').classList.add('hidden');
-        if (S.owner) {
-            document.getElementById('mainApp').classList.remove('hidden');
-            sw('ggscript');
-        } else {
-            document.getElementById('restrictedView').classList.remove('hidden');
-        }
-    }
-};
+window.onload=function(){var c=localStorage.getItem('nx_session'),o=localStorage.getItem('nx_owner');if(c){S.session=c;S.owner=o==='1';document.getElementById('authGate').classList.add('hidden');if(S.owner){document.getElementById('mainApp').classList.remove('hidden');sw('ggscript')}else{document.getElementById('restrictedView').classList.remove('hidden')}}}
 </script>
 </body>
 </html>
