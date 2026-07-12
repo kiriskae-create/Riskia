@@ -15,49 +15,36 @@ export default async function handler(req, res) {
     const { id, type, key, device, reqStage, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
-    // ╔══════════════════════════════════════════╗
-    // ║  LINK 1 — LOADER ENDPOINT                ║
-    // ║  ?type=loader                            ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  LINK 1 — LOADER
+    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
-        const code = [
-            'gg.setVisible(false)',
-            'gg.toast("[X] NEXUS X - Connecting...")',
-            'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
-            'if r and r.code == 200 then',
-            '    load(r.content)()',
-            'else',
-            '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
-            'end'
-        ].join('\n');
+        const code = 'gg.setVisible(false)\ngg.toast("[X] NEXUS X - Connecting...")\nlocal r = gg.makeRequest("https://' + host + '/api/server?type=login")\nif r and r.code == 200 then\n    load(r.content)()\nelse\n    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")\nend';
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(code);
     }
 
-    // ╔══════════════════════════════════════════╗
-    // ║  LINK 3 — MENU ENDPOINT                  ║
-    // ║  ?type=menu&id=SCRIPT_ID                 ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  LINK 3 — MENU
+    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
     }
 
-    // ╔══════════════════════════════════════════╗
-    // ║  LINK 2 — LOGIN & VALIDATION ENDPOINT    ║
-    // ║  ?type=login                             ║
-    // ║  ?type=login&validate=KEY&device=HWID    ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  LINK 2 — LOGIN & VALIDASI
+    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
 
-        // --- VALIDATE KEY SUB-PATH ---
+        // --- VALIDATE KEY ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             if (checkKey.length === 0) {
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
-                    'gg.toast("[X] Invalid key, please login")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nInvalid license key!")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
@@ -68,9 +55,10 @@ export default async function handler(req, res) {
             const expDate = new Date(license.expiry);
 
             if (new Date() > expDate) {
+                const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X\\n\\nLicense Key EXPIRED!\\nContact admin for renewal.")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '\\n\\nContact admin for renewal.")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
@@ -84,7 +72,7 @@ export default async function handler(req, res) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
                         'os.remove("/sdcard/.nexus_auth")',
-                        'gg.alert("[X] NEXUS X\\n\\nMax Device Limit Reached!\\nContact admin to reset.")',
+                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!\\n\\nContact admin to reset devices.")',
                         'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
                         'if r and r.code == 200 then load(r.content)() end'
                     ].join('\n');
@@ -95,11 +83,12 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            // VALID — save key + load LINK 3
+            // VALID — alert tengah, setelah OK baru load menu
+            const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
                 'if f then f:write("' + validate + '"); f:close() end',
-                'gg.toast("[X] NEXUS X — Access Granted!")',
+                'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + fd + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
                 'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
@@ -108,7 +97,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI SUB-PATH (no validate param) ---
+        // --- LOGIN UI (gg.dialog = system keyboard) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -131,27 +120,24 @@ local function doValidate(k)
     return false
 end
 
-local function getKeyInput()
+local function showLogin()
     if gg.dialog then
-        local ok, result = pcall(function()
-            local btn, data = gg.dialog(
-                {
-                    "  [X]  NEXUS X CLOUD",
-                    "  License Verification",
-                    "",
-                    {text = "", hint = "NX-XXXXXX", tag = "key"}
-                },
-                "AUTHENTICATION",
-                {"VERIFY", "EXIT"}
-            )
-            if btn == 1 and data and data.key then
-                return data.key:match("^%s*(.-)%s*$")
-            end
-            return nil
-        end)
-        if ok and result then return result end
+        local ok, btn, data = pcall(gg.dialog,
+            {
+                "  [X]  NEXUS X CLOUD",
+                "  License Verification",
+                "",
+                {text = "", hint = "Enter your license key", tag = "key"}
+            },
+            "AUTHENTICATION",
+            {"VERIFY", "EXIT"}
+        )
+        if ok and btn == 1 and data and data.key then
+            return data.key:match("^%s*(.-)%s*$")
+        end
+        return nil
     end
-    local input = gg.prompt({"License Key"}, {""}, {"NX-XXXXXX"})
+    local input = gg.prompt({"License Key"}, {""}, {"text"})
     if input then return (input[1] or ""):match("^%s*(.-)%s*$") end
     return nil
 end
@@ -165,7 +151,7 @@ if savedKey and savedKey ~= "" then
     if doValidate(savedKey) then return end
 end
 
-local inputKey = getKeyInput()
+local inputKey = showLogin()
 if not inputKey or inputKey == "" then
     if inputKey == "" then gg.alert("[X] Key cannot be empty!") end
     return
@@ -178,18 +164,18 @@ end`;
         return res.status(200).send(loginLua);
     }
 
-    // ╔══════════════════════════════════════════╗
-    // ║  EXISTING — RAW SCRIPT CONTENT           ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  RAW SCRIPT CONTENT
+    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script not found.');
     }
 
-    // ╔══════════════════════════════════════════╗
-    // ║  LEGACY — KEY MULTI-STAGE HOOK           ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  LEGACY KEY MULTI-STAGE
+    // ═══════════════════════════════════════
     if (key) {
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (checkKey.length === 0) {
@@ -224,8 +210,7 @@ if r and r.code == 200 then load(r.content)() else gg.alert("[X] Jaringan Terput
         }
         if (reqStage === '2') {
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-            const p = `gg.toast("[X] ACCESS GRANTED\\nEXP: ${fd}")
-local sysTime = os.time() while os.time() < sysTime + 2 do end
+            const p = `gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ${fd}")
 local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
 if r and r.code == 200 then load(r.content)() else os.exit() end`;
             res.setHeader('Content-Type', 'text/plain');
@@ -238,9 +223,9 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         }
     }
 
-    // ╔══════════════════════════════════════════╗
-    // ║  SESSION AUTH                            ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  SESSION AUTH
+    // ═══════════════════════════════════════
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
@@ -250,9 +235,9 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         }
     }
 
-    // ╔══════════════════════════════════════════╗
-    // ║  POST HANDLERS                           ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  POST
+    // ═══════════════════════════════════════
     if (req.method === 'POST') {
         const { action, email, password, name, content, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
         if (action === 'register') {
@@ -282,17 +267,17 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         }
     }
 
-    // ╔══════════════════════════════════════════╗
-    // ║  GET HANDLERS (ADMIN)                    ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  GET (ADMIN)
+    // ═══════════════════════════════════════
     if (req.method === 'GET') {
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
         return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys` : await sql`SELECT * FROM scripts`);
     }
 
-    // ╔══════════════════════════════════════════╗
-    // ║  DELETE HANDLERS                         ║
-    // ╚══════════════════════════════════════════╝
+    // ═══════════════════════════════════════
+    //  DELETE
+    // ═══════════════════════════════════════
     if (req.method === 'DELETE') {
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
         if (deleteKey) await sql`DELETE FROM keys WHERE key = ${deleteKey}`;
