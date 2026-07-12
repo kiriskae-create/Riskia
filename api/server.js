@@ -16,13 +16,15 @@ export default async function handler(req, res) {
     const { id, type, key, device, reqStage, deleteKey } = req.query;
     const host = req.headers.host;
 
-    if (req.method === 'GET' && type === 'raw' && id) {
-        const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
+    // LINK 3: MENGAMBIL SCRIPT LUA UTAMA (Mendukung parameter ekstensi .php)
+    if (req.method === 'GET' && (type === 'raw' || req.url.includes('.php')) && id) {
+        const cleanId = id.replace('.php', '');
+        const sc = await sql`SELECT content FROM scripts WHERE id = ${cleanId}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script tidak ditemukan.');
     }
 
-    // FUNGSI LOAD DENGAN DIRECT VALIDASI KEY & DEVICE LOCK
+    // LINK 2: FUNGSI KEY & VALIDASI DEVICE LOCK / EXPIRED TIME
     if (key) {
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (checkKey.length === 0) {
@@ -33,7 +35,6 @@ export default async function handler(req, res) {
         const license = checkKey[0];
         const expDate = new Date(license.expiry);
         
-        // Akurasi Waktu Kadaluarsa Berdasarkan Zona Waktu Server/Database
         if (new Date() > expDate) {
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi kedaluwarsa!"); os.exit()');
@@ -42,7 +43,6 @@ export default async function handler(req, res) {
         const clientHwid = device || 'NX-INIT-DEVICE';
         let registeredDevices = license.registered_devices || [];
         
-        // Lock Devices (HWID System)
         if (device && !registeredDevices.includes(clientHwid)) {
             if (registeredDevices.length >= license.max_devices) {
                 res.setHeader('Content-Type', 'text/plain');
@@ -65,22 +65,17 @@ if r and r.code == 200 then load(r.content)() else gg.alert("❌ Jaringan Terput
 
         if (reqStage === '2') {
             const formattedDate = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            // Mengarahkan langsung ke Link ke-3 dengan format akhiran .php tiruan
             const payloadStage2 = `gg.toast("✨ ACCESS GRANTED ✨\\n⏳ EXP: ${formattedDate}")
-local sysTime = os.time() while os.time() < sysTime + 2 do end
-local r = gg.makeRequest("https://${host}/api/server?key=${key}&device=${clientHwid}&reqStage=3")
+local sysTime = os.time() while os.time() < sysTime + 1 do end
+local r = gg.makeRequest("https://${host}/api/server?id=${license.script_id}.php")
 if r and r.code == 200 then load(r.content)() else os.exit() end`;
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(payloadStage2);
         }
-
-        if (reqStage === '3') {
-            const sc = await sql`SELECT content FROM scripts WHERE id = ${license.script_id}`;
-            res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("❌ Script Kosong!"); os.exit()');
-        }
     }
 
-    // FUNGSI LINK PERTAMA: PROMPT INPUT KEY LANGSUNG DI GAME GUARDIAN
+    // LINK 1: AMBIL DATA PROMPT INPUT KEY AWAL (DIpanggil oleh Master Initializer)
     if (type === 'initPrompt') {
         const promptScript = `local savedKey = gg.settingLoad("nx_key") or ""
 local input = gg.prompt({"🔑 MASUKKAN LISENSI NEXUS X:"}, {savedKey}, {"text"})
@@ -120,7 +115,6 @@ if r and r.code == 200 then load(r.content)() else gg.alert("Gagal memvalidasi L
         }
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
         
-        // Perbaikan logika Edit/Update LUA Script
         if (name && content) {
             if (existingScriptId && existingScriptId !== "") {
                 await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId}`;
