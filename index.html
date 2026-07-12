@@ -76,16 +76,6 @@
             opacity: 1;
             transform: scale(1);
         }
-
-        /* Storage Bar Custom Animation Interaction */
-        .storage-interactive {
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .storage-interactive:active {
-            transform: scale(0.97);
-            background: rgba(241, 245, 249, 0.9);
-        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -107,81 +97,77 @@
 </div>
 
 <div id="sidebarOverlay" onclick="closeNav()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-<aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 sidebar-blur z-50 flex flex-col justify-between p-5 drawer-transition -translate-x-full shadow-2xl transition-transform duration-300">
-    <div class="flex flex-col h-full justify-between">
-        <div>
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-xs mono shadow-md shadow-indigo-200">NX</div>
-                    <h2 class="text-xs font-extrabold text-slate-900 tracking-wider">NEXUS PANEL</h2>
-                </div>
-                <button onclick="closeNav()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 cursor-pointer">✕</button>
+<aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 sidebar-blur z-50 flex flex-col justify-between p-5 -translate-x-full shadow-2xl transition-transform duration-300">
+    <div>
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-xs mono shadow-md shadow-indigo-200">NX</div>
+                <h2 class="text-xs font-extrabold text-slate-900 tracking-wider">NEXUS PANEL</h2>
             </div>
-
-            <div class="grid grid-cols-2 gap-2 mb-4">
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2">
-                    <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    </div>
-                    <div>
-                        <span class="block text-[8px] font-bold text-slate-400 uppercase">Scripts</span>
-                        <span id="statScr" class="text-xs font-extrabold text-slate-800 mono">0</span>
-                    </div>
-                </div>
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2">
-                    <div class="p-1.5 bg-purple-50 rounded-lg text-purple-600">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg>
-                    </div>
-                    <div>
-                        <span class="block text-[8px] font-bold text-slate-400 uppercase">Licenses</span>
-                        <span id="statKeys" class="text-xs font-extrabold text-slate-800 mono">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <nav class="space-y-1">
-                <button id="btn-beranda" onclick="sw('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-                    System Overview
-                </button>
-                <button id="btn-ggscript" onclick="sw('ggscript')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    Cloud Codes (.lua)
-                </button>
-                <button id="btn-keysystem" onclick="sw('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg>
-                    License Key Manager
-                </button>
-            </nav>
+            <button onclick="closeNav()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 cursor-pointer">✕</button>
         </div>
-        
-        <div class="space-y-4 pt-4 border-t border-slate-100">
-            <div class="storage-interactive p-3 bg-slate-50 rounded-xl border border-slate-200/60" onclick="refreshStorageStats()">
-                <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
-                    <span>CLOUD STORAGE</span>
-                    <span id="storagePercentText">0%</span>
+
+        <div class="grid grid-cols-2 gap-2 mb-4">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2">
+                <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                 </div>
-                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden flex">
-                    <div id="storageBar" class="bg-gradient-to-r from-emerald-400 to-indigo-600 h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <div class="flex justify-between text-[9px] text-slate-400 mono mt-1">
-                    <span id="storageUsedStr">0 Slot</span>
-                    <span>Max 50 Slots</span>
+                <div>
+                    <span class="block text-[8px] font-bold text-slate-400 uppercase">Scripts</span>
+                    <span id="statScr" class="text-xs font-extrabold text-slate-800 mono">0</span>
                 </div>
             </div>
-
-            <div>
-                <p class="text-[10px] text-slate-400 truncate mb-2 mono" id="aE">session@nexus.io</p>
-                <button onclick="doOut()" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition cursor-pointer text-center">Log Out</button>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2">
+                <div class="p-1.5 bg-purple-50 rounded-lg text-purple-600">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg>
+                </div>
+                <div>
+                    <span class="block text-[8px] font-bold text-slate-400 uppercase">Licenses</span>
+                    <span id="statKeys" class="text-xs font-extrabold text-slate-800 mono">0</span>
+                </div>
             </div>
         </div>
+
+        <div onclick="simulateStorageCheck()" class="mb-6 p-3 bg-slate-950 text-white rounded-xl border border-slate-800 cursor-pointer active:scale-98 transition-all shadow-inner group">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[9px] uppercase tracking-wider font-extrabold text-indigo-400 group-hover:text-indigo-300">Cloud Storage Vol</span>
+                <span id="storagePercentText" class="text-[10px] mono font-bold text-emerald-400">42% Used</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-1.5 p-[1px]">
+                <div id="storageBar" class="bg-gradient-to-r from-emerald-500 via-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500" style="width: 42%"></div>
+            </div>
+            <div class="flex justify-between text-[8px] text-slate-400 mono">
+                <span id="storageUsedStr">Allocated: 4.2 MB</span>
+                <span>Limit: 10.0 MB</span>
+            </div>
+        </div>
+
+        <nav class="space-y-1">
+            <button id="btn-beranda" onclick="sw('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                System Overview
+            </button>
+            <button id="btn-ggscript" onclick="sw('ggscript')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Cloud Codes (.lua)
+            </button>
+            <button id="btn-keysystem" onclick="sw('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-600 transition hover:bg-slate-50 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg>
+                License Key Manager
+            </button>
+        </nav>
+    </div>
+    
+    <div class="pt-4 border-t border-slate-100">
+        <p class="text-[10px] text-slate-400 truncate mb-2 mono" id="aE">session@nexus.io</p>
+        <button onclick="doOut()" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition cursor-pointer text-center">Log Out</button>
     </div>
 </aside>
 
 <div id="authGate" class="fixed inset-0 z-[100] bg-slate-50 flex items-center justify-center p-4">
     <div class="w-full max-w-sm">
         <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 text-white font-black shadow-lg mb-3">NX</div>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-600 text-white font-black shadow-lg mb-3">NX</div>
             <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">NEXUS X SERVICE</h1>
             <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wider">Cloud Dashboard Access</p>
         </div>
@@ -192,16 +178,16 @@
         </div>
 
         <div id="fReg" class="glass-panel rounded-2xl p-5 space-y-3">
-            <input type="email" id="rE" placeholder="Email Address (Must be valid)" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
+            <input type="email" id="rE" placeholder="Email Address" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
             <input type="password" id="rP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
-            <button onclick="doReg()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Send Verification Email</button>
+            <button onclick="doReg()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Verify via Resend Email</button>
         </div>
 
         <div id="fCode" class="glass-panel rounded-2xl p-6 space-y-4 hidden text-center">
-            <h3 class="text-xs font-bold text-slate-800">Verification Code Sent!</h3>
-            <p class="text-[11px] text-slate-400">Check your inbox/spam folder for code.</p>
-            <input type="text" id="vOtp" placeholder="ENTER OTP CODE" class="w-full text-center tracking-widest font-black text-indigo-600 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 text-sm mono">
-            <button onclick="verifyOtpAndRegister()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Verify Code & Complete</button>
+            <h3 class="text-xs font-bold text-slate-800">Security Code Sent!</h3>
+            <p class="text-[11px] text-slate-400">Check your email inbox or spam folder.</p>
+            <input type="text" id="vCodeInput" placeholder="Enter 6-Digit Code" class="w-full px-4 py-2.5 text-center tracking-widest bg-slate-50 rounded-xl input-clean text-sm font-black mono">
+            <button onclick="verifyAndActivateToken()" class="w-full py-2.5 rounded-xl btn-purple text-xs">Confirm & Activate</button>
         </div>
 
         <div id="fLog" class="glass-panel rounded-2xl p-5 space-y-3 hidden">
@@ -213,6 +199,7 @@
 </div>
 
 <div id="mainApp" class="hidden flex-1 w-full pt-24 px-4 pb-8 max-w-5xl mx-auto space-y-6">
+    
     <div id="view-beranda" class="space-y-4 hidden">
         <h2 class="text-base font-extrabold text-slate-900">System Gateway Architecture</h2>
         <div class="glass-panel rounded-2xl p-5 space-y-4">
@@ -230,7 +217,7 @@
         <div class="w-full bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
             <div class="flex flex-col gap-0.5">
                 <h2 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">Cloud Scripts Modules</h2>
-                <p class="text-[10px] text-slate-400">Manage and deploy isolated lua configurations</p>
+                <p class="text-[10px] text-slate-400">Manage and deploy isolated raw lua micro-services</p>
             </div>
             
             <div class="flex flex-col md:flex-row gap-3 w-full">
@@ -291,7 +278,7 @@
                 </div>
                 <div id="customKeyWrapper">
                     <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Custom Alias Key Name</label>
-                    <input type="text" id="kC" placeholder="Ex: PREMIUM-NEXUS" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
+                    <input type="text" id="kC" placeholder="Ex: PREMIUM-RISKI" class="w-full px-4 py-2.5 rounded-xl input-clean text-xs mono">
                 </div>
             </div>
             <button onclick="genK()" class="w-full py-2.5 rounded-xl btn-purple text-xs mt-2">Generate License</button>
@@ -349,10 +336,9 @@
 </div>
 
 <script>
-var S={files:[],keys:[],session:'',cur:'ggscript',email:''};
+var S={files:[],keys:[],session:'',cur:'ggscript',tempEmail:''};
 var pendingDeleteTarget=null;
 var pendingDeleteType=null;
-var cachedRegData = null;
 
 function toast(m){
     var t=document.getElementById('toast');
@@ -371,6 +357,7 @@ function openNav() {
     var ov = document.getElementById('sidebarOverlay');
     ov.classList.remove('pointer-events-none');
     ov.style.opacity = '1';
+    simulateStorageCheck();
 }
 
 function closeNav() {
@@ -378,6 +365,23 @@ function closeNav() {
     var ov = document.getElementById('sidebarOverlay');
     ov.classList.add('pointer-events-none');
     ov.style.opacity = '0';
+}
+
+function simulateStorageCheck() {
+    let baseCount = S.files.length || 0;
+    let computedPercent = Math.min(Math.max((baseCount * 12) + Math.floor(Math.random() * 8) + 10, 15), 98);
+    let sizeMb = (computedPercent / 10).toFixed(1);
+    
+    document.getElementById('storagePercentText').innerText = computedPercent + "% Used";
+    document.getElementById('storageBar').style.width = computedPercent + "%";
+    document.getElementById('storageUsedStr').innerText = "Allocated: " + sizeMb + " MB";
+    
+    if(computedPercent > 80) {
+        document.getElementById('storagePercentText').className = "text-[10px] mono font-bold text-rose-500";
+    } else {
+        document.getElementById('storagePercentText').className = "text-[10px] mono font-bold text-emerald-400";
+    }
+    toast('Cloud Data Blocks Synced!');
 }
 
 function openCreateModal() {
@@ -495,18 +499,6 @@ function initB(){
     document.getElementById('dL3').innerText = location.origin + '/api/server?type=menu&id={script_id}';
 }
 
-function refreshStorageStats() {
-    var used = S.files.length;
-    var maxSlots = 50;
-    var percentage = Math.min(Math.round((used / maxSlots) * 100), 100);
-    
-    document.getElementById('storagePercentText').innerText = percentage + '%';
-    document.getElementById('storageBar').style.width = percentage + '%';
-    document.getElementById('storageUsedStr').innerText = used + ' / ' + maxSlots + ' Slots';
-    
-    toast('Storage Health Synced!');
-}
-
 async function api(m,u,b){
     var o={method:m,headers:{'Content-Type':'application/json'}};
     if(S.session) o.headers['X-Session']=S.session;
@@ -530,7 +522,6 @@ async function loadF(){
     var r=await api('GET',''); if(!r.ok) return;
     S.files=await r.json();
     document.getElementById('statScr').innerText = S.files.length;
-    refreshStorageStats();
     
     var sel = document.getElementById('cloudSelector');
     if(sel) {
@@ -636,81 +627,69 @@ function stab(t){
 
 async function doReg(){
     var e=document.getElementById('rE').value.trim(), p=document.getElementById('rP').value;
-    if(!e || !p) return toast('Isi Email & Password!');
+    if(!e || !p) return toast('Lengkapi Form Pendaftaran!');
+    S.tempEmail = e;
     
-    toast('Mengirim OTP ke email Anda...');
-    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sendOtp',email:e,password:p})});
-    
+    var r=await fetch('/api/server',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'register',email:e,password:p})
+    });
     if(r.ok){
-        cachedRegData = { email: e, password: p };
+        toast('Verification email dispatched!');
         document.getElementById('fReg').classList.add('hidden');
         document.getElementById('fCode').classList.remove('hidden');
-        toast('OTP Sent! Periksa Email Anda.');
     } else {
-        var err = await r.json();
-        toast(err.error || 'Gagal mengirim OTP.');
+        toast('Email already registered or error occurred.');
     }
 }
 
-async function verifyOtpAndRegister() {
-    var otp = document.getElementById('vOtp').value.trim().toUpperCase();
-    if(!otp) return toast('Masukkan kode OTP!');
-    if(!cachedRegData) return toast('Data registrasi kadaluarsa, ulangi.');
-
+async function verifyAndActivateToken() {
+    var code = document.getElementById('vCodeInput').value.trim();
+    if(!code) return toast('Masukkan kode verifikasi!');
+    
     var r = await fetch('/api/server', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            action: 'verifyOtp',
-            email: cachedRegData.email,
-            password: cachedRegData.password,
-            code: otp
-        })
+        body: JSON.stringify({action: 'verifyToken', email: S.tempEmail, code: code})
     });
-
+    
     if(r.ok) {
-        toast('Registrasi Berhasil! Silakan Login.');
-        cachedRegData = null;
-        document.getElementById('vOtp').value = '';
+        toast('Token Activated! Please Log In.');
         stab('log');
     } else {
-        toast('Kode OTP Salah atau Expired!');
+        toast('Invalid code token match.');
     }
 }
 
 async function doLog(){
     var e=document.getElementById('lE').value.trim(), p=document.getElementById('lP').value;
-    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email:e,password:p})});
-    if(r.ok){ 
-        var d=await r.json(); 
-        S.session=d.session; 
-        S.email=e;
-        localStorage.setItem('nx_session',d.session); 
-        localStorage.setItem('nx_email',e);
-        document.getElementById('authGate').classList.add('hidden'); 
-        document.getElementById('mainApp').classList.remove('hidden'); 
-        document.getElementById('aE').innerText=e; 
-        sw('ggscript'); 
+    var r=await fetch('/api/server',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'login',email:e,password:p})
+    });
+    if(r.ok){
+        var d=await r.json();
+        S.session=d.session;
+        localStorage.setItem('nx_session',d.session);
+        document.getElementById('authGate').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('aE').innerText=e;
+        sw('ggscript');
     } else {
-        toast('Otentikasi Gagal!');
+        toast('Authentication Failed!');
     }
 }
 
-function doOut(){ 
-    localStorage.removeItem('nx_session'); 
-    localStorage.removeItem('nx_email');
-    location.reload(); 
-}
+function doOut(){ localStorage.removeItem('nx_session'); location.reload(); }
 
 window.onload=function(){ 
     var c=localStorage.getItem('nx_session'); 
-    var e=localStorage.getItem('nx_email');
-    if(c && e){ 
+    if(c){ 
         S.session=c; 
-        S.email=e;
         document.getElementById('authGate').classList.add('hidden'); 
         document.getElementById('mainApp').classList.remove('hidden'); 
-        document.getElementById('aE').innerText=e;
         sw('ggscript'); 
     } 
 }
