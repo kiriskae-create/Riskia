@@ -19,7 +19,7 @@
         .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); }
         .input-dark { background: rgba(5, 6, 10, 0.8); border: 1px solid rgba(245, 158, 11, 0.1); color: #e2e8f0; }
         .input-dark:focus { outline: none; border-color: rgba(245, 158, 11, 0.4); }
-        .glass-edit { background: rgba(30, 41, 59, 0.7) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; }
+        .glass-edit { background: rgba(30, 41, 59, 0.8) !important; border: 1px solid rgba(59, 130, 246, 0.4) !important; box-shadow: 0 0 25px rgba(59, 130, 246, 0.15); }
     </style>
 </head>
 <body class="min-h-screen">
@@ -32,7 +32,7 @@
             <span class="text-[10px] font-bold text-slate-500 tracking-wider">SHORTCUTS</span>
             <button onclick="toggleQuickMenu()" class="text-xs text-red-400 font-bold hover:text-red-300">✕</button>
         </div>
-        <button onclick="switchMenu('ggscript');toggleQuickMenu()" class="w-full text-left px-3 py-1.5 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition flex items-center gap-2">📝 Cloud Scripts</button>
+        <button onclick="switchMenu('ggscript');toggleQuickMenu()" class="w-full text-left px-3 py-1.5 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition flex items-center gap-2">📝 GG Script Cloud</button>
         <button onclick="switchMenu('keysystem');toggleQuickMenu()" class="w-full text-left px-3 py-1.5 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition flex items-center gap-2">🔑 Key License System</button>
     </div>
 </div>
@@ -68,16 +68,23 @@
 
 <!-- CONTAINER DASHBOARD UTAMA -->
 <div id="mainApp" class="hidden min-h-screen flex flex-col md:flex-row">
+    <!-- SIDEBAR DENGAN LOGO ICON GG DI POJOK KIRI ATAS SESUAI FOTO -->
     <aside class="w-full md:w-64 bg-[#090b11] border-b md:border-b-0 md:border-r border-amber-500/10 flex flex-col justify-between p-4 shrink-0">
         <div>
+            <!-- LOGO ICON GG & TEXT -->
             <div class="flex items-center gap-3 mb-8 px-2 py-1">
-                <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20"><span class="text-sm font-black gold-text">NX</span></div>
-                <h2 class="text-sm font-bold text-white tracking-wide">NEXUS PANEL</h2>
+                <div class="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center bg-zinc-900 border border-amber-500/20 shrink-0">
+                    <!-- ICON GG LOGO ASLI HIGH RESOLUTION -->
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6A7Z7f_YxbyG-73V1vR_p3bWJp-zZ9-Zg&s" alt="GG" class="w-7 h-7 object-contain">
+                </div>
+                <h2 class="text-sm font-bold text-white tracking-wide uppercase">NEXUS PANEL</h2>
             </div>
+            
+            <!-- MENU ROUTING PANEL -->
             <nav class="space-y-1">
                 <button id="btn-beranda" onclick="switchMenu('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">📊 Overview Console</button>
-                <button id="btn-ggscript" onclick="switchMenu('ggscript')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">📝 Manage LUA Scripts</button>
-                <button id="btn-keysystem" onclick="switchMenu('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">🔑 License Key System</button>
+                <button id="btn-ggscript" onclick="switchMenu('ggscript')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">📂 GG Script Cloud</button>
+                <button id="btn-keysystem" onclick="switchMenu('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">🔑 Key License System</button>
             </nav>
         </div>
         <div class="mt-6 pt-4 border-t border-slate-900 px-2">
@@ -90,9 +97,9 @@
         <!-- OVERVIEW / BERANDA -->
         <div id="view-beranda" class="space-y-6">
             <div class="glass rounded-2xl p-5">
-                <h3 class="text-sm font-bold text-amber-400 mb-2">Game Guardian Master Loader Manual</h3>
-                <textarea id="bootstrapCode" rows="4" readonly class="w-full px-3 py-2 rounded-xl bg-black/40 border border-amber-500/10 text-[10px] text-emerald-400 mono resize-none focus:outline-none"></textarea>
-                <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Bootstrap Copied!')" class="w-full mt-3 py-2.5 rounded-xl btn-gold text-xs">Copy Master Initializer</button>
+                <h3 class="text-sm font-bold text-amber-400 mb-2">Game Guardian Prompt Master Initializer</h3>
+                <textarea id="bootstrapCode" rows="5" readonly class="w-full px-3 py-2 rounded-xl bg-black/40 border border-amber-500/10 text-[10px] text-emerald-400 mono resize-none focus:outline-none"></textarea>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('bootstrapCode').value);showToast('Prompt Initializer Copied!')" class="w-full mt-3 py-2.5 rounded-xl btn-gold text-xs">Copy Master Initializer</button>
             </div>
         </div>
 
@@ -173,7 +180,7 @@ function switchMenu(t) {
 }
 
 function initBeranda() {
-    document.getElementById('bootstrapCode').value = 'local r = gg.makeRequest("' + location.origin + '/api/server?key=MASUKKAN_KEY")\nif r and r.code == 200 then load(r.content)() else gg.alert("Gagal terhubung!") end';
+    document.getElementById('bootstrapCode').value = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + location.origin + '/api/server?type=initPrompt").content if V then pcall(load(V)) end';
 }
 
 async function api(method, urlParams, bodyContent) {
@@ -216,7 +223,6 @@ function editFile(id) {
     document.getElementById('fileName').value = target.name;
     document.getElementById('fileContent').value = target.content;
     
-    // PERUBAHAN TAMPILAN INTERFACE MODE EDIT
     var container = document.getElementById('editorContainer');
     container.classList.add('glass-edit');
     
@@ -264,10 +270,11 @@ async function deployFile() {
     }
 }
 
-function copyHookCode(rawTargetUrl) {
-    var generatedHook = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + rawTargetUrl + '").content if V then pcall(load(V)) end';
-    navigator.clipboard.writeText(generatedHook);
-    showToast('Hook Load Copied Successfully!');
+// 3 PILIHAN METHOD COPY SESUAI PERMINTAAN (HOOK INPUT KEY PROMPT DARI GG)
+function copyHookCode(targetKey) {
+    var hookPromptCode = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + location.origin + '/api/server?key=' + targetKey + '").content if V then pcall(load(V)) end';
+    navigator.clipboard.writeText(hookPromptCode);
+    showToast('Link Hook (Fungsi Key) Copied!');
 }
 
 async function loadKeys() {
@@ -279,22 +286,33 @@ async function loadKeys() {
         var expDate = new Date(k.expiry);
         var isExpired = new Date() > expDate;
         var devicesCount = k.registered_devices ? k.registered_devices.length : 0;
-        var targetUrl = location.origin + '/api/server?key=' + k.key;
+        var directKeyLink = location.origin + '/api/server?key=' + k.key;
         
+        // REPOSISI EXPIRED DAN FA-STYLE ALIGNMENT POSITIONS SESUAI PERMINTAAN FOTO
         return `
             <div class="glass rounded-xl p-4 space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="mono text-xs font-bold ${isExpired ? 'text-red-400 line-through' : 'text-amber-400'}">${k.key}</span>
                     <button onclick="delKey('${k.key}')" class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md text-[10px] cursor-pointer">Delete</button>
                 </div>
-                <div class="flex flex-wrap justify-between text-[10px] text-slate-400 mono gap-2 pt-1 border-t border-slate-900">
-                    <div>Module: <span class="text-white">${k.target_script_name}</span></div>
-                    <div>Devices: <span class="text-emerald-400 font-bold">${devicesCount}/${k.max_devices}</span></div>
-                    <div>Expired: <span class="${isExpired ? 'text-red-400 font-bold' : 'text-slate-300'}">${expDate.toLocaleDateString()}</span></div>
+                
+                <div class="grid grid-cols-1 gap-1 text-[10px] text-slate-400 mono pt-2 border-t border-slate-900/60">
+                    <div class="flex justify-between"><span>Module Target:</span> <span class="text-white font-medium">${k.target_script_name}</span></div>
+                    <div class="flex justify-between"><span>Device Locked:</span> <span class="text-emerald-400 font-bold">${devicesCount}/${k.max_devices} Dev</span></div>
+                    <div class="flex justify-between p-1 bg-black/20 rounded-md mt-1">
+                        <span class="text-slate-500">Masa Kadaluarsa:</span>
+                        <span class="${isExpired ? 'text-red-400 font-black' : 'text-amber-300 font-bold'}">${expDate.toLocaleDateString('id-ID')} ${expDate.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
                 </div>
-                <button onclick="copyHookCode('${targetUrl}')" class="w-full py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-bold rounded-xl transition cursor-pointer text-center block">
-                    Copy Hook Load Script
-                </button>
+
+                <div class="grid grid-cols-2 gap-1.5 pt-1">
+                    <button onclick="copyHookCode('${k.key}')" class="py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 text-[10px] font-bold rounded-xl transition cursor-pointer text-center">
+                        📋 Copy Link Hook
+                    </button>
+                    <button onclick="navigator.clipboard.writeText('${directKeyLink}');showToast('Link Key Langsung Copied!')" class="py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-[10px] font-bold rounded-xl transition cursor-pointer text-center">
+                        🔗 Link Key Direct
+                    </button>
+                </div>
             </div>`;
     }).join('');
 }

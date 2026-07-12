@@ -22,6 +22,7 @@ export default async function handler(req, res) {
         return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script tidak ditemukan.');
     }
 
+    // FUNGSI LOAD DENGAN DIRECT VALIDASI KEY & DEVICE LOCK
     if (key) {
         const checkKey = await sql`SELECT * FROM keys WHERE key = ${key}`;
         if (checkKey.length === 0) {
@@ -32,6 +33,7 @@ export default async function handler(req, res) {
         const license = checkKey[0];
         const expDate = new Date(license.expiry);
         
+        // Akurasi Waktu Kadaluarsa Berdasarkan Zona Waktu Server/Database
         if (new Date() > expDate) {
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send('gg.alert("❌ [NEXUS X] Masa aktif Lisensi kedaluwarsa!"); os.exit()');
@@ -40,6 +42,7 @@ export default async function handler(req, res) {
         const clientHwid = device || 'NX-INIT-DEVICE';
         let registeredDevices = license.registered_devices || [];
         
+        // Lock Devices (HWID System)
         if (device && !registeredDevices.includes(clientHwid)) {
             if (registeredDevices.length >= license.max_devices) {
                 res.setHeader('Content-Type', 'text/plain');
@@ -77,6 +80,23 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         }
     }
 
+    // FUNGSI LINK PERTAMA: PROMPT INPUT KEY LANGSUNG DI GAME GUARDIAN
+    if (type === 'initPrompt') {
+        const promptScript = `local savedKey = gg.settingLoad("nx_key") or ""
+local input = gg.prompt({"🔑 MASUKKAN LISENSI NEXUS X:"}, {savedKey}, {"text"})
+if not input then os.exit() end
+varKey = input[1]
+if varKey == "" then gg.alert("Lisensi tidak boleh kosong!") os.exit() end
+gg.settingSave("nx_key", varKey)
+local raw_hwid = "NX-" .. tostring(gg.getTargetPackage())
+local encoded_hwid = ""
+for i = 1, #raw_hwid do encoded_hwid = encoded_hwid .. string.format("%02X", string.byte(raw_hwid, i)) end
+local r = gg.makeRequest("https://${host}/api/server?key="..varKey.."&device="..encoded_hwid)
+if r and r.code == 200 then load(r.content)() else gg.alert("Gagal memvalidasi Lisensi!") os.exit() end`;
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(promptScript);
+    }
+
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
@@ -100,7 +120,7 @@ if r and r.code == 200 then load(r.content)() else os.exit() end`;
         }
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
         
-        // PEMBERSIHAN ATAU PERBAIKAN PADA LOGIKA UPDATE SCRIPT
+        // Perbaikan logika Edit/Update LUA Script
         if (name && content) {
             if (existingScriptId && existingScriptId !== "") {
                 await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId}`;
