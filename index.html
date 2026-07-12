@@ -2,74 +2,122 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NEXUS X CLOUD</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        body {font-family: 'Inter', sans-serif; background: #05060a; color: #e2e8f0;}
-        .mono {font-family: 'JetBrains Mono', monospace;}
-        .glass {background: rgba(15,17,25,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(245,158,11,0.1);}
-        .btn-gold {background: linear-gradient(135deg,#f59e0b,#d97706); color: #000;}
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body{font-family:'Inter',sans-serif;background:#05060a;color:#e2e8f0;overflow-x:hidden}
+        .mono{font-family:'JetBrains Mono',monospace}
+        .glass{background:rgba(15,17,25,0.85);backdrop-filter:blur(20px);border:1px solid rgba(245,158,11,0.1)}
+        .btn-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-weight:700}
+        .menu-active{background:rgba(245,158,11,0.15);border-left:4px solid #f59e0b;color:#fbbf24}
     </style>
 </head>
-<body class="min-h-screen p-4">
+<body class="min-h-screen">
 
-<div id="mainApp" class="max-w-7xl mx-auto">
-    <!-- Sidebar Kiri -->
-    <div class="flex gap-6">
-        <aside class="w-64 glass rounded-3xl p-5 h-fit sticky top-4">
-            <div class="flex items-center gap-3 mb-8">
-                <div class="w-9 h-9 bg-amber-500 rounded-2xl flex items-center justify-center text-black font-black">NX</div>
-                <h1 class="text-xl font-bold gold-text">NEXUS PANEL</h1>
+<div class="flex h-screen">
+    <!-- SIDEBAR KIRI -->
+    <div class="w-72 glass border-r border-amber-500/20 p-5 flex flex-col">
+        <div class="flex items-center gap-3 mb-10">
+            <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-600 rounded-2xl flex items-center justify-center text-black font-black text-2xl">NX</div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">NEXUS PANEL</h1>
+                <p class="text-[10px] text-amber-400 mono">ADMIN CLOUD</p>
             </div>
-            <nav class="space-y-1">
-                <button onclick="sw('beranda')" class="w-full text-left px-4 py-3 rounded-2xl flex items-center gap-3 hover:bg-white/10 menu-active" id="btn-beranda">
-                    <span class="text-lg">🏠</span> Overview
-                </button>
-                <button onclick="sw('ggscript')" class="w-full text-left px-4 py-3 rounded-2xl flex items-center gap-3 hover:bg-white/10" id="btn-ggscript">
-                    <span class="text-lg">📜</span> Scripts
-                </button>
-                <button onclick="sw('keysystem')" class="w-full text-left px-4 py-3 rounded-2xl flex items-center gap-3 hover:bg-white/10" id="btn-keysystem">
-                    <span class="text-lg">🔑</span> Licenses
-                </button>
-            </nav>
-        </aside>
+        </div>
 
-        <main class="flex-1 space-y-8">
-            <!-- Overview with Per-Key Loader -->
-            <div id="view-beranda">
-                <h2 class="text-2xl font-bold mb-6">Overview</h2>
-                <div id="kList" class="space-y-4"></div>
-            </div>
+        <nav class="space-y-1 flex-1">
+            <button onclick="sw('beranda')" id="btn-beranda" class="menu-active w-full text-left px-5 py-4 rounded-2xl flex items-center gap-3 text-sm hover:bg-white/5 transition">
+                <span class="text-xl">🏠</span> Overview
+            </button>
+            <button onclick="sw('ggscript')" id="btn-ggscript" class="w-full text-left px-5 py-4 rounded-2xl flex items-center gap-3 text-sm hover:bg-white/5 transition">
+                <span class="text-xl">📜</span> Cloud Scripts
+            </button>
+            <button onclick="sw('keysystem')" id="btn-keysystem" class="w-full text-left px-5 py-4 rounded-2xl flex items-center gap-3 text-sm hover:bg-white/5 transition">
+                <span class="text-xl">🔑</span> License Keys
+            </button>
+        </nav>
 
-            <!-- Scripts & Keys views similar to original but optimized -->
-            <!-- ... (full views from your original index.html with minor JS fixes for no lag) -->
-        </main>
+        <div class="pt-6 border-t border-amber-500/10">
+            <button onclick="doOut()" class="w-full py-3 bg-red-500/10 text-red-400 rounded-2xl text-sm font-medium">Logout</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 overflow-auto p-8" id="mainContent">
+        <!-- OVERVIEW -->
+        <div id="view-beranda">
+            <h2 class="text-3xl font-bold mb-8">Overview & Links</h2>
+            <div id="keysOverview" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <!-- SCRIPTS -->
+        <div id="view-ggscript" class="hidden">
+            <h2 class="text-3xl font-bold mb-6">Cloud Scripts</h2>
+            <div id="scriptList" class="space-y-4"></div>
+        </div>
+
+        <!-- KEYS -->
+        <div id="view-keysystem" class="hidden">
+            <h2 class="text-3xl font-bold mb-6">License Keys</h2>
+            <div id="keyList" class="space-y-4"></div>
+        </div>
     </div>
 </div>
 
 <script>
-// Smooth JS, no heavy loops
-var S = {session: localStorage.getItem('nx_session') || ''};
+// Simple state
+let currentView = 'beranda';
+let session = localStorage.getItem('nx_session') || '';
 
+// Switch view
 function sw(view) {
-    document.querySelectorAll('#mainApp > div > div').forEach(el => el.classList.add('hidden'));
+    currentView = view;
+    document.querySelectorAll('#mainContent > div').forEach(div => div.classList.add('hidden'));
     document.getElementById('view-' + view).classList.remove('hidden');
-    // Update active sidebar
-    document.querySelectorAll('aside button').forEach(b => b.classList.remove('menu-active'));
+
+    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('menu-active'));
     document.getElementById('btn-' + view).classList.add('menu-active');
+
+    if (view === 'beranda') loadOverview();
+    if (view === 'ggscript') loadScripts();
+    if (view === 'keysystem') loadKeys();
 }
 
-// Load keys with unique loader
-async function loadKeys() {
-    // fetch logic...
-    // For each key, show loader URL with ?type=loader&key=XXX
+// Load functions (connect ke /api/server)
+async function apiCall(method, body = null) {
+    const headers = {'Content-Type': 'application/json'};
+    if (session) headers['X-Session'] = session;
+
+    const res = await fetch('/api/server', {
+        method: method,
+        headers,
+        body: body ? JSON.stringify(body) : null
+    });
+    return res.json();
 }
 
+async function loadOverview() {
+    const keys = await apiCall('GET', null); // adjust according to your backend
+    // Render unique loader per key
+    let html = '';
+    // ... render keys with loader URL containing key
+    document.getElementById('keysOverview').innerHTML = html;
+}
+
+function doOut() {
+    localStorage.clear();
+    location.reload();
+}
+
+// Init
 window.onload = () => {
-    if (S.session) {
-        // load data
+    if (session) {
+        sw('beranda');
+    } else {
+        // show login if needed
+        alert("Login dulu di panel");
     }
 };
 </script>
