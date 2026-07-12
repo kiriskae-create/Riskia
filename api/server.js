@@ -6,7 +6,6 @@ const sql = neon(process.env.POSTGRES_URL);
 function hashPass(pw) { return createHash('sha256').update(pw + '_nx_postgres_salt').digest('hex'); }
 function makeSession(email, hash) { return createHash('md5').update(email + hash + 'session_token').digest('hex'); }
 
-// ENGINE ENKRIPSI NEXUS (REPLICA MM-MODS ALGORITHM DYNAMIC)
 function obfuscateLua(code) {
     const key = "NexusVip";
     let b64 = Buffer.from(code).toString('base64');
@@ -17,7 +16,6 @@ function obfuscateLua(code) {
         xorArr.push(b64.charCodeAt(i) ^ kChar);
     }
     
-    // Konversi array byte ke string terenkripsi mentah untuk dibungkus base64 sekunder
     let encryptedRawStr = String.fromCharCode(...xorArr);
     let finalPayloadBase64 = Buffer.from(encryptedRawStr, 'binary').toString('base64');
 
@@ -100,7 +98,6 @@ export default async function handler(req, res) {
     const { id, type, device, validate, deleteKey } = req.query;
     const host = req.headers.host;
 
-    // INTERFACE DYNAMIC LOADER GENERATOR
     if (req.method === 'GET' && type === 'loader') {
         const targetScriptId = id || 'default';
         const code = [
@@ -124,7 +121,6 @@ export default async function handler(req, res) {
         return res.status(200).send(code);
     }
 
-    // DELIVER FINAL SCRIPT MENU CONTENT (ROUTE)
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content, encrypted FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
@@ -134,7 +130,6 @@ export default async function handler(req, res) {
         return res.status(200).send('gg.alert("[X] Menu tidak ditemukan!")');
     }
 
-    // AUTO VERIFY & LOGIN ALGORITHM
     if (req.method === 'GET' && type === 'login') {
         const targetScriptId = id || '';
         const clientHwid = device || 'NX-UNKNOWN';
@@ -188,7 +183,6 @@ export default async function handler(req, res) {
             return res.status(200).send(`gg.alert("🔓 Akses Diberikan!"); load(gg.makeRequest("https://${host}/api/server?type=menu&id=${license.script_id}").content)()`);
         }
 
-        // Fix Sesuai Permintaan: Saat klik back (tombol cancel/tidak isi key) -> Panggil gg.setVisible(true) agar Icon GG mengambang keluar kembali dan loop berlanjut
         const loginLua = `
 gg.setVisible(false)
 local BASE = "https://${host}"

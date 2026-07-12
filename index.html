@@ -36,7 +36,7 @@
 
 <div id="blurBg" onclick="toggleMenu(false)" class="blur-overlay fixed inset-0 bg-black/40 z-40"></div>
 
-<!-- COMPONENT DRAW SIDEBAR SLIDING REPLICA -->
+<!-- SIDEBAR NAV -->
 <aside id="sideMenu" class="sidebar-drawer fixed top-0 bottom-0 left-0 w-72 bg-[#171a2b] z-50 flex flex-col justify-between shadow-2xl border-r border-white/5">
     <div>
         <div class="purple-header p-5 flex items-center justify-between text-white shadow-inner">
@@ -55,11 +55,10 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                     GG Script (Cloud)
                 </div>
-                <span class="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tight">NOVO</span>
             </button>
             <button onclick="sw('keysystem')" class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/5 transition cursor-pointer">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                Gerenciar usuários (Lisensi)
+                Gerenciar Lisensi
             </button>
         </nav>
     </div>
@@ -69,6 +68,7 @@
     </div>
 </aside>
 
+<!-- AUTH MODAL SYSTEM -->
 <div id="authGate" class="fixed inset-0 z-50 bg-[#0c0e17] flex items-center justify-center px-4">
     <div class="w-full max-w-sm glass rounded-2xl p-6 space-y-4">
         <h2 class="text-center text-sm font-bold text-white tracking-wider">NEXUS SECURE CONTROL</h2>
@@ -78,9 +78,42 @@
     </div>
 </div>
 
+<!-- KOTAK MODAL KUSTOM KHUSUS UNTUK EDIT SCRIPT (FIX TERPISAH BEDA TEMPAT) -->
+<div id="editModalPopup" class="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-2xl bg-[#141829] border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-white/5 pb-2">
+            <h3 class="text-sm font-bold text-purple-400" id="modalEditorTitle">Edit Script Cloud</h3>
+            <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-xs cursor-pointer font-bold">❌ Batal</button>
+        </div>
+        <input type="hidden" id="modalEditScriptId">
+        <div class="space-y-3">
+            <input type="text" id="modalScriptName" placeholder="nama_script.lua" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
+            <textarea id="modalScriptContent" rows="12" placeholder="-- Tulis baris kode lua disini..." class="w-full px-3 py-2.5 rounded-xl input-dark text-xs font-mono"></textarea>
+            
+            <!-- TAP/CLICK EVENT ON THE BOX - AUTOMATICALLY BINDS/KEEPS PREVIOUS LUA CODE DATA -->
+            <div onclick="toggleModalIconEnc()" class="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 cursor-pointer hover:bg-purple-500/10 transition select-none">
+                <div class="flex items-center gap-3">
+                    <span id="modalEncIconIndicator" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/5 transition-colors">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" id="modalSvgLockIcon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                    <div>
+                        <span class="text-xs font-bold block text-slate-200">Proteksi Enkripsi Cloud (NexusXGuard Anti-Dump)</span>
+                        <span id="modalEncStatusLabel" class="text-[10px] text-slate-500">Status: Tidak Aktif (Plain Script)</span>
+                    </div>
+                </div>
+                <span id="modalEncBadgeText" class="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400">PLAIN</span>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+            <button onclick="closeEditModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold cursor-pointer">Cancel</button>
+            <button onclick="saveModalScript()" class="px-5 py-2.5 rounded-xl btn-purple text-xs font-bold text-white shadow-lg cursor-pointer">Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN VIEW APP -->
 <main id="mainApp" class="hidden pt-20 px-4 max-w-3xl mx-auto pb-10 space-y-6">
 
-    <!-- VIEW: BERANDA -->
     <div id="view-beranda" class="space-y-4">
         <div class="glass rounded-2xl p-5 space-y-3">
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Server Link Gateway</h3>
@@ -91,40 +124,20 @@
         </div>
     </div>
 
-    <!-- VIEW: GG SCRIPT WORKING AREA -->
+    <!-- AREA WORKPLACE SCRIPT & DAFTAR -->
     <div id="view-ggscript" class="space-y-4 hidden">
         <div class="glass rounded-2xl p-5 space-y-4">
-            <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                <!-- Sesuai Permintaan: Editor tidak menumpuk di atas melainkan refresh state di dalam tempat kerjanya sendiri -->
-                <h3 class="text-xs font-bold text-white" id="editorTitle">Buat Baru Script Cloud</h3>
-                <button onclick="resetEditor()" class="text-[10px] text-slate-400 hover:text-white underline cursor-pointer">Reset Form</button>
-            </div>
-            <input type="hidden" id="editScriptId">
+            <h3 class="text-xs font-bold text-white">Buat Script Baru</h3>
             <input type="text" id="scriptName" placeholder="nama_script.lua" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
-            <textarea id="scriptContent" rows="10" placeholder="-- Tulis baris kode lua disini..." class="w-full px-3 py-2.5 rounded-xl input-dark text-xs font-mono"></textarea>
-            
-            <!-- BUTTON-LIKE ICON MENU TOGGLE SEBAGAI PENGGANTI BOX CENTANG -->
-            <div onclick="toggleIconEnc()" class="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 cursor-pointer hover:bg-purple-500/10 transition">
-                <div class="flex items-center gap-3">
-                    <span id="encIconIndicator" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/5 transition-colors">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" id="svgLockIcon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    </span>
-                    <div>
-                        <span class="text-xs font-bold block text-slate-200">Proteksi Enkripsi Cloud (NexusXGuard Anti-Dump)</span>
-                        <span id="encStatusLabel" class="text-[10px] text-slate-500">Status: Tidak Aktif (Plain Script)</span>
-                    </div>
-                </div>
-                <span id="encBadgeText" class="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400">PLAIN</span>
-            </div>
-
-            <button onclick="saveScript()" class="w-full py-3 rounded-xl btn-purple text-xs font-bold text-white shadow-lg">Simpan & Update Script Data</button>
+            <textarea id="scriptContent" rows="6" placeholder="-- Tulis baris kode lua disini..." class="w-full px-3 py-2.5 rounded-xl input-dark text-xs font-mono"></textarea>
+            <button onclick="createFreshScript()" class="w-full py-3 rounded-xl btn-purple text-xs font-bold text-white shadow-lg cursor-pointer">Tambah Baru</button>
         </div>
 
         <h4 class="text-xs font-bold text-slate-400 px-1">Daftar Penyimpanan Script Cloud</h4>
         <div id="scriptContainer" class="space-y-2"></div>
     </div>
 
-    <!-- VIEW: LISENSI DAN LOG DEVICENYA -->
+    <!-- VIEW LISENSI -->
     <div id="view-keysystem" class="space-y-4 hidden">
         <div class="glass rounded-2xl p-5 space-y-4">
             <h3 class="text-xs font-bold text-white">Generate Lisensi Baru</h3>
@@ -139,7 +152,7 @@
                         <input type="number" id="keyMaxDevices" value="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-400 mb-1">Durasi Paket (Preset)</label>
+                        <label class="block text-[10px] text-slate-400 mb-1">Durasi Paket</label>
                         <select id="keyExpiryPreset" onchange="handleExpiryPreset(this.value)" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
                             <option value="1">1 Hari</option>
                             <option value="3">3 Hari</option>
@@ -153,21 +166,21 @@
                     <input type="datetime-local" id="keyExpiryCustom" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
                 </div>
                 <div>
-                    <label class="block text-[10px] text-slate-400 mb-1">Custom Nama Key (Kosongkan untuk acak otomatis)</label>
+                    <label class="block text-[10px] text-slate-400 mb-1">Custom Nama Key</label>
                     <input type="text" id="keyCustomName" placeholder="Contoh: NEXUS-PREMIUM" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
                 </div>
             </div>
-            <button onclick="generateLicense()" class="w-full py-3 rounded-xl btn-purple text-xs font-bold text-white shadow-lg">Generate Lisensi</button>
+            <button onclick="generateLicense()" class="w-full py-3 rounded-xl btn-purple text-xs font-bold text-white shadow-lg cursor-pointer">Generate Lisensi</button>
         </div>
 
-        <h4 class="text-xs font-bold text-slate-400 px-1">Manajemen Pengguna & Perangkat Terverifikasi (.js Auto Detect)</h4>
+        <h4 class="text-xs font-bold text-slate-400 px-1">Manajemen Pengguna & Perangkat Terverifikasi</h4>
         <div id="licenseContainer" class="space-y-2"></div>
     </div>
 
 </main>
 
 <script>
-var state = { files: [], keys: [], token: '', encState: false };
+var state = { files: [], keys: [], token: '', modalEncState: false };
 
 function toggleMenu(open) {
     document.getElementById('sideMenu').classList.toggle('open', open);
@@ -178,16 +191,16 @@ function handleExpiryPreset(v) {
     document.getElementById('customExpiryBox').classList.toggle('hidden', v !== 'custom');
 }
 
-// Sesuai Permintaan: Mengubah icon menu secara real-time saat di-tap/di-klik
-function toggleIconEnc(forceState = null) {
-    state.encState = forceState !== null ? forceState : !state.encState;
-    const box = document.getElementById('encIconIndicator');
-    const svg = document.getElementById('svgLockIcon');
-    const label = document.getElementById('encStatusLabel');
-    const badge = document.getElementById('encBadgeText');
+// TOGGLE HANDLER DI KOTAK MODAL EDIT SCRIPT - DIJAMIN MENGIKAT KODE LUA DARI DATABASE SEBELUMNYA SECARA OTOMATIS
+function toggleModalIconEnc(forceState = null) {
+    state.modalEncState = forceState !== null ? forceState : !state.modalEncState;
+    const box = document.getElementById('modalEncIconIndicator');
+    const svg = document.getElementById('modalSvgLockIcon');
+    const label = document.getElementById('modalEncStatusLabel');
+    const badge = document.getElementById('modalEncBadgeText');
 
-    if (state.encState) {
-        box.className = "w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 transition-colors";
+    if (state.modalEncState) {
+        box.className = "w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 transition-colors shadow";
         svg.setAttribute('stroke', '#10b981');
         label.innerText = "Status: Aktif (Otomatis enkrip ke anti-dump Nexus saat disimpan)";
         badge.className = "text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-emerald-500 text-black";
@@ -232,14 +245,6 @@ async function updateExpiredCount() {
     }
 }
 
-function resetEditor() {
-    document.getElementById('editScriptId').value = '';
-    document.getElementById('scriptName').value = '';
-    document.getElementById('scriptContent').value = '';
-    toggleIconEnc(false);
-    document.getElementById('editorTitle').innerText = "Buat Baru Script Cloud";
-}
-
 async function fetchScripts() {
     let res = await apiCall('GET', '');
     if (!res.ok) return;
@@ -257,7 +262,7 @@ async function fetchScripts() {
                     <span class="text-[9px] text-slate-500">${f.id} — ${f.encrypted ? '🔒 Terproteksi Nexus' : '🔓 Plaintext'}</span>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="editScript('${f.id}')" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Edit</button>
+                    <button onclick="openEditModal('${f.id}')" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Edit Kotak</button>
                     <button onclick="deleteScript('${f.id}')" class="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Hapus</button>
                 </div>
             </div>
@@ -265,30 +270,55 @@ async function fetchScripts() {
     }
 }
 
-// Sesuai Permintaan: Mengisi form utama kembali secara bersih tanpa menumpuk di area atas
-function editScript(id) {
-    let f = state.files.find(x => x.id === id);
-    if (!f) return;
-    document.getElementById('editScriptId').value = f.id;
-    document.getElementById('scriptName').value = f.name;
-    document.getElementById('scriptContent').value = f.content;
-    toggleIconEnc(f.encrypted || false);
-    document.getElementById('editorTitle').innerText = "Mengedit Script: " + f.name;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-async function saveScript() {
-    let id = document.getElementById('editScriptId').value;
+async function createFreshScript() {
     let name = document.getElementById('scriptName').value.trim();
     let content = document.getElementById('scriptContent').value;
-    let encrypted = state.encState;
+    if(!name || content === "") return alert("Nama dan isi script tidak boleh kosong!");
+    
+    let res = await apiCall('POST', '', { name, content, encrypted: false });
+    if(res.ok) {
+        alert("Script baru ditambahkan!");
+        document.getElementById('scriptName').value = "";
+        document.getElementById('scriptContent').value = "";
+        fetchScripts();
+    }
+}
+
+// MUNCULKAN SEBAGAI MODAL BOX DI TEMPAT BERBEDA (FIX PLUGGED KODE LUA)
+function openEditModal(id) {
+    let f = state.files.find(x => x.id === id);
+    if (!f) return;
+    
+    document.getElementById('modalEditScriptId').value = f.id;
+    document.getElementById('modalScriptName').value = f.name;
+    document.getElementById('modalScriptContent').value = f.content;
+    
+    toggleModalIconEnc(f.encrypted || false);
+    
+    document.getElementById('modalEditorTitle').innerText = "Mengedit Script: " + f.name;
+    document.getElementById('editModalPopup').classList.remove('hidden');
+}
+
+function closeEditModal() {
+    document.getElementById('editModalPopup').classList.add('hidden');
+}
+
+// FUNGSI SIMPAN DARI KOTAK MODAL - DIJAMIN BISA DIKLIK DAN BERFUNGSI SEMPURNA
+async function saveModalScript() {
+    let id = document.getElementById('modalEditScriptId').value;
+    let name = document.getElementById('modalScriptName').value.trim();
+    let content = document.getElementById('modalScriptContent').value;
+    let encrypted = state.modalEncState;
 
     if (!name || content === '') return alert('Nama dan isi script tidak boleh kosong!');
-    let res = await apiCall('POST', '', { name, content, encrypted, existingScriptId: id || null });
+    
+    let res = await apiCall('POST', '', { name, content, encrypted, existingScriptId: id });
     if (res.ok) {
-        alert('Script berhasil diperbarui ke database cloud!');
-        resetEditor();
+        alert('Script berhasil diupdate dan disimpan ke database cloud!');
+        closeEditModal();
         fetchScripts();
+    } else {
+        alert('Gagal menyimpan perubahan script!');
     }
 }
 
@@ -313,10 +343,9 @@ async function fetchLicenses() {
             devArray = typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices) : (k.registered_devices || []);
         } catch(e) { devArray = []; }
 
-        // Sesuai Permintaan: Cetak daftar hardware log device terverifikasi yang masuk secara rapi (.js parsing)
         let devicesHtml = devArray.length > 0 
-            ? devArray.map(d => `<div class="bg-black/40 px-2 py-1 rounded text-[9px] text-purple-300 font-mono select-all truncate mb-1">💻 HWID: ${d} [TERVERIFIKASI]</div>`).join('')
-            : `<span class="text-[10px] text-slate-500 italic">Belum ada perangkat terikat (Menunggu login perdana)</span>`;
+            ? devArray.map(d => `<div class="bg-black/40 px-2 py-1 rounded text-[9px] text-purple-300 font-mono truncate mb-1">💻 HWID: ${d} [TERVERIFIKASI]</div>`).join('')
+            : `<span class="text-[10px] text-slate-500 italic">Belum ada perangkat terikat</span>`;
 
         return `
             <div class="glass rounded-xl p-4 space-y-3">
@@ -327,10 +356,9 @@ async function fetchLicenses() {
                 <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400">
                     <div>Script Terikat: <b class="text-slate-200">${k.target_script_name}</b></div>
                     <div>Limit Multi-Device: <b class="text-slate-200">${devArray.length} / ${k.max_devices}</b></div>
-                    <div class="col-span-2">Masa Aktif Lisensi: <b class="text-slate-200">${k.expiry ? new Date(k.expiry).toLocaleString('id-ID') : 'Permanen Aktif'}</b></div>
+                    <div class="col-span-2">Masa Aktif: <b class="text-slate-200">${k.expiry ? new Date(k.expiry).toLocaleString('id-ID') : 'Permanen'}</b></div>
                 </div>
                 <div class="pt-2 border-t border-white/5">
-                    <span class="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Log Riwayat Perangkat (Auto Detect):</span>
                     ${devicesHtml}
                 </div>
             </div>
