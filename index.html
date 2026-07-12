@@ -303,6 +303,12 @@ function triggerCopyHook(scriptId) {
     cp(luaCode);
 }
 
+function triggerCopyRawHook(scriptId) {
+    var b = location.origin;
+    var luaCode = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=raw&id=' + scriptId + '").content if V then pcall(load(V)) end';
+    cp(luaCode);
+}
+
 function encryptCurrentScript() {
     var source = document.getElementById('fC').value;
     if(!source || source.trim() === "") return toast("Gagal: Source code kosong!");
@@ -328,9 +334,9 @@ function encryptCurrentScript() {
     var protectedTemplate = `gg.setVisible(false)
 
 -- ===============================
--- LOADER REAL ANTI-DUMP (GG)
+-- LOADER REAL ANTI-DUMP (GG ENGINE)
 -- ===============================
-local function __MMmods_loader(enc)
+local function __MMmods_run(enc)
     local key = "${customKey}"
 
     local function xorDec(data)
@@ -362,38 +368,20 @@ local function __MMmods_loader(enc)
         end))
     end)(enc))
 
-    local tmp_dir = gg.EXT_CACHE_DIR or gg.EXT_STORAGE or "/sdcard"
-    local tmp = tmp_dir .. "/.mm_" .. tostring(os.time()) .. "_" .. tostring(math.random(1000,9999)) .. ".tmp"
-
-    local f = io.open(tmp, "wb")
-    if not f then return end
-    f:write(decoded)
-    f:close()
-
-    local loader = loadfile(tmp)
-    os.remove(tmp)
-
-    if loader then
-        pcall(loader)
+    local runtime, err = load(decoded, "NexusProtected")
+    if runtime then
+        runtime()
+    else
+        gg.alert("[X] Runtime Decryption Error: " .. tostring(err))
     end
 end
 
--- ===============================
--- PAYLOAD CRIPTOGRAFADO (FULL)
--- ===============================
 local PAYLOAD = [[${finalBase64Payload}]]
-
-__MMmods_loader(PAYLOAD)
-
--- ===============================
--- RETORNO FAKE (ANTI-DUMP)
--- ===============================
-return {
-    msg = "Protegido por MMmods - Uso não autorizado proibido."
-}`;
+__MMmods_run(PAYLOAD)
+`;
     
     document.getElementById('fC').value = protectedTemplate;
-    toast("Source Obfuscated successfully!");
+    toast("Source Obfuscated successfully! Anti-Ended Active.");
 }
 
 async function loadF(){
@@ -403,14 +391,13 @@ async function loadF(){
     var c=document.getElementById('fList');
     
     c.innerHTML=S.files.map(function(f){
-        var rl=location.origin+'/api/server?type=raw&id='+f.id;
         var ldrUrl=location.origin+'/api/server?type=loader&id='+f.id;
         
         return '<div class="glass rounded-2xl p-5 space-y-4">' +
             '<div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">' +
                 '<div><div class="flex items-center gap-2"><i data-lucide="file" class="w-4 h-4 text-amber-500"></i><span class="mono text-xs font-bold text-slate-200">'+f.name+'</span></div><div class="text-[9px] text-slate-500 mt-1 mono pl-6">'+f.id+'</div></div>' +
                 '<div class="flex gap-2">' +
-                    '<button onclick="cp(\''+rl+'\')" class="px-3 py-1.5 bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded-xl text-[10px] font-bold cursor-pointer">Raw Matrix</button>' +
+                    '<button onclick="triggerCopyRawHook(\''+f.id+'\')" class="px-3 py-1.5 bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded-xl text-[10px] font-bold cursor-pointer">Raw Matrix</button>' +
                     '<button onclick="edF(\''+f.id+'\')" class="px-3 py-1.5 bg-blue-500/5 text-blue-400 border border-blue-500/10 rounded-xl text-[10px] font-bold cursor-pointer">Modify</button>' +
                     '<button onclick="dlF(\''+f.id+'\')" class="px-3 py-1.5 bg-red-500/5 text-red-400 border border-red-500/10 rounded-xl text-[10px] font-bold cursor-pointer">Purge</button>' +
                 '</div>' +
