@@ -12,36 +12,14 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session');
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { id, type, key, device, reqStage, deleteKey, validate, embed } = req.query;
+    const { id, type, key, device, reqStage, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
     // ═══════════════════════════════════════
-    //  LINK 1 — LOADER
+    //  LINK 1 — LOADER (PENDEK, SAMA SEMUA)
+    //  Tugas: Tampilkan dialog input key
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
-        const lk = req.query.key;
-
-        // Loader dengan key tertanam — auto validasi, tanpa dialog
-        if (lk) {
-            const code = [
-                'gg.setVisible(false)',
-                'gg.toast("[X] NEXUS X - Authenticating...")',
-                'local raw = "NX-" .. tostring(gg.getTargetPackage())',
-                'local hwid = ""',
-                'for i = 1, #raw do hwid = hwid .. string.format("%02X", string.byte(raw, i)) end',
-                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&validate=' + lk + '&device="..hwid.."&embed=1")',
-                'if r and r.code == 200 then',
-                '    local fn = load(r.content)',
-                '    if fn then fn() end',
-                'else',
-                '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
-                'end'
-            ].join('\n');
-            res.setHeader('Content-Type', 'text/plain');
-            return res.status(200).send(code);
-        }
-
-        // Generic loader — tampilkan dialog login
         const code = [
             'gg.setVisible(false)',
             'gg.toast("[X] NEXUS X - Connecting...")',
@@ -49,7 +27,7 @@ export default async function handler(req, res) {
             'if r and r.code == 200 then',
             '    load(r.content)()',
             'else',
-            '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
+            '    gg.toast("[X] Connection Failed!")',
             'end'
         ].join('\n');
         res.setHeader('Content-Type', 'text/plain');
@@ -58,14 +36,11 @@ export default async function handler(req, res) {
 
     // ═══════════════════════════════════════
     //  LINK 2 — LOGIN & VALIDASI
+    //  Tugas: Tampilkan dialog input key,
+    //         validasi, kalau benar toast
+    //         lalu load menu (L3)
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
-        const isEmbed = embed === '1';
-        // Jika bukan embed mode, error akan redirect ke login dialog
-        const errTail = isEmbed ? '' : [
-            'local r = gg.makeRequest("https://' + host + '/api/server?type=login")',
-            'if r and r.code == 200 then load(r.content) end'
-        ].join('\n');
 
         // --- VALIDATE KEY ---
         if (validate) {
@@ -73,8 +48,8 @@ export default async function handler(req, res) {
             if (checkKey.length === 0) {
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nInvalid license key!")',
-                    errTail
+                    'gg.toast("[X] Invalid license key!")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nInvalid license key!")'
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
@@ -86,8 +61,8 @@ export default async function handler(req, res) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '")',
-                    errTail
+                    'gg.toast("[X] License Expired!")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired: ' + fd + '")'
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
@@ -99,8 +74,8 @@ export default async function handler(req, res) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
                         'os.remove("/sdcard/.nexus_auth")',
-                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!")',
-                        errTail
+                        'gg.toast("[X] Max Device Reached!")',
+                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!")'
                     ].join('\n');
                     res.setHeader('Content-Type', 'text/plain');
                     return res.status(200).send(c);
@@ -109,12 +84,11 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            // VALID — tampilkan alert, lalu load menu (LINK 3)
-            const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            // ✅ VALID — Toast + langsung load menu (L3)
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
                 'if f then f:write("' + validate + '"); f:close() end',
-                'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + fd + '")',
+                'gg.toast("[X] ACCESS GRANTED - Loading Menu...")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
                 'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
@@ -123,7 +97,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI (gg.dialog = text keyboard) ---
+        // --- LOGIN UI (dialog input key, keyboard huruf) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -179,12 +153,12 @@ end
 
 local inputKey = showLogin()
 if not inputKey or inputKey == "" then
-    if inputKey == "" then gg.alert("[X] Key cannot be empty!") end
+    if inputKey == "" then gg.toast("[X] Key cannot be empty!") end
     return
 end
 
 if not doValidate(inputKey) then
-    gg.alert("[X] Connection failed!\\nCheck your internet.")
+    gg.toast("[X] Connection failed!")
 end`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(loginLua);
@@ -192,6 +166,7 @@ end`;
 
     // ═══════════════════════════════════════
     //  LINK 3 — MENU SCRIPT
+    //  Tugas: Return script Lua asli
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
@@ -246,9 +221,8 @@ end`;
             return res.status(200).send(p);
         }
         if (reqStage === '2') {
-            const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const p = [
-                'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + fd + '")',
+                'gg.toast("[X] ACCESS GRANTED")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?key=' + key + '&device=' + clientHwid + '&reqStage=3")',
                 'if r and r.code == 200 then load(r.content)() else os.exit() end'
             ].join('\n');

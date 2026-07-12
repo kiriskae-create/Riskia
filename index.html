@@ -13,7 +13,6 @@ body{font-family:'Inter',sans-serif;background:#05060a;color:#e2e8f0;overflow-x:
 .mono{font-family:'JetBrains Mono',monospace}
 .glass{background:rgba(15,17,25,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(245,158,11,.08)}
 .glass-gold{background:linear-gradient(135deg,rgba(245,158,11,.04),rgba(217,119,6,.02));border:1px solid rgba(245,158,11,.12)}
-.glass-blue{background:linear-gradient(135deg,rgba(59,130,246,.04),rgba(29,78,216,.02));border:1px solid rgba(59,130,246,.12)}
 .glass-edit{background:rgba(30,41,59,.6)!important;border:1px solid rgba(59,130,246,.25)!important}
 .gold-text{background:linear-gradient(135deg,#fbbf24,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .btn-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-weight:700;cursor:pointer;transition:transform .12s}
@@ -23,9 +22,8 @@ body{font-family:'Inter',sans-serif;background:#05060a;color:#e2e8f0;overflow-x:
 .input-dark{background:rgba(5,6,10,.8);border:1px solid rgba(245,158,11,.1);color:#e2e8f0}
 .input-dark:focus{outline:none;border-color:rgba(245,158,11,.35)}
 .tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px}
-.flow-v{width:2px;height:20px;background:rgba(245,158,11,.12);margin:4px auto}
 .link-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,0,0,.3);border-radius:10px;border:1px solid rgba(255,255,255,.03)}
-.link-row .label{font-size:9px;font-weight:800;letter-spacing:1px;min-width:20px;text-align:center;padding:3px 0;border-radius:4px;flex-shrink:0}
+.link-row .label{font-size:8px;font-weight:800;letter-spacing:1px;min-width:22px;text-align:center;padding:3px 0;border-radius:4px;flex-shrink:0}
 .link-row .val{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px}
 .link-row .cpb{flex-shrink:0;padding:4px 10px;border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;border:1px solid;transition:opacity .12s}
 .link-row .cpb:active{opacity:.6}
@@ -40,11 +38,17 @@ aside{display:none}
 .mob-btn.act{color:#fbbf24;background:rgba(245,158,11,.08)}
 .mob-btn.act svg{stroke:#fbbf24}
 .mob-btn span{font-size:9px;font-weight:600}
+.key-card{border-radius:16px;padding:16px;border:1px solid rgba(245,158,11,.06);background:linear-gradient(180deg,rgba(15,17,25,.8),rgba(10,12,18,.9))}
+.key-card .key-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;word-break:break-all}
+.key-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.04)}
+.key-meta b{color:#94a3b8}
+.key-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.key-btns button{padding:10px;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid;transition:opacity .12s;text-align:center}
+.key-btns button:active{opacity:.6}
 </style>
 </head>
 <body class="min-h-screen">
 
-<!-- MOBILE BOTTOM NAV -->
 <nav id="mobNav" class="fixed bottom-0 left-0 right-0 z-50 bg-[#090b11]/95 backdrop-blur-xl border-t border-amber-500/8" style="padding-bottom:env(safe-area-inset-bottom)">
 <div class="flex justify-around items-center py-1 px-1 max-w-md mx-auto">
 <button class="mob-btn act" id="mb-beranda" onclick="sw('beranda')">
@@ -62,7 +66,7 @@ aside{display:none}
 </div>
 </nav>
 
-<!-- AUTH GATE -->
+<!-- AUTH -->
 <div id="authGate" class="fixed inset-0 z-[100] bg-[#05060a] flex items-center justify-center">
 <div class="w-full max-w-sm mx-4">
 <div class="text-center mb-6">
@@ -95,10 +99,9 @@ aside{display:none}
 </div>
 </div>
 
-<!-- MAIN APP -->
+<!-- APP -->
 <div id="mainApp" class="hidden min-h-screen flex">
 
-<!-- DESKTOP SIDEBAR -->
 <aside class="w-60 bg-[#090b11] border-r border-amber-500/8 flex-col justify-between p-4 shrink-0 sticky top-0 h-screen">
 <div>
 <div class="flex items-center gap-3 mb-8 px-2 py-1">
@@ -128,7 +131,6 @@ Licenses
 </div>
 </aside>
 
-<!-- MOBILE TOP BAR -->
 <div id="mobBar" class="md:hidden fixed top-0 left-0 right-0 z-40 bg-[#090b11]/90 backdrop-blur-xl border-b border-amber-500/8 px-4 py-3 flex items-center justify-between" style="padding-top:env(safe-area-inset-top)">
 <div class="flex items-center gap-2">
 <div class="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/15">
@@ -139,92 +141,57 @@ Licenses
 <button onclick="doOut()" class="text-[10px] text-red-400/70 font-medium cursor-pointer">Logout</button>
 </div>
 
-<!-- MAIN CONTENT -->
 <main id="mainContent" class="flex-1 p-4 md:p-6 overflow-y-auto md:mt-0" style="margin-top:52px">
 
-<!-- VIEW: OVERVIEW -->
+<!-- OVERVIEW -->
 <div id="view-beranda" class="space-y-4 max-w-3xl">
 <h2 class="text-base font-bold text-white">Overview & Links</h2>
 
-<!-- 3 LINK ARCHITECTURE -->
 <div class="glass rounded-2xl p-4 space-y-0">
-<h3 class="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-3">3-Link Architecture (Generic)</h3>
-
-<div class="flex items-start gap-3">
-<div class="flex flex-col items-center pt-0.5"><span class="tag bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">L1</span><div class="flow-v"></div></div>
-<div class="flex-1 pb-1">
-<p class="text-xs font-semibold text-white">Loader</p>
-<p class="text-[9px] text-slate-600 mb-2">Entry point — jika ada key di URL, auto-validasi. Jika tidak, tampilkan dialog input key.</p>
-<div class="link-row">
-<span class="label bg-emerald-500/15 text-emerald-400">L1</span>
-<span class="val text-emerald-400/60 mono" id="dL1">-</span>
-<button onclick="cp($('dL1').textContent)" class="cpb bg-emerald-500/10 text-emerald-400 border-emerald-500/20">COPY</button>
+<h3 class="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-3">3-Link Architecture</h3>
+<div class="space-y-3">
+<div>
+<p class="text-[11px] font-bold text-white mb-1.5 flex items-center gap-2"><span class="tag bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">L1</span>Loader (Entry Point)</p>
+<p class="text-[9px] text-slate-600 mb-2">URL pendek yang sama untuk semua user. Tugasnya: panggil L2 untuk tampilkan dialog input key.</p>
+<div class="link-row"><span class="label bg-emerald-500/15 text-emerald-400">L1</span><span class="val text-emerald-400/60 mono" id="dL1">-</span><button onclick="cp($('dL1').textContent)" class="cpb bg-emerald-500/10 text-emerald-400 border-emerald-500/20">COPY</button></div>
 </div>
+<div>
+<p class="text-[11px] font-bold text-white mb-1.5 flex items-center gap-2"><span class="tag bg-blue-500/10 text-blue-400 border border-blue-500/15">L2</span>Login & Validasi</p>
+<p class="text-[9px] text-slate-600 mb-2">Tampilkan dialog input key (keyboard huruf). Validasi key → jika benar, toast lalu panggil L3.</p>
+<div class="link-row"><span class="label bg-blue-500/15 text-blue-400">L2</span><span class="val text-blue-400/60 mono" id="dL2">-</span><button onclick="cp($('dL2').textContent)" class="cpb bg-blue-500/10 text-blue-400 border-blue-500/20">COPY</button></div>
 </div>
-</div>
-
-<div class="flex items-start gap-3">
-<div class="flex flex-col items-center pt-0.5"><span class="tag bg-blue-500/10 text-blue-400 border border-blue-500/15">L2</span><div class="flow-v"></div></div>
-<div class="flex-1 pb-1">
-<p class="text-xs font-semibold text-white">Login & Validasi</p>
-<p class="text-[9px] text-slate-600 mb-2">Validasi key, cek expiry, cek device limit. Jika valid, kirim alert lalu arahkan ke L3.</p>
-<div class="link-row">
-<span class="label bg-blue-500/15 text-blue-400">L2</span>
-<span class="val text-blue-400/60 mono" id="dL2">-</span>
-<button onclick="cp($('dL2').textContent)" class="cpb bg-blue-500/10 text-blue-400 border-blue-500/20">COPY</button>
-</div>
-</div>
-</div>
-
-<div class="flex items-start gap-3">
-<div class="flex flex-col items-center pt-0.5"><span class="tag bg-amber-500/10 text-amber-400 border border-amber-500/15">L3</span></div>
-<div class="flex-1">
-<p class="text-xs font-semibold text-white">Menu Script</p>
+<div>
+<p class="text-[11px] font-bold text-white mb-1.5 flex items-center gap-2"><span class="tag bg-amber-500/10 text-amber-400 border border-amber-500/15">L3</span>Menu Script</p>
 <p class="text-[9px] text-slate-600 mb-2">File Lua asli yang di-load setelah key valid.</p>
-<div class="link-row">
-<span class="label bg-amber-500/15 text-amber-400">L3</span>
-<span class="val text-amber-400/60 mono" id="dL3">-</span>
-<button onclick="cp($('dL3').textContent)" class="cpb bg-amber-500/10 text-amber-400 border-amber-500/20">COPY</button>
-</div>
+<div class="link-row"><span class="label bg-amber-500/15 text-amber-400">L3</span><span class="val text-amber-400/60 mono" id="dL3">-</span><button onclick="cp($('dL3').textContent)" class="cpb bg-amber-500/10 text-amber-400 border-amber-500/20">COPY</button></div>
 </div>
 </div>
 </div>
 
-<!-- GENERIC HOOK -->
-<div class="glass glass-blue rounded-2xl p-4">
-<h3 class="text-xs font-bold text-blue-400 mb-1.5">Generic Hook Script (1 Line)</h3>
-<p class="text-[10px] text-slate-500 mb-2.5">Bypass gg.getFile. User input key manual di dialog.</p>
-<div class="link-row">
-<span class="label bg-blue-500/15 text-blue-400" style="font-size:8px">HOOK</span>
-<span class="val text-emerald-400/60 mono" id="dHK">-</span>
-<button onclick="cp($('dHK').textContent)" class="cpb bg-blue-500/10 text-blue-400 border-blue-500/20">COPY</button>
-</div>
+<div class="glass rounded-2xl p-4" style="background:linear-gradient(135deg,rgba(59,130,246,.04),rgba(29,78,216,.02));border:1px solid rgba(59,130,246,.1)">
+<h3 class="text-xs font-bold text-blue-400 mb-1.5">Hook Script (1 Line)</h3>
+<p class="text-[10px] text-slate-500 mb-2.5">Bypass gg.getFile, panggil L1. User tetap input key di dialog.</p>
+<div class="link-row"><span class="label bg-blue-500/15 text-blue-400" style="font-size:7px">HOOK</span><span class="val text-emerald-400/60 mono" id="dHK">-</span><button onclick="cp($('dHK').textContent)" class="cpb bg-blue-500/10 text-blue-400 border-blue-500/20">COPY</button></div>
 </div>
 
-<!-- LEGACY -->
 <div class="glass rounded-2xl p-4">
 <h3 class="text-xs font-bold text-slate-400 mb-1.5">Legacy Template (Direct Key Embed)</h3>
-<p class="text-[10px] text-slate-500 mb-2.5">Ganti MASUKKAN_KEY dengan key lisensi.</p>
-<div class="link-row">
-<span class="label bg-slate-500/15 text-slate-400" style="font-size:8px">LEG</span>
-<span class="val text-slate-400/60 mono" id="dLG">-</span>
-<button onclick="cp($('dLG').textContent)" class="cpb bg-slate-500/10 text-slate-400 border-slate-500/20">COPY</button>
-</div>
+<p class="text-[10px] text-slate-500 mb-2.5">Ganti MASUKKAN_KEY. Key tertanam, langsung validasi tanpa dialog.</p>
+<div class="link-row"><span class="label bg-slate-500/15 text-slate-400" style="font-size:7px">LEG</span><span class="val text-slate-400/60 mono" id="dLG">-</span><button onclick="cp($('dLG').textContent)" class="cpb bg-slate-500/10 text-slate-400 border-slate-500/20">COPY</button></div>
 </div>
 
-<!-- INFO BOX -->
-<div class="glass rounded-2xl p-4 border-amber-500/12">
+<div class="glass rounded-2xl p-4 border-amber-500/10">
 <div class="flex items-start gap-2.5">
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
 <div>
-<h3 class="text-xs font-bold text-amber-400 mb-1">Unique 3-Link Per Key</h3>
-<p class="text-[10px] text-slate-400 leading-relaxed">Buka tab <strong class="text-white">Licenses</strong>. Setiap key punya 3 link unik sendiri — Hook Script (L1), Loader URL (L1), dan Menu Script (L3). URL berbeda-beda per key karena mengandung key di parameternya.</p>
+<h3 class="text-xs font-bold text-amber-400 mb-1">Cara Jual Key</h3>
+<p class="text-[10px] text-slate-400 leading-relaxed">1. Copy <strong class="text-white">Loader URL (L1)</strong> — kirim ke semua buyer (URL sama untuk semua).<br>2. Copy <strong class="text-amber-300">Key</strong> per buyer dari tab Licenses — ini yang kamu jual, nama beda-beda.<br>3. Buyer paste Loader URL di GG → muncul dialog → ketik key yang kamu kasih → jika benar, toast ACCESS GRANTED lalu menu muncul.</p>
 </div>
 </div>
 </div>
 </div>
 
-<!-- VIEW: SCRIPTS -->
+<!-- SCRIPTS -->
 <div id="view-ggscript" class="space-y-4 max-w-3xl hidden">
 <h2 class="text-base font-bold text-white">Cloud Scripts</h2>
 <div id="edC" class="glass rounded-2xl p-4 space-y-3">
@@ -243,11 +210,10 @@ Licenses
 <div id="fList" class="space-y-2"></div>
 </div>
 
-<!-- VIEW: KEYS -->
+<!-- KEYS -->
 <div id="view-keysystem" class="space-y-4 max-w-3xl hidden">
 <h2 class="text-base font-bold text-white">License Keys</h2>
 
-<!-- GENERATE -->
 <div class="glass rounded-2xl p-4 space-y-3">
 <h3 class="text-sm font-bold text-white">Generate License</h3>
 <div class="grid grid-cols-1 gap-3">
@@ -273,7 +239,6 @@ Licenses
 <button onclick="genK()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Generate License</button>
 </div>
 
-<!-- KEY LIST -->
 <div id="kList" class="space-y-3"></div>
 </div>
 
@@ -289,21 +254,7 @@ const VIEWS=['beranda','ggscript','keysystem'];
 
 function toast(m){const t=$('toast');$('tM').textContent=m;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2000)}
 function cp(t){navigator.clipboard.writeText(t).then(()=>toast('Copied!'))}
-
 function makeHook(url){return 'local A=gg.getFile()gg.getFile=function()return A end local V=gg.makeRequest("'+url+'").content if V then pcall(load(V)) end'}
-
-function getKeyLinks(i){
-    const k=S.keys[i],b=location.origin;
-    const l1=b+'/api/server?type=loader&key='+encodeURIComponent(k.key);
-    const l2=b+'/api/server?type=login&validate='+encodeURIComponent(k.key);
-    const l3=b+'/api/server?type=menu&id='+k.script_id;
-    return{l1,l2,l3,hook:makeHook(l1)}
-}
-
-function cpK(i,which){
-    const l=getKeyLinks(i);
-    cp(l[which])
-}
 
 function sw(t){
     if(S.cur===t)return;S.cur=t;
@@ -372,6 +323,8 @@ async function dep(){
 
 async function loadK(){
     const r=await api('GET','?type=keys');if(!r.ok)return;S.keys=await r.json();
+    const loaderUrl=location.origin+'/api/server?type=loader';
+    const hookScript=makeHook(loaderUrl);
     const c=$('kList');
     c.innerHTML=S.keys.map((k,i)=>{
         const ed=new Date(k.expiry),exp=new Date()>ed;
@@ -379,8 +332,7 @@ async function loadK(){
         const kc=exp?'text-red-400 line-through':'text-amber-400';
         const ec=exp?'text-red-400 font-bold':'text-slate-300';
         const badge=exp?'<span class="tag bg-red-500/10 text-red-400 border border-red-500/15">EXPIRED</span>':'<span class="tag bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">ACTIVE</span>';
-        const lnk=getKeyLinks(i);
-        return'<div class="glass rounded-2xl p-4 space-y-3"><div class="flex justify-between items-start gap-2"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold '+kc+' break-all">'+k.key+'</span>'+badge+'</div><div class="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-slate-500 mono mt-1.5"><span>Module: <span class="text-white font-semibold">'+k.target_script_name+'</span></span><span>Devices: <span class="text-emerald-400 font-bold">'+dc+'/'+k.max_devices+'</span></span><span>Exp: <span class="'+ec+'">'+ed.toLocaleDateString('id-ID')+'</span></span></div></div><button onclick="dlK('+i+')" class="shrink-0 w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-400 border border-red-500/15 rounded-lg cursor-pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="space-y-2 pt-2 border-t border-slate-800/50"><div class="link-row"><span class="label bg-emerald-500/15 text-emerald-400">L1</span><span class="val text-emerald-400/50 mono">'+lnk.hook+'</span><button onclick="cpK('+i+',\'hook\')" class="cpb bg-emerald-500/10 text-emerald-400 border-emerald-500/20">COPY</button></div><div class="link-row"><span class="label bg-blue-500/15 text-blue-400">L2</span><span class="val text-blue-400/50 mono">'+lnk.l1+'</span><button onclick="cpK('+i+',\'l1\')" class="cpb bg-blue-500/10 text-blue-400 border-blue-500/20">COPY</button></div><div class="link-row"><span class="label bg-amber-500/15 text-amber-400">L3</span><span class="val text-amber-400/50 mono">'+lnk.l3+'</span><button onclick="cpK('+i+',\'l3\')" class="cpb bg-amber-500/10 text-amber-400 border-amber-500/20">COPY</button></div></div></div>'
+        return'<div class="key-card"><div class="flex justify-between items-start gap-2"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="key-name '+kc+'">'+k.key+'</span>'+badge+'</div><div class="key-meta"><span>Module: <b>'+k.target_script_name+'</b></span><span>Devices: <b style="color:#34d399">'+dc+'/'+k.max_devices+'</b></span><span>Exp: <b class="'+ec+'">'+ed.toLocaleDateString('id-ID')+'</b></span></div></div><button onclick="dlK('+i+')" class="shrink-0 w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-400 border border-red-500/15 rounded-lg cursor-pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="key-btns"><button onclick="cp(\''+k.key.replace(/'/g,"\\'")+'\')" style="background:rgba(245,158,11,.08);color:#fbbf24;border-color:rgba(245,158,11,.2)">COPY KEY</button><button onclick="cp(\''+loaderUrl+'\')" style="background:rgba(59,130,246,.08);color:#60a5fa;border-color:rgba(59,130,246,.2)">COPY LOADER</button><button onclick="cp(\''+hookScript.replace(/'/g,"\\'")+'\')" style="background:rgba(16,185,129,.08);color:#34d399;border-color:rgba(16,185,129,.2)">COPY HOOK</button><button onclick="cp(\''+location.origin+'/api/server?type=menu&id='+k.script_id+'\')" style="background:rgba(251,191,36,.08);color:#fbbf24;border-color:rgba(251,191,36,.2)">COPY MENU</button></div></div>'
     }).join('');
 }
 
