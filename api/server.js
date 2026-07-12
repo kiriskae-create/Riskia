@@ -16,29 +16,10 @@ export default async function handler(req, res) {
     const host = req.headers.host;
 
     // ═══════════════════════════════════════
-    //  LINK 1 — LOADER (generic + per-key)
+    //  LINK 1 — LOADER
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
-        const keyParam = req.query.key || '';
-        let code;
-        if (keyParam) {
-            const ek = encodeURIComponent(keyParam);
-            code = [
-                'gg.setVisible(false)',
-                'gg.toast("[X] NEXUS X - Verifying...")',
-                'local raw = "NX-" .. tostring(gg.getTargetPackage())',
-                'local enc = ""',
-                'for i = 1, #raw do enc = enc .. string.format("%02X", string.byte(raw, i)) end',
-                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&validate=' + ek + '&device=" .. enc)',
-                'if r and r.code == 200 then',
-                '    load(r.content)()',
-                'else',
-                '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
-                'end'
-            ].join('\n');
-        } else {
-            code = 'gg.setVisible(false)\ngg.toast("[X] NEXUS X - Connecting...")\nlocal r = gg.makeRequest("https://' + host + '/api/server?type=login")\nif r and r.code == 200 then\n    load(r.content)()\nelse\n    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")\nend';
-        }
+        const code = 'gg.setVisible(false)\ngg.toast("[X] NEXUS X - Connecting...")\nlocal r = gg.makeRequest("https://' + host + '/api/server?type=login")\nif r and r.code == 200 then\n    load(r.content)()\nelse\n    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")\nend';
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(code);
     }
@@ -57,6 +38,7 @@ export default async function handler(req, res) {
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
 
+        // --- VALIDATE KEY ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             if (checkKey.length === 0) {
@@ -101,6 +83,7 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
+            // VALID — alert tengah, setelah OK baru load menu
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
@@ -114,7 +97,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI (gg.dialog = TEXT keyboard, bukan numpad) ---
+        // --- LOGIN UI (gg.dialog = system keyboard) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -182,7 +165,7 @@ end`;
     }
 
     // ═══════════════════════════════════════
-    //  RAW SCRIPT
+    //  RAW SCRIPT CONTENT
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
