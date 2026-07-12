@@ -3,435 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEXUS DASHBOARD MASTER</title>
+    <title>NEXUS X CLOUD</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0c0e17; color: #f1f5f9; }
-        .glass { background: rgba(20, 24, 41, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .purple-header { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
-        .btn-purple { background: linear-gradient(135deg, #6366f1, #8b5cf6); transition: all 0.2s; }
-        .btn-purple:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); }
-        .input-dark { background: #131726; border: 1px solid rgba(255,255,255,0.08); color: #f1f5f9; }
-        .input-dark:focus { outline: none; border-color: #8b5cf6; }
-        .sidebar-drawer { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-drawer.open { transform: translateX(0); }
-        .blur-overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-        .blur-overlay.open { opacity: 1; pointer-events: auto; backdrop-filter: blur(6px); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body{font-family:'Inter',sans-serif;background:#05060a;color:#e2e8f0;overflow-x:hidden}
+        .mono{font-family:'JetBrains Mono',monospace}
+        .glass{background:rgba(15,17,25,.7);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(245,158,11,.08)}
+        .glass-gold{background:linear-gradient(135deg,rgba(245,158,11,.05),rgba(217,119,6,.02));border:1px solid rgba(245,158,11,.15)}
+        .glass-blue{background:linear-gradient(135deg,rgba(59,130,246,.05),rgba(29,78,216,.02));border:1px solid rgba(59,130,246,.15)}
+        .glass-edit{background:rgba(30,41,59,.7)!important;border:1px solid rgba(59,130,246,.3)!important}
+        .gold-text{background:linear-gradient(135deg,#fbbf24,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .menu-active{background:rgba(245,158,11,.08)!important;backdrop-filter:blur(15px);border-left:4px solid #f59e0b;color:#fbbf24;font-weight:700}
+        .btn-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-weight:700;transition:all .2s;cursor:pointer}
+        .btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(245,158,11,.3)}
+        .btn-blue{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-weight:700;transition:all .2s;cursor:pointer}
+        .btn-blue:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,.3)}
+        .input-dark{background:rgba(5,6,10,.8);border:1px solid rgba(245,158,11,.1);color:#e2e8f0}
+        .input-dark:focus{outline:none;border-color:rgba(245,158,11,.4)}
+        .tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.5px}
+        .flow-v{width:2px;height:20px;background:rgba(245,158,11,.15);margin:4px auto}
     </style>
 </head>
-<body class="min-h-screen overflow-x-hidden">
+<body class="min-h-screen">
 
-<header class="w-full h-14 bg-[#111422] border-b border-white/5 px-4 flex items-center justify-between fixed top-0 left-0 z-40">
-    <div class="flex items-center gap-3">
-        <button onclick="toggleMenu(true)" class="w-10 h-10 rounded-xl bg-purple-600/10 border border-purple-500/20 flex items-center justify-center cursor-pointer shadow-md">
-            <span class="text-purple-400 font-black text-sm tracking-tighter">GG</span>
-        </button>
-        <span class="text-xs font-bold tracking-wide text-slate-300">NEXUS CONTROLLER V2</span>
-    </div>
-    <div class="text-[11px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg">
-        Expired Total: <span id="dashExpCount">0</span>
-    </div>
-</header>
-
-<div id="blurBg" onclick="toggleMenu(false)" class="blur-overlay fixed inset-0 bg-black/40 z-40"></div>
-
-<!-- SIDEBAR NAV -->
-<aside id="sideMenu" class="sidebar-drawer fixed top-0 bottom-0 left-0 w-72 bg-[#171a2b] z-50 flex flex-col justify-between shadow-2xl border-r border-white/5">
-    <div>
-        <div class="purple-header p-5 flex items-center justify-between text-white shadow-inner">
-            <span class="text-base font-extrabold tracking-wider">MENU NAVIGASI</span>
-            <button onclick="toggleMenu(false)" class="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 cursor-pointer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
+<!-- FLOAT BTN -->
+<div class="fixed bottom-6 left-6 z-50">
+    <button onclick="toggleQM()" class="w-12 h-12 rounded-full btn-gold shadow-2xl flex items-center justify-center text-sm font-black tracking-tighter cursor-pointer border border-amber-400/20">NX</button>
+    <div id="qm" class="absolute bottom-16 left-0 glass p-3 rounded-2xl w-48 space-y-1 shadow-2xl hidden">
+        <div class="flex justify-between items-center px-2 pb-1.5 border-b border-amber-500/10">
+            <span class="text-[9px] font-bold text-slate-500 tracking-wider">NAV</span>
+            <button onclick="toggleQM()" class="text-xs text-red-400 font-bold cursor-pointer">X</button>
         </div>
-        <nav class="p-4 space-y-1.5">
-            <button onclick="sw('beranda')" class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/5 transition cursor-pointer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                Início (Beranda)
-            </button>
-            <button onclick="sw('ggscript')" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/5 transition cursor-pointer">
-                <div class="flex items-center gap-4">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                    GG Script (Cloud)
-                </div>
-            </button>
-            <button onclick="sw('keysystem')" class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/5 transition cursor-pointer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                Gerenciar Lisensi
-            </button>
-        </nav>
-    </div>
-    <div class="p-4 border-t border-white/5 bg-[#121524]">
-        <p class="text-[10px] text-slate-500 truncate mb-2" id="userEmail">admin@nexus.io</p>
-        <button onclick="doLogout()" class="w-full py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold cursor-pointer hover:bg-red-950/20 transition">Logout</button>
-    </div>
-</aside>
-
-<!-- AUTH MODAL SYSTEM -->
-<div id="authGate" class="fixed inset-0 z-50 bg-[#0c0e17] flex items-center justify-center px-4">
-    <div class="w-full max-w-sm glass rounded-2xl p-6 space-y-4">
-        <h2 class="text-center text-sm font-bold text-white tracking-wider">NEXUS SECURE CONTROL</h2>
-        <input type="email" id="lE" placeholder="Alamat Gmail" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs">
-        <input type="password" id="lP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs">
-        <button onclick="doLogin()" class="w-full py-2.5 rounded-xl btn-purple text-xs font-bold text-white">Masuk System</button>
+        <button onclick="sw('beranda');toggleQM()" class="w-full text-left px-3 py-2 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition cursor-pointer">Overview & Links</button>
+        <button onclick="sw('ggscript');toggleQM()" class="w-full text-left px-3 py-2 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition cursor-pointer">Cloud Scripts</button>
+        <button onclick="sw('keysystem');toggleQM()" class="w-full text-left px-3 py-2 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition cursor-pointer">License Keys</button>
     </div>
 </div>
 
-<!-- KOTAK MODAL KUSTOM KHUSUS UNTUK EDIT SCRIPT -->
-<div id="editModalPopup" class="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="w-full max-w-2xl bg-[#141829] border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center border-b border-white/5 pb-2">
-            <h3 class="text-sm font-bold text-purple-400" id="modalEditorTitle">Edit Script Cloud</h3>
-            <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-xs cursor-pointer font-bold">❌ Batal</button>
+<!-- AUTH GATE -->
+<div id="authGate" class="fixed inset-0 z-[100] bg-[#05060a] flex items-center justify-center">
+    <div class="w-full max-w-sm mx-4">
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/10 border border-amber-500/20 mb-3">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>
+            </div>
+            <h1 class="text-xl font-bold gold-text tracking-tight">NEXUS X CLOUD</h1>
+            <p class="text-[10px] text-slate-500 mt-1 tracking-wider">ADMIN PANEL</p>
         </div>
-        <input type="hidden" id="modalEditScriptId">
-        <div class="space-y-3">
-            <input type="text" id="modalScriptName" placeholder="nama_script.lua" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
-            <textarea id="modalScriptContent" rows="12" placeholder="-- Tulis baris kode lua disini..." class="w-full px-3 py-2.5 rounded-xl input-dark text-xs font-mono"></textarea>
+        <div class="flex mb-4 gap-1 bg-black/30 p-1 rounded-xl border border-amber-500/5">
+            <button id="tabReg" onclick="stab('reg')" class="flex-1 py-2 rounded-lg text-xs font-semibold cursor-pointer bg-amber-500/15 text-amber-400 border border-amber-500/30">Register</button>
+            <button id="tabLog" onclick="stab('log')" class="flex-1 py-2 rounded-lg text-xs font-semibold cursor-pointer text-slate-500">Login</button>
+        </div>
+        <div id="fReg" class="glass glass-gold rounded-2xl p-5 space-y-3">
+            <input type="email" id="rE" placeholder="Gmail Address" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+            <input type="password" id="rP" placeholder="Password (min 4)" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+            <button onclick="doReg()" class="w-full py-2.5 rounded-xl btn-gold text-sm">Register</button>
+        </div>
+        <div id="fCode" class="glass glass-gold rounded-2xl p-5 space-y-4 hidden text-center">
+            <h3 class="text-sm font-bold text-white">Security Key Created!</h3>
+            <div class="p-4 bg-black/40 rounded-xl tracking-widest font-black gold-text mono" id="cDisp">------</div>
+            <button onclick="goLog()" class="w-full py-2.5 rounded-xl btn-gold text-sm">Proceed to Login</button>
+        </div>
+        <div id="fLog" class="glass glass-gold rounded-2xl p-5 space-y-3 hidden">
+            <input type="email" id="lE" placeholder="Gmail Address" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+            <input type="password" id="lP" placeholder="Password" class="w-full px-4 py-2.5 rounded-xl input-dark text-sm mono">
+            <button onclick="doLog()" class="w-full py-2.5 rounded-xl btn-gold text-sm">Login</button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden min-h-screen flex flex-col md:flex-row">
+    <aside class="w-full md:w-64 bg-[#090b11] border-b md:border-b-0 md:border-r border-amber-500/10 flex flex-col justify-between p-4 shrink-0">
+        <div>
+            <div class="flex items-center gap-3 mb-8 px-2 py-1">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>
+                </div>
+                <h2 class="text-sm font-bold text-white tracking-wide">NEXUS PANEL</h2>
+            </div>
+            <nav class="space-y-1">
+                <button id="btn-beranda" onclick="sw('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Overview
+                </button>
+                <button id="btn-ggscript" onclick="sw('ggscript')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Scripts
+                </button>
+                <button id="btn-keysystem" onclick="sw('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                    Licenses
+                </button>
+            </nav>
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-900 px-2">
+            <p class="text-[9px] text-slate-500 truncate mb-2 mono" id="aE">user@nexus.io</p>
+            <button onclick="doOut()" class="w-full py-2 bg-red-950/30 text-red-400 border border-red-500/10 rounded-xl text-xs font-medium cursor-pointer hover:bg-red-950/50 transition">Disconnect</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-6 overflow-y-auto">
+
+        <!-- VIEW: OVERVIEW -->
+        <div id="view-beranda" class="space-y-5">
+            <h2 class="text-lg font-bold text-white">Overview & Links</h2>
+
+            <div class="glass rounded-2xl p-5 space-y-0">
+                <h3 class="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-4">Base Architecture Info</h3>
+
+                <div class="flex items-start gap-3">
+                    <div class="flex flex-col items-center pt-0.5">
+                        <span class="tag bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">L1</span>
+                        <div class="flow-v"></div>
+                    </div>
+                    <div class="flex-1 pb-1">
+                        <p class="text-xs font-bold text-white">Default Loader Base URL</p>
+                        <div class="mt-1.5 flex items-center gap-2">
+                            <code class="text-[9px] text-emerald-400/70 mono bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/10 truncate flex-1 min-w-0" id="dL1">-</code>
+                            <button onclick="cp(document.getElementById('dL1').innerText)" class="shrink-0 px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[9px] font-bold cursor-pointer hover:bg-emerald-500/20 transition">COPY</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3">
+                    <div class="flex flex-col items-center pt-0.5">
+                        <span class="tag bg-blue-500/10 text-blue-400 border border-blue-500/20">L2</span>
+                        <div class="flow-v"></div>
+                    </div>
+                    <div class="flex-1 pb-1">
+                        <p class="text-xs font-bold text-white">Login & Validation Gateway</p>
+                        <div class="mt-1.5 flex items-center gap-2">
+                            <code class="text-[9px] text-blue-400/70 mono bg-blue-500/5 px-2 py-1 rounded border border-blue-500/10 truncate flex-1 min-w-0" id="dL2">-</code>
+                            <button onclick="cp(document.getElementById('dL2').innerText)" class="shrink-0 px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[9px] font-bold cursor-pointer hover:bg-blue-500/20 transition">COPY</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3">
+                    <div class="flex flex-col items-center pt-0.5">
+                        <span class="tag bg-amber-500/10 text-amber-400 border border-amber-500/20">L3</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-white">Menu Router Stream</p>
+                        <div class="mt-1.5 flex items-center gap-2">
+                            <code class="text-[9px] text-amber-400/70 mono bg-amber-500/5 px-2 py-1 rounded border border-amber-500/10 truncate flex-1 min-w-0" id="dL3">-</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
-            <!-- TOMBOL DIKLIK UTK TOGGLE ENKRIPSI -->
-            <div onclick="toggleModalIconEnc()" class="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 cursor-pointer hover:bg-purple-500/10 transition select-none">
-                <div class="flex items-center gap-3">
-                    <span id="modalEncIconIndicator" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/5 transition-colors">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" id="modalSvgLockIcon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    </span>
-                    <div>
-                        <span class="text-xs font-bold block text-slate-200">Proteksi Enkripsi Cloud (NexusXGuard Anti-Dump)</span>
-                        <span id="modalEncStatusLabel" class="text-[10px] text-slate-500">Status: Tidak Aktif (Plain Script)</span>
-                    </div>
-                </div>
-                <span id="modalEncBadgeText" class="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400">PLAIN</span>
+            <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
+                💡 <b>Sistem Keamanan Validasi Berhasil Diperbarui:</b> Key sekarang terikat penuh ke Script ID yang dituju. Harap salin Loader URL / Hook Script langsung dari tab <b>Scripts</b> atau <b>Licenses</b> di bawah ini.
             </div>
         </div>
-        <div class="flex justify-end gap-3 pt-2">
-            <button onclick="closeEditModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold cursor-pointer">Cancel</button>
-            <button onclick="saveModalScript()" class="px-5 py-2.5 rounded-xl btn-purple text-xs font-bold text-white shadow-lg cursor-pointer">Simpan Perubahan</button>
+
+        <!-- VIEW: SCRIPTS -->
+        <div id="view-ggscript" class="space-y-5 hidden">
+            <h2 class="text-lg font-bold text-white">Cloud Scripts Handler</h2>
+            <div id="edC" class="glass rounded-2xl p-5 space-y-4 transition-all duration-300">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2" id="edT">
+                        <span id="edI">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        </span>
+                        <span id="edN">Create New Script</span>
+                    </h3>
+                    <button onclick="rstEd()" id="rstBtn" class="hidden text-xs text-red-400 hover:text-red-300 underline cursor-pointer">Batal</button>
+                </div>
+                <input type="hidden" id="edId">
+                <input type="text" id="fN" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
+                <textarea id="fC" rows="10" placeholder="-- Tulis script LUA disini..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
+                <button id="dpBtn" onclick="dep()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Save & Deploy</button>
+            </div>
+            <div id="fList" class="space-y-2"></div>
         </div>
-    </div>
+
+        <!-- VIEW: KEYS -->
+        <div id="view-keysystem" class="space-y-5 hidden">
+            <h2 class="text-lg font-bold text-white">License Keys Management</h2>
+            <div class="glass rounded-2xl p-5 space-y-4">
+                <h3 class="text-sm font-bold text-white">Generate License</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Target Module / Script</label>
+                        <select id="kT" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono"></select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Max Devices</label>
+                            <input type="number" id="kM" value="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Expiration</label>
+                            <input type="datetime-local" id="kE" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs mono">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Custom Key Name (Optional)</label>
+                        <input type="text" id="kC" placeholder="VIP-ALPHA" class="w-full px-4 py-2.5 rounded-xl input-dark text-xs mono">
+                    </div>
+                </div>
+                <button onclick="genK()" class="w-full py-2.5 rounded-xl btn-gold text-xs">Generate License</button>
+            </div>
+            <div id="kList" class="space-y-3"></div>
+        </div>
+
+    </main>
 </div>
 
-<!-- MAIN VIEW APP -->
-<main id="mainApp" class="hidden pt-20 px-4 max-w-3xl mx-auto pb-10 space-y-6">
-
-    <div id="view-beranda" class="space-y-4">
-        <div class="glass rounded-2xl p-5 space-y-3">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Server Link Gateway</h3>
-            <div class="text-xs">
-                <span class="text-slate-400 block mb-1">Loader Script Base URL:</span>
-                <code id="loadUrlCode" class="block p-3 bg-black/30 rounded text-[10px] text-purple-400 break-all select-all">Loading URL...</code>
-            </div>
-        </div>
-    </div>
-
-    <div id="view-ggscript" class="space-y-4 hidden">
-        <div class="glass rounded-2xl p-5 space-y-4">
-            <h3 class="text-xs font-bold text-white">Buat Script Baru</h3>
-            <input type="text" id="scriptName" placeholder="nama_script.lua" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
-            <textarea id="scriptContent" rows="6" placeholder="-- Tulis baris kode lua disini..." class="w-full px-3 py-2.5 rounded-xl input-dark text-xs font-mono"></textarea>
-            <button onclick="createFreshScript()" class="w-full py-3 rounded-xl btn-purple text-xs font-bold text-white shadow-lg cursor-pointer">Tambah Baru</button>
-        </div>
-
-        <h4 class="text-xs font-bold text-slate-400 px-1">Daftar Penyimpanan Script Cloud</h4>
-        <div id="scriptContainer" class="space-y-2"></div>
-    </div>
-
-    <div id="view-keysystem" class="space-y-4 hidden">
-        <div class="glass rounded-2xl p-5 space-y-4">
-            <h3 class="text-xs font-bold text-white">Generate Lisensi Baru</h3>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-[10px] text-slate-400 mb-1">Target Script</label>
-                    <select id="keyTarget" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs"></select>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] text-slate-400 mb-1">Maksimal Perangkat</label>
-                        <input type="number" id="keyMaxDevices" value="1" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-slate-400 mb-1">Durasi Paket</label>
-                        <select id="keyExpiryPreset" onchange="handleExpiryPreset(this.value)" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
-                            <option value="1">1 Hari</option>
-                            <option value="3">3 Hari</option>
-                            <option value="permanent">Permanen</option>
-                            <option value="custom">Kustom Kalender</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="customExpiryBox" class="hidden">
-                    <label class="block text-[10px] text-slate-400 mb-1">Pilih Tanggal Kadaluarsa</label>
-                    <input type="datetime-local" id="keyExpiryCustom" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
-                </div>
-                <div>
-                    <label class="block text-[10px] text-slate-400 mb-1">Custom Nama Key</label>
-                    <input type="text" id="keyCustomName" placeholder="Contoh: NEXUS-PREMIUM" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
-                </div>
-            </div>
-            <button onclick="generateLicense()" class="w-full py-3 rounded-xl btn-purple text-xs font-bold text-white shadow-lg cursor-pointer">Generate Lisensi</button>
-        </div>
-
-        <h4 class="text-xs font-bold text-slate-400 px-1">Manajemen Pengguna & Perangkat Terverifikasi</h4>
-        <div id="licenseContainer" class="space-y-2"></div>
-    </div>
-
-</main>
+<div id="toast" class="fixed bottom-6 right-6 bg-amber-500 text-black px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[200] text-xs font-bold"><span id="tM"></span></div>
 
 <script>
-var state = { files: [], keys: [], token: '', modalEncState: false };
+var S={files:[],keys:[],session:'',cur:'beranda'};
+function toast(m){var t=document.getElementById('toast');document.getElementById('tM').innerText=m;t.style.opacity='1';setTimeout(function(){t.style.opacity='0'},2500)}
+function cp(t){navigator.clipboard.writeText(t);toast('Copied to Clipboard!')}
+function toggleQM(){document.getElementById('qm').classList.toggle('hidden')}
 
-function toggleMenu(open) {
-    document.getElementById('sideMenu').classList.toggle('open', open);
-    document.getElementById('blurBg').classList.toggle('open', open);
-}
-
-function handleExpiryPreset(v) {
-    document.getElementById('customExpiryBox').classList.toggle('hidden', v !== 'custom');
-}
-
-function toggleModalIconEnc(forceState = null) {
-    state.modalEncState = forceState !== null ? forceState : !state.modalEncState;
-    const box = document.getElementById('modalEncIconIndicator');
-    const svg = document.getElementById('modalSvgLockIcon');
-    const label = document.getElementById('modalEncStatusLabel');
-    const badge = document.getElementById('modalEncBadgeText');
-
-    if (state.modalEncState) {
-        box.className = "w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 transition-colors shadow";
-        svg.setAttribute('stroke', '#10b981');
-        label.innerText = "Status: Aktif (Otomatis enkrip ke anti-dump Nexus saat disimpan)";
-        badge.className = "text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-emerald-500 text-black";
-        badge.innerText = "ENC ACTIVE";
-    } else {
-        box.className = "w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/5 transition-colors";
-        svg.setAttribute('stroke', '#94a3b8');
-        label.innerText = "Status: Tidak Aktif (Plain Script)";
-        badge.className = "text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400";
-        badge.innerText = "PLAIN";
-    }
-}
-
-function sw(target) {
-    ['beranda', 'ggscript', 'keysystem'].forEach(m => {
-        document.getElementById('view-' + m).classList.add('hidden');
+function sw(t){
+    S.cur=t;
+    ['beranda','ggscript','keysystem'].forEach(function(m){
+        document.getElementById('view-'+m).classList.add('hidden');
+        document.getElementById('btn-'+m).classList.remove('menu-active');
     });
-    document.getElementById('view-' + target).classList.remove('hidden');
-    toggleMenu(false);
-    if(target === 'beranda') initDashboard();
-    if(target === 'ggscript') fetchScripts();
-    if(target === 'keysystem') { fetchScripts(); fetchLicenses(); }
+    document.getElementById('view-'+t).classList.remove('hidden');
+    document.getElementById('btn-'+t).classList.add('menu-active');
+    if(t==='beranda')initB();
+    if(t==='ggscript')loadF();
+    if(t==='keysystem'){loadF();loadK()}
 }
 
-function initDashboard() {
-    document.getElementById('loadUrlCode').innerText = location.origin + '/api/server?type=loader';
-    updateExpiredCount();
+function initB(){
+    var b=location.origin;
+    document.getElementById('dL1').innerText=b+'/api/server?type=loader';
+    document.getElementById('dL2').innerText=b+'/api/server?type=login';
+    document.getElementById('dL3').innerText=b+'/api/server?type=menu&id={script_id}';
 }
 
-async function apiCall(method, query, body) {
-    let headers = { 'Content-Type': 'application/json' };
-    if (state.token) headers['X-Session'] = state.token;
-    return fetch('/api/server' + query, { method, headers, body: body ? JSON.stringify(body) : null });
+async function api(m,u,b){
+    var o={method:m,headers:{'Content-Type':'application/json'}};
+    if(S.session)o.headers['X-Session']=S.session;
+    if(b)o.body=JSON.stringify(b);
+    return fetch('/api/server'+u,o)
 }
 
-async function updateExpiredCount() {
-    let res = await apiCall('GET', '?type=keys');
-    if (res.ok) {
-        let list = await res.json();
-        let exp = list.filter(k => k.expiry && new Date() > new Date(k.expiry)).length;
-        document.getElementById('dashExpCount').innerText = exp;
-    }
+// Global helper untuk generate string hook LUA aman tanpa merusak template JS
+function triggerCopyHook(scriptId) {
+    var b = location.origin;
+    var luaCode = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '").content if V then pcall(load(V)) end';
+    cp(luaCode);
 }
 
-async function fetchScripts() {
-    let res = await apiCall('GET', '');
-    if (!res.ok) return;
-    state.files = await res.json();
+async function loadF(){
+    var r=await api('GET','');if(!r.ok)return;S.files=await r.json();
+    var s=document.getElementById('kT');
+    if(s)s.innerHTML=S.files.map(function(f){return'<option value="'+f.id+'">'+f.name+'</option>'}).join('');
+    var c=document.getElementById('fList');
     
-    let sel = document.getElementById('keyTarget');
-    if (sel) sel.innerHTML = state.files.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
-
-    let box = document.getElementById('scriptContainer');
-    if (box) {
-        box.innerHTML = state.files.map(f => {
-            const isEnc = f.encrypted === true || f.encrypted === 'true' || f.encrypted === 1;
-            return `
-                <div class="glass rounded-xl p-4 flex justify-between items-center">
-                    <div>
-                        <span class="text-xs font-bold text-purple-400 block">${f.name}</span>
-                        <span class="text-[9px] text-slate-500">${f.id} — ${isEnc ? '🔒 Terproteksi Nexus' : '🔓 Plaintext'}</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="openEditModal('${f.id}')" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Edit Kotak</button>
-                        <button onclick="deleteScript('${f.id}')" class="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Hapus</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
+    c.innerHTML=S.files.map(function(f){
+        var rl=location.origin+'/api/server?type=raw&id='+f.id;
+        var ldrUrl=location.origin+'/api/server?type=loader&id='+f.id;
+        
+        return '<div class="glass rounded-xl p-4 space-y-3">' +
+            '<div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">' +
+                '<div><span class="mono text-xs font-bold text-amber-400">'+f.name+'</span><div class="text-[9px] text-slate-500 mt-1 mono">'+f.id+'</div></div>' +
+                '<div class="flex gap-1.5">' +
+                    '<button onclick="cp(\''+rl+'\')" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Raw URL</button>' +
+                    '<button onclick="edF(\''+f.id+'\')" class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Edit</button>' +
+                    '<button onclick="dlF(\''+f.id+'\')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Del</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-800/60">' +
+                '<button onclick="cp(\''+ldrUrl+'\')" class="py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold cursor-pointer hover:bg-blue-500/20 transition">Copy Unique Loader URL</button>' +
+                '<button onclick="triggerCopyHook(\''+f.id+'\')" class="py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold cursor-pointer hover:bg-amber-500/20 transition">Copy 1-Line Hook Script</button>' +
+            '</div>' +
+        '</div>';
+    }).join('')
 }
 
-async function createFreshScript() {
-    let name = document.getElementById('scriptName').value.trim();
-    let content = document.getElementById('scriptContent').value;
-    if(!name || content === "") return alert("Nama dan isi script tidak boleh kosong!");
-    
-    if (!name.toLowerCase().endsWith('.lua')) name += '.lua';
-    
-    let res = await apiCall('POST', '', { name, content, encrypted: false });
-    if(res.ok) {
-        alert("Script baru ditambahkan!");
-        document.getElementById('scriptName').value = "";
-        document.getElementById('scriptContent').value = "";
-        fetchScripts();
-    }
+function edF(id){
+    var t=S.files.find(function(f){return f.id===id});if(!t)return;
+    document.getElementById('edId').value=id;
+    document.getElementById('fN').value=t.name;
+    document.getElementById('fC').value=t.content;
+    document.getElementById('edC').classList.add('glass-edit');
+    document.getElementById('edN').innerText='Editing: '+t.name;
+    var d=document.getElementById('dpBtn');d.className='w-full py-2.5 rounded-xl btn-blue text-xs';d.innerText='Update Script';
+    document.getElementById('rstBtn').classList.remove('hidden');
+    window.scrollTo({top:0,behavior:'smooth'})
+}
+function rstEd(){
+    document.getElementById('edId').value='';document.getElementById('fN').value='';document.getElementById('fC').value='';
+    document.getElementById('edC').classList.remove('glass-edit');document.getElementById('edN').innerText='Create New Script';
+    var d=document.getElementById('dpBtn');d.className='w-full py-2.5 rounded-xl btn-gold text-xs';d.innerText='Save & Deploy';
+    document.getElementById('rstBtn').classList.add('hidden')
+}
+async function dep(){
+    var n=document.getElementById('fN').value.trim(),c=document.getElementById('fC').value,e=document.getElementById('edId').value;
+    if(!n||!c)return toast('Nama & content wajib diisi!');
+    var r=await api('POST','',{name:n,content:c,existingScriptId:e});
+    if(r.ok){toast(e?'Updated!':'Deployed!');rstEd();loadF()}else toast('Gagal.')
 }
 
-function openEditModal(id) {
-    let f = state.files.find(x => x.id === id);
-    if (!f) return;
-    
-    document.getElementById('modalEditScriptId').value = f.id;
-    document.getElementById('modalScriptName').value = f.name;
-    document.getElementById('modalScriptContent').value = f.content;
-    
-    const isEnc = f.encrypted === true || f.encrypted === 'true' || f.encrypted === 1;
-    toggleModalIconEnc(isEnc);
-    
-    document.getElementById('modalEditorTitle').innerText = "Mengedit Script: " + f.name;
-    document.getElementById('editModalPopup').classList.remove('hidden');
+async function loadK(){
+    var r=await api('GET','?type=keys');if(!r.ok)return;S.keys=await r.json();
+    var c=document.getElementById('kList');
+    c.innerHTML=S.keys.map(function(k){
+        var ed=new Date(k.expiry),exp=new Date()>ed;
+        var dc=k.registered_devices?k.registered_devices.length:0;
+        var kc=exp?'text-red-400 line-through':'text-amber-400';
+        var ec=exp?'text-red-400 font-bold':'text-slate-300';
+        var badge=exp?'<span class="tag bg-red-500/10 text-red-400 border border-red-500/20">EXPIRED</span>':'<span class="tag bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ACTIVE</span>';
+        
+        var ldrUrl=location.origin+'/api/server?type=loader&id='+k.script_id;
+
+        return '<div class="glass rounded-xl p-4 space-y-3">' +
+            '<div class="flex justify-between items-start gap-2">' +
+                '<div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold '+kc+' break-all">'+k.key+'</span>'+badge+'</div></div>' +
+                '<button onclick="dlK(\''+k.key+'\')" class="shrink-0 px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-semibold cursor-pointer">Del</button>' +
+            '</div>' +
+            '<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-400 mono pt-2 border-t border-slate-800">' +
+                '<div>Module: <span class="text-white font-semibold">'+k.target_script_name+'</span></div>' +
+                '<div>Devices: <span class="text-emerald-400 font-bold">'+dc+'/'+k.max_devices+'</span></div>' +
+                '<div>Exp: <span class="'+ec+'">'+ed.toLocaleDateString('id-ID')+'</span></div>' +
+            '</div>' +
+            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">' +
+                '<button onclick="triggerCopyHook(\''+k.script_id+'\')" class="py-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-[10px] font-bold rounded-xl transition cursor-pointer text-center">Copy Hook Script</button>' +
+                '<button onclick="cp(\''+ldrUrl+'\')" class="py-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 text-[10px] font-bold rounded-xl transition cursor-pointer text-center">Copy Loader URL</button>' +
+            '</div>' +
+        '</div>';
+    }).join('')
 }
 
-function closeEditModal() {
-    document.getElementById('editModalPopup').classList.add('hidden');
+async function genK(){
+    var s=document.getElementById('kT').value,m=document.getElementById('kM').value,e=document.getElementById('kE').value,c=document.getElementById('kC').value.trim();
+    if(!s||!e)return toast('Target & Expiration wajib!');
+    var r=await api('POST','',{action:'createKey',scriptId:s,expiry:e,maxDevices:m,customName:c});
+    if(r.ok){toast('Key Generated!');document.getElementById('kC').value='';loadK()}
 }
+async function dlF(id){if(confirm('Hapus script?')){await api('DELETE','?id='+id);loadF();toast('Deleted!')}}
+async function dlK(k){if(confirm('Hapus key?')){await api('DELETE','?deleteKey='+k);loadK();toast('Deleted!')}}
 
-async function saveModalScript() {
-    let id = document.getElementById('modalEditScriptId').value;
-    let name = document.getElementById('modalScriptName').value.trim();
-    let content = document.getElementById('modalScriptContent').value;
-    let encrypted = state.modalEncState;
-
-    if (!name || content === '') return alert('Nama dan isi script tidak boleh kosong!');
-    
-    if (!name.toLowerCase().endsWith('.lua')) name += '.lua';
-    
-    let res = await apiCall('POST', '', { name, content, encrypted: encrypted, existingScriptId: id });
-    if (res.ok) {
-        alert('Script berhasil diupdate dan disimpan ke database cloud!');
-        closeEditModal();
-        fetchScripts();
-    } else {
-        alert('Gagal menyimpan perubahan script! Cek koneksi atau struktur database.');
-    }
+function stab(t){
+    document.getElementById('fReg').classList.toggle('hidden',t!=='reg');
+    document.getElementById('fLog').classList.toggle('hidden',t!=='log');
+    document.getElementById('tabReg').className=t==='reg'?'flex-1 py-2 rounded-lg text-xs font-semibold cursor-pointer bg-amber-500/15 text-amber-400 border border-amber-500/30':'flex-1 py-2 rounded-lg text-xs font-semibold cursor-pointer text-slate-500';
+    document.getElementById('tabLog').className=t==='log'?'flex-1 py-2 rounded-lg text-xs font-semibold cursor-pointer bg-amber-500/15 text-amber-400 border border-amber-500/30':'flex-1 py-2 rounded-lg text-xs font-semibold cursor-pointer text-slate-500'
 }
-
-async function deleteScript(id) {
-    if (confirm('Hapus permanen file script ini?')) {
-        await apiCall('DELETE', '?id=' + id);
-        fetchScripts();
-    }
+async function doReg(){
+    var e=document.getElementById('rE').value.trim(),p=document.getElementById('rP').value;
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'register',email:e,password:p})});
+    if(r.ok){var d=await r.json();document.getElementById('cDisp').innerText=d.code;document.getElementById('fReg').classList.add('hidden');document.getElementById('fCode').classList.remove('hidden')}
 }
-
-async function fetchLicenses() {
-    let res = await apiCall('GET', '?type=keys');
-    if (!res.ok) return;
-    state.keys = await res.json();
-    updateExpiredCount();
-
-    let box = document.getElementById('licenseContainer');
-    box.innerHTML = state.keys.map(k => {
-        let isExp = k.expiry ? (new Date() > new Date(k.expiry)) : false;
-        let devArray = [];
-        try {
-            devArray = typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices) : (k.registered_devices || []);
-        } catch(e) { devArray = []; }
-
-        let devicesHtml = devArray.length > 0 
-            ? devArray.map(d => `<div class="bg-black/40 px-2 py-1 rounded text-[9px] text-purple-300 font-mono truncate mb-1">💻 HWID: ${d} [TERVERIFIKASI]</div>`).join('')
-            : `<span class="text-[10px] text-slate-500 italic">Belum ada perangkat terikat</span>`;
-
-        return `
-            <div class="glass rounded-xl p-4 space-y-3">
-                <div class="flex justify-between items-center border-b border-white/5 pb-1.5">
-                    <span class="font-mono text-xs font-bold ${isExp ? 'text-red-400 line-through' : 'text-emerald-400'}">${k.key}</span>
-                    <button onclick="deleteKey('${k.key}')" class="text-[10px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/10 cursor-pointer">Hapus</button>
-                </div>
-                <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400">
-                    <div>Script Terikat: <b class="text-slate-200">${k.target_script_name}</b></div>
-                    <div>Limit Multi-Device: <b class="text-slate-200">${devArray.length} / ${k.max_devices}</b></div>
-                    <div class="col-span-2">Masa Aktif: <b class="text-slate-200">${k.expiry ? new Date(k.expiry).toLocaleString('id-ID') : 'Permanen'}</b></div>
-                </div>
-                <div class="pt-2 border-t border-white/5">
-                    ${devicesHtml}
-                </div>
-            </div>
-        `;
-    }).join('');
+async function doLog(){
+    var e=document.getElementById('lE').value.trim(),p=document.getElementById('lP').value;
+    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email:e,password:p})});
+    if(r.ok){var d=await r.json();S.session=d.session;localStorage.setItem('nx_session',d.session);document.getElementById('authGate').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');document.getElementById('aE').innerText=e;sw('beranda')}else toast('Login gagal!')
 }
+function goLog(){document.getElementById('fCode').classList.add('hidden');stab('log')}
+function doOut(){localStorage.removeItem('nx_session');location.reload()}
 
-async function generateLicense() {
-    let scriptId = document.getElementById('keyTarget').value;
-    let maxDevices = document.getElementById('keyMaxDevices').value;
-    let preset = document.getElementById('keyExpiryPreset').value;
-    let customName = document.getElementById('keyCustomName').value.trim();
-    
-    let expiry = '';
-    if (preset === 'permanent') {
-        expiry = 'permanent';
-    } else if (preset === 'custom') {
-        expiry = document.getElementById('keyExpiryCustom').value;
-        if (!expiry) return alert('Pilih tanggal kadaluarsa kustom Anda!');
-    } else {
-        let days = parseInt(preset);
-        let d = new Date();
-        d.setDate(d.getDate() + days);
-        expiry = d.toISOString();
-    }
-
-    let res = await apiCall('POST', '', { action: 'createKey', scriptId, expiry, maxDevices, customName });
-    if (res.ok) {
-        alert('Lisensi baru berhasil ditambahkan!');
-        document.getElementById('keyCustomName').value = '';
-        fetchLicenses();
-    }
-}
-
-async function deleteKey(k) {
-    if (confirm('Hapus lisensi ini dari database?')) {
-        await apiCall('DELETE', '?deleteKey=' + k);
-        fetchLicenses();
-    }
-}
-
-async function doLogin() {
-    let email = document.getElementById('lE').value.trim();
-    let password = document.getElementById('lP').value;
-    let res = await fetch('/api/server', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'login', email, password }) });
-    if (res.ok) {
-        let d = await res.json();
-        state.token = d.session;
-        localStorage.setItem('nx_session', d.session);
-        document.getElementById('authGate').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('userEmail').innerText = email;
-        sw('beranda');
-    } else alert('Kombinasi email & password salah!');
-}
-
-function doLogout() {
-    localStorage.removeItem('nx_session');
-    location.reload();
-}
-
-window.onload = function() {
-    let saved = localStorage.getItem('nx_session');
-    if (saved) {
-        state.token = saved;
-        document.getElementById('authGate').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        sw('beranda');
-    }
-}
+window.onload=function(){var c=localStorage.getItem('nx_session');if(c){S.session=c;document.getElementById('authGate').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');sw('beranda')}}
 </script>
 </body>
 </html>
