@@ -125,7 +125,8 @@ export default async function handler(req, res) {
         const sc = await sql`SELECT content, encrypted FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         if (sc.length > 0) {
-            return res.status(200).send(sc[0].encrypted ? obfuscateLua(sc[0].content) : sc[0].content);
+            const isEncrypted = sc[0].encrypted === true || sc[0].encrypted === 'true' || sc[0].encrypted === 1;
+            return res.status(200).send(isEncrypted ? obfuscateLua(sc[0].content) : sc[0].content);
         }
         return res.status(200).send('gg.alert("[X] Menu tidak ditemukan!")');
     }
@@ -239,13 +240,24 @@ end`;
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
 
         if (name && content !== undefined) {
-            const isEnc = encrypted ? true : false;
-            if (existingScriptId) {
-                await sql`UPDATE scripts SET name = ${name}, content = ${content}, encrypted = ${isEnc} WHERE id = ${existingScriptId}`;
-            } else {
-                await sql`INSERT INTO scripts (id, name, content, encrypted) VALUES (${'sc_' + Math.random().toString(36).substring(2, 9)}, ${name}, ${content}, ${isEnc})`;
+            // Memastikan nama file berakhiran .lua
+            let sanitizedName = name.trim();
+            if (!sanitizedName.toLowerCase().endsWith('.lua')) {
+                sanitizedName += '.lua';
             }
-            return res.status(200).json({ success: true });
+
+            const isEnc = encrypted ? true : false;
+            
+            try {
+                if (existingScriptId) {
+                    await sql`UPDATE scripts SET name = ${sanitizedName}, content = ${content}, encrypted = ${isEnc} WHERE id = ${existingScriptId}`;
+                } else {
+                    await sql`INSERT INTO scripts (id, name, content, encrypted) VALUES (${'sc_' + Math.random().toString(36).substring(2, 9)}, ${sanitizedName}, ${content}, ${isEnc})`;
+                }
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                return res.status(500).json({ error: err.message });
+            }
         }
         if (action === 'createKey') {
             const finalKey = customName || 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();

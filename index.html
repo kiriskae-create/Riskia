@@ -78,7 +78,7 @@
     </div>
 </div>
 
-<!-- KOTAK MODAL KUSTOM KHUSUS UNTUK EDIT SCRIPT (FIX TERPISAH BEDA TEMPAT) -->
+<!-- KOTAK MODAL KUSTOM KHUSUS UNTUK EDIT SCRIPT -->
 <div id="editModalPopup" class="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 hidden backdrop-blur-sm">
     <div class="w-full max-w-2xl bg-[#141829] border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b border-white/5 pb-2">
@@ -90,7 +90,7 @@
             <input type="text" id="modalScriptName" placeholder="nama_script.lua" class="w-full px-3 py-2.5 rounded-xl input-dark text-xs">
             <textarea id="modalScriptContent" rows="12" placeholder="-- Tulis baris kode lua disini..." class="w-full px-3 py-2.5 rounded-xl input-dark text-xs font-mono"></textarea>
             
-            <!-- TAP/CLICK EVENT ON THE BOX - AUTOMATICALLY BINDS/KEEPS PREVIOUS LUA CODE DATA -->
+            <!-- TOMBOL DIKLIK UTK TOGGLE ENKRIPSI -->
             <div onclick="toggleModalIconEnc()" class="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 cursor-pointer hover:bg-purple-500/10 transition select-none">
                 <div class="flex items-center gap-3">
                     <span id="modalEncIconIndicator" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/5 transition-colors">
@@ -124,7 +124,6 @@
         </div>
     </div>
 
-    <!-- AREA WORKPLACE SCRIPT & DAFTAR -->
     <div id="view-ggscript" class="space-y-4 hidden">
         <div class="glass rounded-2xl p-5 space-y-4">
             <h3 class="text-xs font-bold text-white">Buat Script Baru</h3>
@@ -137,7 +136,6 @@
         <div id="scriptContainer" class="space-y-2"></div>
     </div>
 
-    <!-- VIEW LISENSI -->
     <div id="view-keysystem" class="space-y-4 hidden">
         <div class="glass rounded-2xl p-5 space-y-4">
             <h3 class="text-xs font-bold text-white">Generate Lisensi Baru</h3>
@@ -191,7 +189,6 @@ function handleExpiryPreset(v) {
     document.getElementById('customExpiryBox').classList.toggle('hidden', v !== 'custom');
 }
 
-// TOGGLE HANDLER DI KOTAK MODAL EDIT SCRIPT - DIJAMIN MENGIKAT KODE LUA DARI DATABASE SEBELUMNYA SECARA OTOMATIS
 function toggleModalIconEnc(forceState = null) {
     state.modalEncState = forceState !== null ? forceState : !state.modalEncState;
     const box = document.getElementById('modalEncIconIndicator');
@@ -255,18 +252,21 @@ async function fetchScripts() {
 
     let box = document.getElementById('scriptContainer');
     if (box) {
-        box.innerHTML = state.files.map(f => `
-            <div class="glass rounded-xl p-4 flex justify-between items-center">
-                <div>
-                    <span class="text-xs font-bold text-purple-400 block">${f.name}</span>
-                    <span class="text-[9px] text-slate-500">${f.id} — ${f.encrypted ? '🔒 Terproteksi Nexus' : '🔓 Plaintext'}</span>
+        box.innerHTML = state.files.map(f => {
+            const isEnc = f.encrypted === true || f.encrypted === 'true' || f.encrypted === 1;
+            return `
+                <div class="glass rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-bold text-purple-400 block">${f.name}</span>
+                        <span class="text-[9px] text-slate-500">${f.id} — ${isEnc ? '🔒 Terproteksi Nexus' : '🔓 Plaintext'}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openEditModal('${f.id}')" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Edit Kotak</button>
+                        <button onclick="deleteScript('${f.id}')" class="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Hapus</button>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="openEditModal('${f.id}')" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Edit Kotak</button>
-                    <button onclick="deleteScript('${f.id}')" class="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] cursor-pointer font-bold">Hapus</button>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 }
 
@@ -274,6 +274,8 @@ async function createFreshScript() {
     let name = document.getElementById('scriptName').value.trim();
     let content = document.getElementById('scriptContent').value;
     if(!name || content === "") return alert("Nama dan isi script tidak boleh kosong!");
+    
+    if (!name.toLowerCase().endsWith('.lua')) name += '.lua';
     
     let res = await apiCall('POST', '', { name, content, encrypted: false });
     if(res.ok) {
@@ -284,7 +286,6 @@ async function createFreshScript() {
     }
 }
 
-// MUNCULKAN SEBAGAI MODAL BOX DI TEMPAT BERBEDA (FIX PLUGGED KODE LUA)
 function openEditModal(id) {
     let f = state.files.find(x => x.id === id);
     if (!f) return;
@@ -293,7 +294,8 @@ function openEditModal(id) {
     document.getElementById('modalScriptName').value = f.name;
     document.getElementById('modalScriptContent').value = f.content;
     
-    toggleModalIconEnc(f.encrypted || false);
+    const isEnc = f.encrypted === true || f.encrypted === 'true' || f.encrypted === 1;
+    toggleModalIconEnc(isEnc);
     
     document.getElementById('modalEditorTitle').innerText = "Mengedit Script: " + f.name;
     document.getElementById('editModalPopup').classList.remove('hidden');
@@ -303,7 +305,6 @@ function closeEditModal() {
     document.getElementById('editModalPopup').classList.add('hidden');
 }
 
-// FUNGSI SIMPAN DARI KOTAK MODAL - DIJAMIN BISA DIKLIK DAN BERFUNGSI SEMPURNA
 async function saveModalScript() {
     let id = document.getElementById('modalEditScriptId').value;
     let name = document.getElementById('modalScriptName').value.trim();
@@ -312,13 +313,15 @@ async function saveModalScript() {
 
     if (!name || content === '') return alert('Nama dan isi script tidak boleh kosong!');
     
-    let res = await apiCall('POST', '', { name, content, encrypted, existingScriptId: id });
+    if (!name.toLowerCase().endsWith('.lua')) name += '.lua';
+    
+    let res = await apiCall('POST', '', { name, content, encrypted: encrypted, existingScriptId: id });
     if (res.ok) {
         alert('Script berhasil diupdate dan disimpan ke database cloud!');
         closeEditModal();
         fetchScripts();
     } else {
-        alert('Gagal menyimpan perubahan script!');
+        alert('Gagal menyimpan perubahan script! Cek koneksi atau struktur database.');
     }
 }
 
