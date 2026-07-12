@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     }
 
     // ═══════════════════════════════════════
-    //  LINK 3 — MENU
+    //  LINK 3 — MENU ROUTER
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
@@ -45,19 +45,43 @@ export default async function handler(req, res) {
     }
 
     // ═══════════════════════════════════════
-    //  LINK 2 — LOGIN & VALIDASI KETAT
+    //  LINK 2 — LOGIN & HWID AUTO-DETECT REGISTRY
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
         const targetScriptId = id || '';
+        const clientHwid = device || 'NX-UNKNOWN';
 
-        // --- VALIDATE KEY & TARGET SCRIPT SYSTEM ---
+        // --- INTERNAL AUTO-DETECT SYSTEM VIA HWID ---
+        if (!validate && clientHwid !== 'NX-UNKNOWN') {
+            // Cari apakah HWID ini sudah terdaftar di salah satu valid key untuk script ini
+            const activeKeys = await sql`SELECT * FROM keys WHERE script_id = ${targetScriptId}`;
+            const matchingKey = activeKeys.find(k => {
+                let devList = k.registered_devices || [];
+                let isExpired = new Date() > new Date(k.expiry);
+                return devList.includes(clientHwid) && !isExpired;
+            });
+
+            if (matchingKey) {
+                const expDate = new Date(matchingKey.expiry);
+                const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+                const c = [
+                    'gg.toast("[X] Auto-Detect: Device Recognized!")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nWELCOME BACK\\nExp: ' + fd + '")',
+                    'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + matchingKey.script_id + '")',
+                    'local fn = load(r.content)',
+                    'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
+                ].join('\n');
+                res.setHeader('Content-Type', 'text/plain');
+                return res.status(200).send(c);
+            }
+        }
+
+        // --- EXPLICIT KEY VALIDATION METHOD ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             
-            // Proteksi 1: Cek apakah key terdaftar atau apakah key tersebut ditujukan untuk script id yang sedang diakses
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
-                    'os.remove("/sdcard/.nexus_auth")',
                     'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense Key tidak valid untuk Script ini!")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
@@ -69,12 +93,10 @@ export default async function handler(req, res) {
             const license = checkKey[0];
             const expDate = new Date(license.expiry);
 
-            // Proteksi 2: Masa kedaluwarsa
             if (new Date() > expDate) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
-                    'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '\\n\\nContact admin for renewal.")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
@@ -82,14 +104,11 @@ export default async function handler(req, res) {
                 return res.status(200).send(c);
             }
 
-            // Proteksi 3: Batasan Perangkat (HWID)
-            const clientHwid = device || 'NX-UNKNOWN';
             let registeredDevices = license.registered_devices || [];
-            if (device && !registeredDevices.includes(clientHwid)) {
+            if (clientHwid !== 'NX-UNKNOWN' && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
-                        'os.remove("/sdcard/.nexus_auth")',
-                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!\\n\\nContact admin to reset devices.")',
+                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!")',
                         'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                         'if r and r.code == 200 then load(r.content)() end'
                     ].join('\n');
@@ -100,11 +119,8 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            // Sukses -> Stream Script Utama (Menu)
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
-                'local f = io.open("/sdcard/.nexus_auth", "w")',
-                'if f then f:write("' + validate + '"); f:close() end',
                 'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + fd + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
@@ -114,10 +130,9 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI (NATIVE KEYBOARD FORCED VIA gg.prompt) ---
+        // --- LOGIN PROMPT NATIVE (Kicked if auto-detect fails) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
-local KEY_FILE = "/sdcard/.nexus_auth"
 local SCRIPT_ID = "${targetScriptId}"
 
 local function getHwid()
@@ -148,15 +163,6 @@ local function showLogin()
         return (input[1]):match("^%s*(.-)%s*$") 
     end
     return nil
-end
-
-local savedKey = nil
-local f = io.open(KEY_FILE, "r")
-if f then savedKey = f:read("*a"):match("^%s*(.-)%s*$"); f:close() end
-
-if savedKey and savedKey ~= "" then
-    gg.toast("[X] Restoring session...")
-    if doValidate(savedKey) then return end
 end
 
 local inputKey = showLogin()

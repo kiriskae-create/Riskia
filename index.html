@@ -27,12 +27,12 @@
 </head>
 <body class="min-h-screen">
 
-<!-- FLOAT BTN -->
+<!-- FLOAT NAV MENU BOX (LEFT BOTTOM) -->
 <div class="fixed bottom-6 left-6 z-50">
     <button onclick="toggleQM()" class="w-12 h-12 rounded-full btn-gold shadow-2xl flex items-center justify-center text-sm font-black tracking-tighter cursor-pointer border border-amber-400/20">NX</button>
     <div id="qm" class="absolute bottom-16 left-0 glass p-3 rounded-2xl w-48 space-y-1 shadow-2xl hidden">
         <div class="flex justify-between items-center px-2 pb-1.5 border-b border-amber-500/10">
-            <span class="text-[9px] font-bold text-slate-500 tracking-wider">NAV</span>
+            <span class="text-[9px] font-bold text-slate-500 tracking-wider">QUICK NAVIGATION</span>
             <button onclick="toggleQM()" class="text-xs text-red-400 font-bold cursor-pointer">X</button>
         </div>
         <button onclick="sw('beranda');toggleQM()" class="w-full text-left px-3 py-2 text-[11px] text-slate-300 hover:bg-white/5 rounded-lg transition cursor-pointer">Overview & Links</button>
@@ -75,13 +75,18 @@
 
 <!-- MAIN APP -->
 <div id="mainApp" class="hidden min-h-screen flex flex-col md:flex-row">
+    <!-- ASIDE SIDEBAR -->
     <aside class="w-full md:w-64 bg-[#090b11] border-b md:border-b-0 md:border-r border-amber-500/10 flex flex-col justify-between p-4 shrink-0">
         <div>
-            <div class="flex items-center gap-3 mb-8 px-2 py-1">
-                <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+            <!-- LOGO AREA (CLICKING THIS TRIGGERS THE QUICK MENU SIDE WINDOW) -->
+            <div onclick="toggleQM()" class="flex items-center gap-3 mb-8 px-2 py-2 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/10 rounded-xl cursor-pointer transition">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shadow">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>
                 </div>
-                <h2 class="text-sm font-bold text-white tracking-wide">NEXUS PANEL</h2>
+                <div>
+                    <h2 class="text-xs font-black text-white tracking-wide">NEXUS MODULE</h2>
+                    <p class="text-[8px] text-amber-400 font-medium tracking-tight">Tap to Quick Access</p>
+                </div>
             </div>
             <nav class="space-y-1">
                 <button id="btn-beranda" onclick="sw('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs flex items-center gap-3 text-slate-400 transition hover:bg-white/5 cursor-pointer">
@@ -98,9 +103,22 @@
                 </button>
             </nav>
         </div>
-        <div class="mt-6 pt-4 border-t border-slate-900 px-2">
-            <p class="text-[9px] text-slate-500 truncate mb-2 mono" id="aE">user@nexus.io</p>
-            <button onclick="doOut()" class="w-full py-2 bg-red-950/30 text-red-400 border border-red-500/10 rounded-xl text-xs font-medium cursor-pointer hover:bg-red-950/50 transition">Disconnect</button>
+
+        <!-- LOWER LEFT SIDEBAR BAR OVERVIEW MODULES -->
+        <div class="mt-6 pt-4 border-t border-slate-900/80 space-y-3 px-2">
+            <!-- REAL-TIME LICENSES COUNTER / EXPIRED MONITOR -->
+            <div class="p-2.5 rounded-xl bg-red-500/5 border border-red-500/10 space-y-1">
+                <div class="text-[9px] font-bold text-slate-500 tracking-wider uppercase">Licensing Health</div>
+                <div class="flex justify-between items-center text-[11px] mono">
+                    <span class="text-slate-400">Expired Keys:</span>
+                    <span id="expCountBadge" class="text-red-400 font-black bg-red-500/10 px-1.5 py-0.5 rounded">0</span>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-[9px] text-slate-500 truncate mb-1.5 mono" id="aE">user@nexus.io</p>
+                <button onclick="doOut()" class="w-full py-2 bg-red-950/30 text-red-400 border border-red-500/10 rounded-xl text-xs font-medium cursor-pointer hover:bg-red-950/50 transition">Disconnect</button>
+            </div>
         </div>
     </aside>
 
@@ -154,8 +172,8 @@
                 </div>
             </div>
             
-            <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
-                💡 <b>Sistem Keamanan Validasi Berhasil Diperbarui:</b> Key sekarang terikat penuh ke Script ID yang dituju. Harap salin Loader URL / Hook Script langsung dari tab <b>Scripts</b> atau <b>Licenses</b> di bawah ini.
+            <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[11px] text-emerald-300">
+                🚀 <b>Sistem Database-Auto-Detect Aktif:</b> Data penyimpanan lokal `/sdcard/.nexus_auth` berhasil dihilangkan dari sistem LUA. Log masuk Client kini otomatis mendeteksi kecocokan HWID terdaftar di JavaScript Server.
             </div>
         </div>
 
@@ -229,9 +247,9 @@ function sw(t){
     });
     document.getElementById('view-'+t).classList.remove('hidden');
     document.getElementById('btn-'+t).classList.add('menu-active');
-    if(t==='beranda')initB();
-    if(t==='ggscript')loadF();
-    if(t==='keysystem'){loadF();loadK()}
+    if(t==='beranda'){ initB(); fetchExpiredCount(); }
+    if(t==='ggscript'){ loadF(); fetchExpiredCount(); }
+    if(t==='keysystem'){ loadF(); loadK(); }
 }
 
 function initB(){
@@ -248,7 +266,15 @@ async function api(m,u,b){
     return fetch('/api/server'+u,o)
 }
 
-// Global helper untuk generate string hook LUA aman tanpa merusak template JS
+async function fetchExpiredCount() {
+    var r=await api('GET','?type=keys');
+    if(r.ok){
+        var list=await r.json();
+        var expiredAmount = list.filter(function(k){ return new Date() > new Date(k.expiry) }).length;
+        document.getElementById('expCountBadge').innerText = expiredAmount;
+    }
+}
+
 function triggerCopyHook(scriptId) {
     var b = location.origin;
     var luaCode = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '").content if V then pcall(load(V)) end';
@@ -308,6 +334,10 @@ async function dep(){
 
 async function loadK(){
     var r=await api('GET','?type=keys');if(!r.ok)return;S.keys=await r.json();
+    
+    var expiredAmount = S.keys.filter(function(k){ return new Date() > new Date(k.expiry) }).length;
+    document.getElementById('expCountBadge').innerText = expiredAmount;
+
     var c=document.getElementById('kList');
     c.innerHTML=S.keys.map(function(k){
         var ed=new Date(k.expiry),exp=new Date()>ed;
