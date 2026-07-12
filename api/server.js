@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session');
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { id, type, key, device, reqStage, deleteKey, validate } = req.query;
+    const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
     // ═══════════════════════════════════════
@@ -25,8 +25,8 @@ export default async function handler(req, res) {
             'gg.toast("[X] NEXUS X - Connecting...")',
             'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
             'if r and r.code == 200 then',
-            '    load(r.content)Obj = load(r.content)',
-            '    if r.content then load(r.content)() else gg.alert("[X] Script Empty!") end',
+            '    local fn = load(r.content)',
+            '    if fn then fn() else gg.alert("[X] Script Empty!") end',
             'else',
             '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
             'end'
@@ -45,27 +45,31 @@ export default async function handler(req, res) {
     }
 
     // ═══════════════════════════════════════
-    //  LINK 2 — LOGIN & VALIDASI
+    //  LINK 2 — LOGIN & VALIDASI KETAT
     // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
         const targetScriptId = id || '';
 
-        // --- VALIDATE KEY ---
+        // --- VALIDATE KEY & TARGET SCRIPT SYSTEM ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
-            if (checkKey.length === 0) {
+            
+            // Proteksi 1: Cek apakah key terdaftar atau apakah key tersebut ditujukan untuk script id yang sedang diakses
+            if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nInvalid license key!")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense Key tidak valid untuk Script ini!")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
             }
+            
             const license = checkKey[0];
             const expDate = new Date(license.expiry);
 
+            // Proteksi 2: Masa kedaluwarsa
             if (new Date() > expDate) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
@@ -78,6 +82,7 @@ export default async function handler(req, res) {
                 return res.status(200).send(c);
             }
 
+            // Proteksi 3: Batasan Perangkat (HWID)
             const clientHwid = device || 'NX-UNKNOWN';
             let registeredDevices = license.registered_devices || [];
             if (device && !registeredDevices.includes(clientHwid)) {
@@ -95,6 +100,7 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
+            // Sukses -> Stream Script Utama (Menu)
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
@@ -108,7 +114,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI (FIXED: FORCED ANDROID SYSTEM SYSTEM KEYBOARD) ---
+        // --- LOGIN UI (NATIVE KEYBOARD FORCED VIA gg.prompt) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -133,7 +139,6 @@ local function doValidate(k)
 end
 
 local function showLogin()
-    -- Menggunakan gg.prompt dengan konfigurasi tipe teks murni agar keyboard bawaan HP muncul secara paksa
     local input = gg.prompt(
         {"[NEXUS X CLOUD]\\nMasukkan License Key Anda:"},
         {""},
@@ -161,24 +166,18 @@ if not inputKey or inputKey == "" then
 end
 
 if not doValidate(inputKey) then
-    gg.alert("[X] Hubungan terputus atau Server Down!\\nSilahkan coba lagi.")
+    gg.alert("[X] Hubungan terputus atau Key salah!")
 end`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(loginLua);
     }
 
-    // ═══════════════════════════════════════
-    //  RAW SCRIPT CONTENT
-    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script not found.');
     }
 
-    // ═══════════════════════════════════════
-    //  SESSION AUTH
-    // ═══════════════════════════════════════
     const sessionToken = req.headers['x-session'];
     let authenticatedUser = null;
     if (sessionToken) {
@@ -188,9 +187,6 @@ end`;
         }
     }
 
-    // ═══════════════════════════════════════
-    //  POST
-    // ═══════════════════════════════════════
     if (req.method === 'POST') {
         const { action, email, password, name, content, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
         if (action === 'register') {
@@ -220,17 +216,11 @@ end`;
         }
     }
 
-    // ═══════════════════════════════════════
-    //  GET (ADMIN)
-    // ═══════════════════════════════════════
     if (req.method === 'GET') {
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
         return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys` : await sql`SELECT * FROM scripts`);
     }
 
-    // ═══════════════════════════════════════
-    //  DELETE
-    // ═══════════════════════════════════════
     if (req.method === 'DELETE') {
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
         if (deleteKey) await sql`DELETE FROM keys WHERE key = ${deleteKey}`;
