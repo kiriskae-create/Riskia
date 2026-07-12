@@ -15,6 +15,9 @@ export default async function handler(req, res) {
     const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
+    // ═══════════════════════════════════════
+    //  LINK 1 — LOADER (DYNAMIC PER SCRIPT ID)
+    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
         const targetScriptId = id || 'default';
         const code = [
@@ -32,18 +35,26 @@ export default async function handler(req, res) {
         return res.status(200).send(code);
     }
 
+    // ═══════════════════════════════════════
+    //  LINK 3 — MENU
+    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
     }
 
+    // ═══════════════════════════════════════
+    //  LINK 2 — LOGIN & VALIDASI KETAT
+    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
         const targetScriptId = id || '';
 
+        // --- VALIDATE KEY & TARGET SCRIPT SYSTEM ---
         if (validate) {
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             
+            // Proteksi 1: Cek apakah key terdaftar atau apakah key tersebut ditujukan untuk script id yang sedang diakses
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
@@ -58,6 +69,7 @@ export default async function handler(req, res) {
             const license = checkKey[0];
             const expDate = new Date(license.expiry);
 
+            // Proteksi 2: Masa kedaluwarsa
             if (new Date() > expDate) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
@@ -70,6 +82,7 @@ export default async function handler(req, res) {
                 return res.status(200).send(c);
             }
 
+            // Proteksi 3: Batasan Perangkat (HWID)
             const clientHwid = device || 'NX-UNKNOWN';
             let registeredDevices = license.registered_devices || [];
             if (device && !registeredDevices.includes(clientHwid)) {
@@ -87,6 +100,7 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
+            // Sukses -> Stream Script Utama (Menu)
             const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
@@ -100,6 +114,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
+        // --- LOGIN UI (NATIVE KEYBOARD FORCED VIA gg.prompt) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -174,25 +189,17 @@ end`;
 
     if (req.method === 'POST') {
         const { action, email, password, name, content, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
-        
         if (action === 'register') {
-            const cleanEmail = email.includes('@') ? email : email + '@nexus.io';
             const secretCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-            await sql`INSERT INTO accounts (email, password, code) VALUES (${cleanEmail}, ${hashPass(password)}, ${secretCode}) ON CONFLICT (email) DO NOTHING`;
+            await sql`INSERT INTO accounts (email, password, code) VALUES (${email}, ${hashPass(password)}, ${secretCode}) ON CONFLICT (email) DO NOTHING`;
             return res.status(200).json({ success: true, code: secretCode });
         }
-        
         if (action === 'login') {
-            const cleanEmail = email.includes('@') ? email : email + '@nexus.io';
-            const acc = await sql`SELECT * FROM accounts WHERE email = ${cleanEmail}`;
-            if (acc.length > 0 && acc[0].password === hashPass(password)) {
-                return res.status(200).json({ session: makeSession(cleanEmail, acc[0].password), user: email });
-            }
+            const acc = await sql`SELECT * FROM accounts WHERE email = ${email}`;
+            if (acc.length > 0 && acc[0].password === hashPass(password)) return res.status(200).json({ session: makeSession(email, acc[0].password) });
             return res.status(401).json({ error: 'Auth failed' });
         }
-        
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
-        
         if (name && content) {
             if (existingScriptId && existingScriptId !== "") {
                 await sql`UPDATE scripts SET name = ${name}, content = ${content} WHERE id = ${existingScriptId}`;
@@ -201,7 +208,6 @@ end`;
             }
             return res.status(200).json({ success: true });
         }
-        
         if (action === 'createKey') {
             const finalKey = customName || 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
