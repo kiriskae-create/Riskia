@@ -39,7 +39,6 @@ export default async function handler(req, res) {
 
         if (validate) {
             const clientHwid = device || 'NX-UNKNOWN';
-
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
@@ -82,12 +81,15 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            const toastMsg = isPermanent ? "⚡ PERMANENT ACCESS" : "⚡ ACCESS GRANTED";
-            const expDisplay = isPermanent ? 'PERMANENT' : expDate.toLocaleDateString('id-ID');
+            const expFull = isPermanent ? 'PERMANENT' : expDate.toLocaleString('sv-SE').replace('T', ' ');
+            const createdAt = new Date().toLocaleString('sv-SE').replace('T', ' ');
+            const maxDev = license.max_devices >= 9999 ? 'tak terbatas' : license.max_devices;
+            
+            const infoText = `PENGGUNA: VERSI SCRIPT\\nVERSI: ISAC SCRIPT\\nPERANGKAT: ${maxDev}\\nTERDAFTAR: ${createdAt}\\nBERLAKU HINGGA: ${expFull}\\nPENJUAL: NEXUS SCRIPT`;
             
             const c = [
-                'gg.toast("' + toastMsg + '")',
-                'gg.alert("[X] ACCESS GRANTED\\n\\nExp: ' + expDisplay + '")',
+                'gg.toast("⚡ ACCESS GRANTED")',
+                'gg.alert("' + infoText + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
                 'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
@@ -121,20 +123,31 @@ end
 while true do
     gg.setVisible(false)
     local input = gg.prompt(
-        {"Enter License Key"},
-        {""},
-        {"text"}
+        {
+            "🔑 Masukkan License Key:",
+            "✅ LOGIN [Centang untuk Masuk]",
+            "❌ EXIT [Centang untuk Keluar]"
+        },
+        {"", false, false},
+        {"text", "checkbox", "checkbox"}
     )
     
     if input then
-        local targetKey = (input[1]):match("^%s*(.-)%s*$")
-        if targetKey ~= "" then
-            if doValidate(targetKey) then break end
+        if input[3] == true then
+            gg.toast("Keluar dari Nexus Script")
+            os.exit()
+        elseif input[2] == true then
+            local targetKey = (input[1]):match("^%s*(.-)%s*$")
+            if targetKey ~= "" then
+                if doValidate(targetKey) then break end
+            else
+                gg.toast("[X] Key tidak boleh kosong!")
+            end
         else
-            gg.toast("[X] Key cannot be empty!")
+            gg.toast("[!] Centang kotak LOGIN untuk melanjutkan")
         end
     else
-        gg.toast("Tap GG icon to login")
+        gg.toast("Tap icon GG untuk membuka kembali menu login")
         while true do
             if gg.isVisible() then break end
             gg.sleep(200)
