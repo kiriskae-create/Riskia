@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050609; color: #f8fafc; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050609; color: #f8fafc; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         .glass-panel { background: rgba(13, 16, 26, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.04); }
         .sidebar-active { background: #ffffff !important; color: #000000 !important; font-weight: 700; box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.15); }
@@ -18,151 +18,144 @@
         .smooth-blur { backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); background: rgba(4, 5, 8, 0.75); }
         .storage-progress { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        /* Drawer animation handlers */
-        #mainSidebar { transform: translateX(-100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Optimized Mobile Drawer Control Layout */
+        #mainSidebar { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
         #mainSidebar.open { transform: translateX(0); }
-        #sidebarOverlay { opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+        #sidebarOverlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         #sidebarOverlay.open { opacity: 1; pointer-events: auto; }
+        
+        /* Custom Dialog Animations */
+        .modal-animate { transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); transform: scale(0.95); opacity: 0; }
+        .modal-animate.show { transform: scale(1); opacity: 1; }
     </style>
 </head>
 <body class="min-h-screen flex relative">
 
-<!-- BLUR OVERLAY FOR BACKGROUND WHEN DRAWER OPEN -->
-<div id="sidebarOverlay" onclick="toggleSidebar(false)" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-md smooth-blur"></div>
+<div id="sidebarOverlay" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-md smooth-blur"></div>
 
-<!-- SIDEBAR DRAWER KIRI (HIDDEN BY DEFAULT, POP OUT ON DEMAND) -->
-<aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-80 bg-[#0a0c10] border-r border-white/5 flex flex-col justify-between p-6 z-50 overflow-y-auto">
-    <div class="space-y-8">
-        <!-- Inside Header Control -->
-        <div class="flex items-center justify-between pb-2 border-b border-white/5">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-black text-sm">NX</div>
-                <span class="text-xs font-bold tracking-wider text-white">CONTROL NAVIGATION</span>
+<aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 max-w-[280px] bg-[#0a0c10] border-r border-white/5 flex flex-col justify-between p-5 z-50 overflow-y-auto">
+    <div class="space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center font-black text-xs">NX</div>
+                <span class="text-[11px] font-bold tracking-wider text-white">CONTROL NAVIGATION</span>
             </div>
-            <button onclick="toggleSidebar(false)" class="text-slate-400 hover:text-white text-sm p-1.5 rounded-lg bg-white/5 cursor-pointer">✕</button>
+            <button id="closeSidebarBtn" class="text-slate-400 hover:text-white text-xs p-1.5 rounded-lg bg-white/5 cursor-pointer">✕</button>
         </div>
 
-        <!-- Progress Storage Bar -->
-        <div class="bg-white/[0.01] border border-white/5 rounded-2xl p-4 space-y-2.5">
-            <div class="flex justify-between text-[10px] font-bold tracking-wider uppercase text-slate-400">
+        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3.5 space-y-2.5">
+            <div class="flex justify-between text-[9px] font-bold tracking-wider uppercase text-slate-400">
                 <span class="flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Space Storage</span>
                 <span id="storagePercentText" class="text-white font-mono">0%</span>
             </div>
-            <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+            <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
                 <div id="storageProgressBar" class="storage-progress bg-white h-full w-[0%] rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)]"></div>
             </div>
-            <p class="text-[9px] text-slate-500 mono" id="storageUsageDetails">0 / 250 MB used</p>
+            <p class="text-[8px] text-slate-500 mono" id="storageUsageDetails">0 / 250 MB used</p>
         </div>
 
-        <!-- Navigation Router List -->
-        <nav class="space-y-1.5">
-            <button id="btn-beranda" onclick="sw('beranda')" class="sidebar-item w-full text-left px-4 py-3.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <nav class="space-y-1">
+            <button id="btn-beranda" class="sidebar-item w-full text-left px-3.5 py-3 rounded-xl text-[11px] flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 Overview Infrastructure
             </button>
-            <button id="btn-ggscript" onclick="sw('ggscript')" class="sidebar-item w-full text-left px-4 py-3.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <button id="btn-ggscript" class="sidebar-item w-full text-left px-3.5 py-3 rounded-xl text-[11px] flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                 Cloud Scripts Repository
             </button>
-            <button id="btn-keysystem" onclick="sw('keysystem')" class="sidebar-item w-full text-left px-4 py-3.5 rounded-xl text-xs flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            <button id="btn-keysystem" class="sidebar-item w-full text-left px-3.5 py-3 rounded-xl text-[11px] flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
                 License Keys Management
             </button>
         </nav>
     </div>
 
     <div class="pt-4 border-t border-white/5 space-y-3">
-        <div class="flex items-center gap-2.5 px-2">
-            <div class="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center font-bold text-xs text-white uppercase mono">R</div>
+        <div class="flex items-center gap-2.5 px-1">
+            <div class="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center font-bold text-[10px] text-white uppercase mono">R</div>
             <div class="min-w-0">
-                <p class="text-xs font-bold text-white truncate">Riski (Admin)</p>
-                <p class="text-[9px] text-slate-500 mono">Superuser Level</p>
+                <p class="text-[11px] font-bold text-white truncate">Riski (Admin)</p>
+                <p class="text-[8px] text-slate-500 mono">Superuser Level</p>
             </div>
         </div>
-        <button onclick="doOut()" class="w-full py-2.5 bg-red-950/20 text-red-400 border border-red-500/10 rounded-xl text-xs font-semibold cursor-pointer hover:bg-red-950/40 transition">Disconnect</button>
+        <button id="disconnectBtn" class="w-full py-2 bg-red-950/20 text-red-400 border border-red-500/10 rounded-xl text-[11px] font-semibold cursor-pointer hover:bg-red-950/40 transition">Disconnect</button>
     </div>
 </aside>
 
-<!-- PANEL UTAMA CONTAINER -->
-<main id="mainContainer" class="flex-1 p-6 md:p-8 overflow-y-auto min-h-screen transition-all duration-300 w-full">
+<main id="mainContainer" class="flex-1 p-5 md:p-8 overflow-y-auto min-h-screen transition-all duration-300 w-full">
     
-    <!-- TOP STICKY BAR FOR HEADER LOGO AND BOX ICON TRIGGER -->
-    <header class="flex items-center gap-4 mb-8 pb-4 border-b border-white/5">
-        <!-- BOX SHORTCUT ICON BUTTON TRIGGER (TAP TO TOGGLE SIDEBAR DRAWERS) -->
-        <button onclick="toggleSidebar(true)" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/10 text-white transition shadow-lg shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <header class="flex items-center gap-3.5 mb-6 pb-4 border-b border-white/5">
+        <button id="openSidebarBtn" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/10 text-white transition shadow-lg shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <div>
-            <h1 class="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+            <h1 class="text-sm font-extrabold text-white tracking-tight flex items-center gap-2">
                 NEXUS PLATFORM
             </h1>
-            <p class="text-[10px] text-slate-500 tracking-wider font-medium uppercase">Active Portal Endpoint</p>
+            <p class="text-[9px] text-slate-500 tracking-wider font-medium uppercase">Active Portal Endpoint</p>
         </div>
     </header>
     
-    <!-- VIEW: OVERVIEW -->
-    <div id="view-beranda" class="space-y-6 max-w-4xl transition-all duration-300">
-        <div class="glass-panel rounded-2xl p-6 space-y-5">
-            <h3 class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Base Gateway Routing System</h3>
-            <div class="space-y-4">
-                <div class="p-4 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
-                    <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-300">Unique Loader Webhook Core</span></div>
+    <div id="view-beranda" class="space-y-5 max-w-4xl transition-all duration-300">
+        <div class="glass-panel rounded-2xl p-5 space-y-4">
+            <h3 class="text-[9px] font-bold text-slate-400 tracking-widest uppercase">Base Gateway Routing System</h3>
+            <div class="space-y-3">
+                <div class="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
+                    <div class="flex justify-between items-center"><span class="text-[11px] font-bold text-slate-300">Unique Loader Webhook Core</span></div>
                     <div class="flex gap-2">
-                        <code class="text-[10px] text-slate-400 mono bg-black/40 px-3 py-1.5 rounded border border-white/5 truncate flex-1" id="dL1">-</code>
-                        <button onclick="cp(document.getElementById('dL1').innerText)" class="px-3 bg-white text-black font-bold rounded-lg text-[10px] cursor-pointer hover:bg-slate-200 transition">COPY</button>
+                        <code class="text-[9px] text-slate-400 mono bg-black/40 px-2.5 py-1.5 rounded border border-white/5 truncate flex-1" id="dL1">-</code>
+                        <button id="copyL1Btn" class="px-2.5 bg-white text-black font-bold rounded-lg text-[9px] cursor-pointer hover:bg-slate-200 transition">COPY</button>
                     </div>
                 </div>
-                <div class="p-4 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
-                    <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-300">Strict Validation Node Hub</span></div>
+                <div class="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
+                    <div class="flex justify-between items-center"><span class="text-[11px] font-bold text-slate-300">Strict Validation Node Hub</span></div>
                     <div class="flex gap-2">
-                        <code class="text-[10px] text-slate-400 mono bg-black/40 px-3 py-1.5 rounded border border-white/5 truncate flex-1" id="dL2">-</code>
-                        <button onclick="cp(document.getElementById('dL2').innerText)" class="px-3 bg-white text-black font-bold rounded-lg text-[10px] cursor-pointer hover:bg-slate-200 transition">COPY</button>
+                        <code class="text-[9px] text-slate-400 mono bg-black/40 px-2.5 py-1.5 rounded border border-white/5 truncate flex-1" id="dL2">-</code>
+                        <button id="copyL2Btn" class="px-2.5 bg-white text-black font-bold rounded-lg text-[9px] cursor-pointer hover:bg-slate-200 transition">COPY</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- VIEW: SCRIPTS -->
-    <div id="view-ggscript" class="space-y-6 max-w-4xl hidden transition-all duration-300">
+    <div id="view-ggscript" class="space-y-5 max-w-4xl hidden transition-all duration-300">
         <div class="flex justify-between items-center">
-            <h2 class="text-base font-bold text-white tracking-tight">Cloud Scripts Modul</h2>
-            <button onclick="triggerFilePicker()" class="px-3.5 py-2 bg-white text-black text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer hover:bg-slate-200 transition">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                Impor Berkas (.lua)
+            <h2 class="text-sm font-bold text-white tracking-tight">Cloud Scripts Modul</h2>
+            <button id="importFileBtn" class="px-3 py-1.5 bg-white text-black text-[11px] font-bold rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-slate-200 transition">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Impor (.lua)
             </button>
-            <input type="file" id="hiddenFileInput" accept=".lua" class="hidden" onchange="handleFileSelect(event)">
+            <input type="file" id="hiddenFileInput" accept=".lua" class="hidden">
         </div>
 
-        <div class="glass-panel rounded-2xl p-6 space-y-4">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">Upload Skrip Baru</h3>
-            <input type="text" id="fN" placeholder="filename.lua" class="w-full px-4 py-3 rounded-xl input-dark text-xs mono">
-            <textarea id="fC" rows="6" placeholder="-- Paste atau tulis struktur skrip LUA..." class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
-            <button onclick="dep(false)" class="w-full py-3 bg-white text-black font-bold rounded-xl text-xs cursor-pointer hover:bg-slate-200 transition">Deploy to Registry</button>
+        <div class="glass-panel rounded-2xl p-5 space-y-3.5">
+            <h3 class="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-2">Upload Skrip Baru</h3>
+            <input type="text" id="fN" placeholder="filename.lua" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
+            <textarea id="fC" rows="5" placeholder="-- Paste atau tulis struktur skrip LUA..." class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono resize-none"></textarea>
+            <button id="deployScriptBtn" class="w-full py-2.5 bg-white text-black font-bold rounded-xl text-[11px] cursor-pointer hover:bg-slate-200 transition">Deploy to Registry</button>
         </div>
 
-        <div id="fList" class="space-y-3"></div>
+        <div id="fList" class="space-y-2.5"></div>
     </div>
 
-    <!-- VIEW: LICENSES -->
-    <div id="view-keysystem" class="space-y-6 max-w-4xl hidden transition-all duration-300">
-        <h2 class="text-base font-bold text-white tracking-tight">License System</h2>
+    <div id="view-keysystem" class="space-y-5 max-w-4xl hidden transition-all duration-300">
+        <h2 class="text-sm font-bold text-white tracking-tight">License System</h2>
         
-        <div class="glass-panel rounded-2xl p-6 space-y-4">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Generate License Ticket</h3>
-            <div class="space-y-4">
+        <div class="glass-panel rounded-2xl p-5 space-y-3.5">
+            <h3 class="text-[11px] font-bold text-white uppercase tracking-wider">Generate License Ticket</h3>
+            <div class="space-y-3.5">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Target Allocation Modul</label>
-                    <select id="kT" class="w-full px-3 py-3 rounded-xl input-dark text-xs mono"></select>
+                    <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Target Allocation Modul</label>
+                    <select id="kT" class="w-full px-2.5 py-2.5 rounded-xl input-dark text-[11px] mono"></select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3.5">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Max HWID Limit Pool</label>
-                        <input type="number" id="kM" value="1" class="w-full px-3 py-3 rounded-xl input-dark text-xs mono">
+                        <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Max HWID Limit Pool</label>
+                        <input type="number" id="kM" value="1" class="w-full px-2.5 py-2.5 rounded-xl input-dark text-[11px] mono">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Preset Durasi</label>
-                        <select id="kPreset" onchange="applyDurationPreset(this.value)" class="w-full px-3 py-3 rounded-xl input-dark text-xs mono">
+                        <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Preset Durasi</label>
+                        <select id="kPreset" class="w-full px-2.5 py-2.5 rounded-xl input-dark text-[11px] mono">
                             <option value="">-- Pilih Preset Waktu --</option>
                             <option value="1">1 Hari</option>
                             <option value="3">3 Hari</option>
@@ -173,57 +166,92 @@
                     </div>
                 </div>
                 <div id="customExpiryWrapper">
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Custom Expiry Time</label>
-                    <input type="datetime-local" id="kE" class="w-full px-3 py-3 rounded-xl input-dark text-xs mono">
+                    <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Custom Expiry Time</label>
+                    <input type="datetime-local" id="kE" class="w-full px-2.5 py-2.5 rounded-xl input-dark text-[11px] mono">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Custom Key Name (Opsional)</label>
-                    <input type="text" id="kC" placeholder="CUSTOM-VIP-KEY" class="w-full px-4 py-3 rounded-xl input-dark text-xs mono">
+                    <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Custom Key Name (Opsional)</label>
+                    <input type="text" id="kC" placeholder="CUSTOM-VIP-KEY" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
                 </div>
             </div>
-            <button onclick="genK()" class="w-full py-3 bg-white text-black font-bold rounded-xl text-xs cursor-pointer hover:bg-slate-200 transition">Generate License Ticket</button>
+            <button id="generateKeyBtn" class="w-full py-2.5 bg-white text-black font-bold rounded-xl text-[11px] cursor-pointer hover:bg-slate-200 transition">Generate License Ticket</button>
         </div>
 
-        <div id="kList" class="space-y-3"></div>
+        <div id="kList" class="space-y-2.5"></div>
     </div>
 </main>
 
-<!-- EDIT MODAL WINDOW LAYER -->
 <div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden smooth-blur">
-    <div class="w-full max-w-2xl bg-[#0d0f14] border border-white/10 rounded-2xl p-6 space-y-4 shadow-2xl">
-        <div class="flex justify-between items-center border-b border-white/5 pb-3">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">Modifikasi Data Skrip</h3>
-            <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-xs font-bold cursor-pointer">✕</button>
+    <div class="w-full max-w-xl bg-[#0d0f14] border border-white/10 rounded-2xl p-5 space-y-3.5 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-white/5 pb-2.5">
+            <h3 class="text-[11px] font-bold text-white flex items-center gap-2">Modifikasi Data Skrip</h3>
+            <button id="closeEditModalBtn" class="text-slate-400 hover:text-white text-xs font-bold cursor-pointer">✕</button>
         </div>
         <input type="hidden" id="modalEdId">
-        <input type="text" id="modalFN" class="w-full px-4 py-3 rounded-xl input-dark text-xs mono">
-        <textarea id="modalFC" rows="10" class="w-full px-4 py-3 rounded-xl input-dark text-xs mono resize-none"></textarea>
-        <div class="flex gap-3 justify-end">
-            <button onclick="closeEditModal()" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold cursor-pointer">Batal</button>
-            <button onclick="dep(true)" class="px-5 py-2.5 bg-white text-black rounded-xl text-xs font-bold cursor-pointer hover:bg-slate-200">Update Skrip</button>
+        <input type="text" id="modalFN" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
+        <textarea id="modalFC" rows="8" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono resize-none"></textarea>
+        <div class="flex gap-2.5 justify-end">
+            <button id="cancelEditBtn" class="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[11px] font-bold cursor-pointer">Batal</button>
+            <button id="saveEditBtn" class="px-4 py-2 bg-white text-black rounded-xl text-[11px] font-bold cursor-pointer hover:bg-slate-200">Update Skrip</button>
         </div>
     </div>
 </div>
 
-<!-- SECURE AUTH SYSTEM LAYER -->
+<div id="confirmDialog" class="fixed inset-0 z-[110] flex items-center justify-center p-4 hidden smooth-blur">
+    <div id="confirmBox" class="modal-animate w-full max-w-sm bg-[#0d0f14] border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl text-center">
+        <div class="mx-auto w-10 h-10 rounded-full bg-red-950/30 border border-red-500/20 flex items-center justify-center text-red-400 mb-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        </div>
+        <div class="space-y-1">
+            <h4 class="text-xs font-bold text-white" id="confirmTitle">Hapus Item</h4>
+            <p class="text-[10px] text-slate-400" id="confirmMessage">Tindakan ini tidak bisa dibatalkan dari database cluster.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <button id="confirmCancelBtn" class="w-full py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[11px] font-bold cursor-pointer transition">Batal</button>
+            <button id="confirmSuccessBtn" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-[11px] font-bold cursor-pointer transition">Hapus Modul</button>
+        </div>
+    </div>
+</div>
+
 <div id="authGate" class="fixed inset-0 z-[100] bg-[#05060a] flex items-center justify-center">
-    <div class="w-full max-w-sm mx-4 space-y-6">
+    <div class="w-full max-w-sm mx-4 space-y-5">
         <div class="text-center">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white text-black font-black text-xl mb-4 shadow-2xl shadow-white/10">NX</div>
-            <h1 class="text-base font-bold tracking-tight text-white">NEXUS ADMIN ACCESS</h1>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white text-black font-black text-lg mb-3 shadow-2xl shadow-white/10">NX</div>
+            <h1 class="text-xs font-bold tracking-tight text-white">NEXUS ADMIN ACCESS</h1>
         </div>
-        <div class="glass-panel rounded-2xl p-6 space-y-3.5 border-white/10">
-            <input type="text" id="lU" placeholder="Identity" class="w-full px-4 py-3 rounded-xl input-dark text-xs mono">
-            <input type="password" id="lP" placeholder="Token Code" class="w-full px-4 py-3 rounded-xl input-dark text-xs mono">
-            <button onclick="doLog()" class="w-full py-3 bg-white text-black font-bold rounded-xl text-xs transition cursor-pointer hover:bg-slate-200">Login Portal</button>
+        <div class="glass-panel rounded-2xl p-5 space-y-3 border-white/10">
+            <input type="text" id="lU" placeholder="Identity" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
+            <input type="password" id="lP" placeholder="Token Code" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
+            <button id="loginBtn" class="w-full py-2.5 bg-white text-black font-bold rounded-xl text-[11px] transition cursor-pointer hover:bg-slate-200">Login Portal</button>
         </div>
     </div>
 </div>
 
-<div id="toast" class="fixed bottom-6 right-6 bg-white text-black px-4 py-3 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[200] text-xs font-bold"></div>
+<div id="toast" class="fixed bottom-6 right-6 bg-white text-black px-4 py-3 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[200] text-[11px] font-bold"></div>
 
 <script>
 var S={files:[],keys:[],session:'',cur:'beranda'};
+var pendingConfirmAction = null;
+
+// High Performance Mobile Tap Event Setup
+function bindTap(elementId, callback) {
+    var el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
+    if (!el) return;
+    var moved = false;
+    el.addEventListener('touchstart', function() { moved = false; }, {passive: true});
+    el.addEventListener('touchmove', function() { moved = true; }, {passive: true});
+    el.addEventListener('touchend', function(e) {
+        if (!moved) {
+            e.preventDefault();
+            callback.call(this, e);
+        }
+    });
+    el.addEventListener('click', function(e) {
+        if (e.clientX !== 0 && e.clientY !== 0) { 
+            callback.call(this, e);
+        }
+    });
+}
 
 function toggleSidebar(open) {
     var sidebar = document.getElementById('mainSidebar');
@@ -235,6 +263,24 @@ function toggleSidebar(open) {
         sidebar.classList.remove('open');
         overlay.classList.remove('open');
     }
+}
+
+function showCustomConfirm(title, msg, onConfirm) {
+    var diag = document.getElementById('confirmDialog');
+    var box = document.getElementById('confirmBox');
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = msg;
+    pendingConfirmAction = onConfirm;
+    
+    diag.classList.remove('hidden');
+    setTimeout(() => box.classList.add('show'), 10);
+}
+
+function closeCustomConfirm() {
+    var diag = document.getElementById('confirmDialog');
+    var box = document.getElementById('confirmBox');
+    box.classList.remove('show');
+    setTimeout(() => { diag.classList.add('hidden'); pendingConfirmAction = null; }, 200);
 }
 
 function toast(m){
@@ -250,16 +296,19 @@ function cp(t){
 
 function sw(t){
     S.cur=t;
-    toggleSidebar(false); // Tutup drawer otomatis setelah item di-tap
+    toggleSidebar(false);
     
-    var container = document.getElementById('mainContainer');
-    // Sinkronisasi efek pemindahan tab smooth putih bersih
     ['beranda','ggscript','keysystem'].forEach(function(m){
-        document.getElementById('view-'+m).classList.add('hidden');
-        document.getElementById('btn-'+m).classList.remove('sidebar-active');
+        var view = document.getElementById('view-'+m);
+        var btn = document.getElementById('btn-'+m);
+        if(view) view.classList.add('hidden');
+        if(btn) btn.classList.remove('sidebar-active');
     });
-    document.getElementById('view-'+t).classList.remove('hidden');
-    document.getElementById('btn-'+t).classList.add('sidebar-active');
+    
+    var activeView = document.getElementById('view-'+t);
+    var activeBtn = document.getElementById('btn-'+t);
+    if(activeView) activeView.classList.remove('hidden');
+    if(activeBtn) activeBtn.classList.add('sidebar-active');
     
     if(t==='beranda')initB();
     if(t==='ggscript')loadF();
@@ -296,7 +345,6 @@ function triggerCopyHook(scriptId) {
     cp('local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '").content if V then pcall(load(V)) end');
 }
 
-function triggerFilePicker(){ document.getElementById('hiddenFileInput').click(); }
 function handleFileSelect(e){
     var file = e.target.files[0]; if(!file) return;
     var reader = new FileReader();
@@ -328,17 +376,32 @@ async function loadF(){
     var c=document.getElementById('fList');
     
     c.innerHTML=S.files.map(function(f){
-        return '<div class="glass-panel rounded-xl p-4 space-y-3">' +
+        return '<div class="glass-panel rounded-xl p-3.5 space-y-3">' +
             '<div class="flex justify-between items-center">' +
-                '<div><span class="mono text-xs font-bold text-white flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg> '+f.name+'</span></div>' +
+                '<div><span class="mono text-[11px] font-bold text-white flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg> '+f.name+'</span></div>' +
                 '<div class="flex gap-2">' +
-                    '<button onclick="openEditModal(\''+f.id+'\')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white font-semibold cursor-pointer flex items-center justify-center transition"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
-                    '<button onclick="dlF(\''+f.id+'\')" class="p-2 bg-red-950/30 hover:bg-red-900/40 border border-red-500/20 rounded-lg text-red-400 font-semibold cursor-pointer flex items-center justify-center transition"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+                    '<button data-edit-id="'+f.id+'" class="edit-action-btn p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white font-semibold cursor-pointer flex items-center justify-center transition"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
+                    '<button data-delete-id="'+f.id+'" data-delete-name="'+f.name+'" class="delete-action-btn p-2 bg-red-950/30 hover:bg-red-900/40 border border-red-500/20 rounded-lg text-red-400 font-semibold cursor-pointer flex items-center justify-center transition"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
                 '</div>' +
             '</div>' +
-            '<button onclick="triggerCopyHook(\''+f.id+'\')" class="w-full py-2 bg-white text-black rounded-lg text-[10px] font-bold cursor-pointer hover:bg-slate-200 transition">Copy Core LUA Hook Script</button>' +
+            '<button data-copy-hook-id="'+f.id+'" class="copy-hook-btn w-full py-2 bg-white text-black rounded-lg text-[10px] font-bold cursor-pointer hover:bg-slate-200 transition">Copy Core LUA Hook Script</button>' +
         '</div>';
     }).join('');
+
+    // Dynamic Binding for generated dynamic lists
+    document.querySelectorAll('.edit-action-btn').forEach(btn => {
+        bindTap(btn, function() { openEditModal(this.getAttribute('data-edit-id')); });
+    });
+    document.querySelectorAll('.delete-action-btn').forEach(btn => {
+        bindTap(btn, function() { 
+            var id = this.getAttribute('data-delete-id');
+            var name = this.getAttribute('data-delete-name');
+            dlF(id, name);
+        });
+    });
+    document.querySelectorAll('.copy-hook-btn').forEach(btn => {
+        bindTap(btn, function() { triggerCopyHook(this.getAttribute('data-copy-hook-id')); });
+    });
 }
 
 function openEditModal(id){
@@ -374,18 +437,22 @@ async function loadK(){
         var dc = k.registered_devices ? k.registered_devices.length : 0;
         var badge = isPerm ? '<span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-bold">PERMANEN</span>' : (exp ? '<span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-bold">EXPIRED</span>' : '<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold">ACTIVE</span>');
         
-        return '<div class="glass-panel rounded-xl p-4 space-y-3">' +
+        return '<div class="glass-panel rounded-xl p-3.5 space-y-3">' +
             '<div class="flex justify-between items-start gap-2">' +
-                '<div class="min-w-0"><span class="mono text-xs font-bold text-white break-all">'+k.key+'</span> '+badge+'</div>' +
-                '<button onclick="dlK(\''+k.key+'\')" class="p-1.5 bg-red-950/30 hover:bg-red-900/40 border border-red-500/20 rounded-lg text-red-400 cursor-pointer transition flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+                '<div class="min-w-0"><span class="mono text-[11px] font-bold text-white break-all">'+k.key+'</span> '+badge+'</div>' +
+                '<button data-delete-key="'+k.key+'" class="delete-key-btn p-1.5 bg-red-950/30 hover:bg-red-900/40 border border-red-500/20 rounded-lg text-red-400 cursor-pointer transition flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
             '</div>' +
-            '<div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-400 mono pt-2 border-t border-white/5">' +
+            '<div class="flex flex-wrap gap-x-4 gap-y-1 text-[9px] text-slate-400 mono pt-2 border-t border-white/5">' +
                 '<div>Script: <span class="text-white font-semibold">'+k.target_script_name+'</span></div>' +
                 '<div>HWID Limit: <span class="text-white font-bold">'+dc+'/'+k.max_devices+'</span></div>' +
                 '<div>Exp: <span class="text-white">'+(isPerm ? 'TIMELESS' : ed.toLocaleDateString('id-ID'))+'</span></div>' +
             '</div>' +
         '</div>';
     }).join('');
+
+    document.querySelectorAll('.delete-key-btn').forEach(btn => {
+        bindTap(btn, function() { dlK(this.getAttribute('data-delete-key')); });
+    });
 }
 
 async function genK(){
@@ -397,8 +464,29 @@ async function genK(){
     if(r.ok){ toast('Lisensi Baru Berhasil Dibuat!'); document.getElementById('kC').value=''; document.getElementById('kPreset').value=''; document.getElementById('kE').value=''; loadK(); }
 }
 
-async function dlF(id){ if(confirm('Hapus Modul Skrip Dari Database?')){ await api('DELETE','?id='+id); loadF(); toast('Skrip dihapus.'); } }
-async function dlK(k){ if(confirm('Hapus Tiket Lisensi Ini?')){ await api('DELETE','?deleteKey='+k); loadK(); toast('Lisensi dihapus.'); } }
+function dlF(id, name){
+    showCustomConfirm(
+        'Hapus Modul Skrip?', 
+        'Modul "' + name + '" akan dihapus permanen dari registry.', 
+        async function() {
+            await api('DELETE','?id='+id);
+            loadF();
+            toast('Skrip berhasil dihapus.');
+        }
+    );
+}
+
+function dlK(k){
+    showCustomConfirm(
+        'Hapus Tiket Lisensi?', 
+        'Token kunci ' + k + ' tidak akan bisa divalidasi lagi.', 
+        async function() {
+            await api('DELETE','?deleteKey='+k);
+            loadK();
+            toast('Lisensi berhasil dicabut.');
+        }
+    );
+}
 
 async function doLog(){
     var u=document.getElementById('lU').value.trim(), p=document.getElementById('lP').value;
@@ -410,7 +498,44 @@ async function doLog(){
 }
 function doOut(){ localStorage.removeItem('nx_strict_session'); location.reload(); }
 
+// Initialize Modern Touch Handler Binding Controls
 window.onload=function(){
+    // Setup Navigation Layout Bindings
+    bindTap('openSidebarBtn', function() { toggleSidebar(true); });
+    bindTap('closeSidebarBtn', function() { toggleSidebar(false); });
+    bindTap('sidebarOverlay', function() { toggleSidebar(false); });
+    
+    bindTap('btn-beranda', function() { sw('beranda'); });
+    bindTap('btn-ggscript', function() { sw('ggscript'); });
+    bindTap('btn-keysystem', function() { sw('keysystem'); });
+    
+    // Core Form Actions Bindings
+    bindTap('copyL1Btn', function() { cp(document.getElementById('dL1').innerText); });
+    bindTap('copyL2Btn', function() { cp(document.getElementById('dL2').innerText); });
+    bindTap('importFileBtn', function() { document.getElementById('hiddenFileInput').click(); });
+    bindTap('deployScriptBtn', function() { dep(false); });
+    bindTap('generateKeyBtn', function() { genK(); });
+    bindTap('disconnectBtn', function() { doOut(); });
+    bindTap('loginBtn', function() { doLog(); });
+    
+    // Modal Actions
+    bindTap('closeEditModalBtn', function() { closeEditModal(); });
+    bindTap('cancelEditBtn', function() { closeEditModal(); });
+    bindTap('saveEditBtn', function() { dep(true); });
+    
+    // Custom Dialog Bindings
+    bindTap('confirmCancelBtn', function() { closeCustomConfirm(); });
+    bindTap('confirmSuccessBtn', function() {
+        if(typeof pendingConfirmAction === 'function') {
+            pendingConfirmAction();
+        }
+        closeCustomConfirm();
+    });
+
+    // Inputs & Presets change handling
+    document.getElementById('hiddenFileInput').addEventListener('change', handleFileSelect);
+    document.getElementById('kPreset').addEventListener('change', function(e) { applyDurationPreset(e.target.value); });
+    
     var c=localStorage.getItem('nx_strict_session');
     if(c){ S.session=c; document.getElementById('authGate').classList.add('hidden'); sw('beranda'); }
 }
