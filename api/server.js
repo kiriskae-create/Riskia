@@ -68,24 +68,44 @@ export default async function handler(req, res) {
     const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
-    /* ==========================================================
-       PROTEKSI HANYA UNTUK ORANG BUKA LINK DI BROWSER
-       ==========================================================
+    /* ================================================================
+       BROWSER-ONLY PROTECTION — USER-AGENT BASED
+       ================================================================
        
-       Ketika orang KETIK URL di browser address bar:
-         Sec-Fetch-Mode: navigate  ← HANYA muncul di sini
+       Kenapa header lain gagal:
+       - Sec-Fetch-Mode: beberapa GG versi/Android ikut kirim → GG kena
+       - Accept: GG juga kirim text/html → GG kena  
+       - Accept-Language: beberapa environment ikut kirim → GG kena
        
-       Ketika gg.makeRequest() akses URL yang sama:
-         Tidak ada header Sec-Fetch-Mode  ← Java HttpURLConnection
+       Solusi: cek User-Agent mengandung "applewebkit"
        
-       Ketika admin panel (fetch) akses:
-         Sec-Fetch-Mode: cors  ← BUKAN navigate
-         + ada X-Session header  ← skip via kondisi pertama
+       Fakta:
+       - Chrome UA:  "Mozilla/5.0 ... AppleWebKit/537.36 Chrome/..."
+       - Safari UA:  "Mozilla/5.0 ... AppleWebKit/605.1.15 ..."
+       - Firefox UA: "Mozilla/5.0 ... Gecko/20100101 Firefox/..." 
+         Firefox TIDAK punya AppleWebKit, tapi PUNYA "gecko/" + "mozilla"
        
-       Jadi: cek EXACTLY "navigate" = orang buka di browser
-       ========================================================== */
+       - gg.makeRequest() = Java HttpURLConnection
+         UA nya: "Dalvik/2.1.0 (Linux; U; Android 14; ...)"
+         → TIDAK ada "applewebkit"
+         → TIDAK ada "gecko/"
+         → TIDAK ada "chrome/" atau "safari/"
+       
+       - curl UA: "curl/8.1.2"
+         → TIDAK ada applewebkit/gecko/chrome/safari
+       
+       - Admin panel: sudah di-skip karena ada X-Session header
+       
+       Jadi cek: ada "applewebkit" ATAU (ada "gecko/" DAN "mozilla")
+       = 100% browser = PROTECT
+       ================================================================ */
     if (req.method === 'GET' && !req.headers['x-session']) {
-        if ((req.headers['sec-fetch-mode'] || '') === 'navigate') {
+        const ua = (req.headers['user-agent'] || '').toLowerCase();
+
+        const isWebkit = ua.includes('applewebkit');
+        const isGecko = ua.includes('gecko/') && ua.includes('mozilla');
+
+        if (isWebkit || isGecko) {
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.setHeader('X-Content-Type-Options', 'nosniff');
             res.setHeader('X-Frame-Options', 'DENY');
