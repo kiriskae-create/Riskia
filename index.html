@@ -303,8 +303,8 @@ function sw(t){
     if(activeBtn) activeBtn.classList.add('sidebar-active');
     
     if(t==='beranda')initB();
-    if(t==='ggscript')loadF();
-    if(t==='keysystem'){loadF();loadK();}
+    if(t==='ggscript'){ loadF(); loadK(); }
+    if(t==='keysystem'){ loadF(); loadK(); }
 }
 
 function initB(){
@@ -331,10 +331,31 @@ async function api(m,u,b){
     return fetch('/api/server'+u,o);
 }
 
-// FORMAT COPY KEY VALIDATION BACK TO ORIGINAL RULES WITH EXPIRY COMPATIBILITY
+// INTELLIGENT KEY MAPPING LOADER: PARSE REAL ASSIGNED CLUSTER TOKEN OR FALLBACK IF EXPIRED
 function triggerCopyHook(scriptId) {
     var b = location.origin;
-    cp('local V = gg.makeRequest("' + b + '/api/server?type=login&id=' + scriptId + '&validate={license_key}").content if V then pcall(load(V)) end');
+    var targetKey = "{license_key}";
+    
+    if (S.keys && S.keys.length > 0) {
+        // 1. Cari dulu apakah ada key berstatus PERMANENT untuk script ID ini
+        var permKey = S.keys.find(function(k) {
+            return k.target_script_id === scriptId && k.expiry === 'PERMANENT';
+        });
+        
+        if (permKey) {
+            targetKey = permKey.key;
+        } else {
+            // 2. Jika tidak ada yang permanen, cari key aktif yang belum expired
+            var activeKey = S.keys.find(function(k) {
+                if (k.target_script_id !== scriptId) return false;
+                var ed = new Date(k.expiry);
+                return new Date() <= ed;
+            });
+            if (activeKey) targetKey = activeKey.key;
+        }
+    }
+    
+    cp('local V = gg.makeRequest("' + b + '/api/server?type=login&id=' + scriptId + '&validate=' + targetKey + '").content if V then pcall(load(V)) end');
 }
 
 function handleFileSelect(e){
@@ -455,7 +476,7 @@ async function loadK(){
 async function genK(){
     var s=document.getElementById('kT').value, m=document.getElementById('kM').value, preset=document.getElementById('kPreset').value, e=document.getElementById('kE').value, c=document.getElementById('kC').value.trim();
     
-    // FIX HANDLING SUBMIT UNTUK PRESET PERMANEN
+    // FIX HANDLING SUBMIT UNTUK PRESET PERMANEN AGAR TIDAK KOSONG ATAU EROR
     var finalExpiry = preset === 'PERMANENT' ? 'PERMANENT' : e;
     if(!s || !finalExpiry) return toast('Target & Masa Durasi Berlaku Wajib Terisi!');
     
