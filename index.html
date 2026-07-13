@@ -7,299 +7,70 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
-        :root {
-            --bg-deep: #04050a;
-            --bg-surface: rgba(10, 12, 20, 0.72);
-            --bg-elevated: rgba(16, 18, 28, 0.85);
-            --bg-input: rgba(10, 12, 20, 0.95);
-            --border-subtle: rgba(255,255,255,0.035);
-            --border-light: rgba(255,255,255,0.07);
-            --accent: #f59e0b;
-            --accent-glow: rgba(245,158,11,0.15);
-            --success: #10b981;
-            --success-dim: rgba(16,185,129,0.08);
-            --danger: #ef4444;
-            --danger-dim: rgba(239,68,68,0.08);
-            --info: #3b82f6;
-            --info-dim: rgba(59,130,246,0.08);
-            --text-1: #f8fafc;
-            --text-2: #94a3b8;
-            --text-3: #475569;
-        }
-
-        *, *::before, *::after {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-        }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            background: var(--bg-deep);
-            color: var(--text-1);
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        .mono { font-family: 'JetBrains Mono', monospace; }
-
-        /* === GLASS SYSTEM === */
-        .glass {
-            background: var(--bg-surface);
-            backdrop-filter: blur(40px) saturate(1.2);
-            -webkit-backdrop-filter: blur(40px) saturate(1.2);
-            border: 1px solid var(--border-subtle);
-        }
-        .glass-elevated {
-            background: var(--bg-elevated);
-            backdrop-filter: blur(50px) saturate(1.3);
-            -webkit-backdrop-filter: blur(50px) saturate(1.3);
-            border: 1px solid var(--border-light);
-        }
-
-        /* === SIDEBAR === */
-        .sidebar-panel {
-            background: linear-gradient(180deg, #08090f 0%, #060710 100%);
-            border-right: 1px solid var(--border-subtle);
-            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            will-change: transform;
-        }
-        .menu-btn {
-            position: relative;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .menu-btn::before {
-            content: '';
-            position: absolute;
-            right: 0; top: 50%;
-            transform: translateY(-50%) scaleY(0);
-            width: 3px; height: 60%;
-            border-radius: 4px 0 0 4px;
-            background: var(--accent);
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .menu-active {
-            background: rgba(245, 158, 11, 0.06) !important;
-            color: #fff !important;
-            font-weight: 700;
-        }
-        .menu-active::before { transform: translateY(-50%) scaleY(1); }
-        .menu-active .menu-icon { color: var(--accent); }
-
-        /* === INPUTS === */
-        .input-field {
-            background: var(--bg-input);
-            border: 1px solid var(--border-subtle);
-            color: #fff;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: rgba(245,158,11,0.4);
-            box-shadow: 0 0 0 3px rgba(245,158,11,0.06);
-        }
-        .input-field::placeholder { color: var(--text-3); }
-
-        /* === BUTTONS === */
-        .btn-primary {
-            background: #fff;
-            color: #000;
-            font-weight: 700;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.1s;
-        }
-        .btn-primary:active { transform: scale(0.97); }
-
-        .btn-ghost {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-2);
-            transition: all 0.2s;
-        }
-        .btn-ghost:active { background: rgba(255,255,255,0.08); transform: scale(0.97); }
-
-        .btn-accent {
-            background: var(--accent);
-            color: #000;
-            font-weight: 700;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.1s, box-shadow 0.2s;
-        }
-        .btn-accent:active { transform: scale(0.97); }
-        .btn-accent:hover { box-shadow: 0 4px 24px rgba(245,158,11,0.2); }
-
-        .btn-danger {
-            background: var(--danger);
-            color: #fff;
-            font-weight: 700;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.1s;
-        }
-        .btn-danger:active { transform: scale(0.97); }
-
-        /* === TOUCH RIPPLE === */
-        .ripple-host { position: relative; overflow: hidden; }
-        .t-ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.12);
-            transform: translate(-50%, -50%) scale(0);
-            animation: tRippleExpand 0.55s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
-            pointer-events: none;
-            z-index: 5;
-        }
-        .t-ripple-dark {
-            background: rgba(0,0,0,0.08);
-        }
-        .t-ripple-out {
-            animation: tRippleFade 0.35s ease-out forwards;
-        }
-        @keyframes tRippleExpand {
-            to { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-        }
-        @keyframes tRippleFade {
-            to { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
-        }
-
-        /* === STORAGE BAR === */
-        .storage-track {
-            background: rgba(255,255,255,0.04);
-            overflow: hidden;
-        }
-        .storage-fill {
-            background: linear-gradient(90deg, #f59e0b, #d97706, #b45309);
-            background-size: 200% 100%;
-            animation: storageShimmer 3s ease-in-out infinite;
-            transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes storageShimmer {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        /* === MODALS === */
-        .modal-backdrop {
-            backdrop-filter: blur(24px) saturate(0.8);
-            -webkit-backdrop-filter: blur(24px) saturate(0.8);
-            transition: opacity 0.25s ease-out;
-        }
-        .modal-box {
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* === STAT CARD === */
-        .stat-card {
-            position: relative;
-            overflow: hidden;
-        }
-        .stat-card::after {
-            content: '';
-            position: absolute;
-            top: -50%; right: -50%;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            opacity: 0.03;
-            transition: opacity 0.3s;
-        }
-        .stat-card:hover::after { opacity: 0.06; }
-        .stat-amber::after { background: var(--accent); }
-        .stat-green::after { background: var(--success); }
-        .stat-blue::after { background: var(--info); }
-        .stat-red::after { background: var(--danger); }
-
-        /* === BADGE === */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            padding: 3px 8px;
-            border-radius: 6px;
-            text-transform: uppercase;
-        }
-        .badge-perm { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.15); }
-        .badge-active { background: var(--success-dim); color: var(--success); border: 1px solid rgba(16,185,129,0.15); }
-        .badge-expired { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(239,68,68,0.15); }
-
-        /* === AUTH GATE === */
-        .auth-glow {
-            position: absolute;
-            width: 200px; height: 200px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%);
-            top: 50%; left: 50%;
-            transform: translate(-50%, -60%);
-            pointer-events: none;
-            animation: authPulse 4s ease-in-out infinite;
-        }
-        @keyframes authPulse {
-            0%, 100% { opacity: 0.5; transform: translate(-50%, -60%) scale(1); }
-            50% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
-        }
-
-        /* === SCROLLBAR === */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
-
-        /* === CARD INTERACTION === */
-        .card-interactive {
-            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
-        }
-        .card-interactive:active {
-            transform: scale(0.985);
-        }
-
-        /* === FADE IN ANIMATION === */
-        .fade-up {
-            animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-        }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* === TOAST === */
-        .toast-container {
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* === CODE BLOCK === */
-        .code-block {
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.04);
-            position: relative;
-            overflow: hidden;
-        }
-        .code-block::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(245,158,11,0.3), transparent);
-        }
-
-        /* === SELECTION === */
-        ::selection {
-            background: rgba(245,158,11,0.25);
-            color: #fff;
-        }
+        :root{--bg-deep:#04050a;--bg-surface:rgba(10,12,20,0.72);--bg-elevated:rgba(16,18,28,0.85);--bg-input:rgba(10,12,20,0.95);--border-subtle:rgba(255,255,255,0.035);--border-light:rgba(255,255,255,0.07);--accent:#f59e0b;--accent-glow:rgba(245,158,11,0.15);--success:#10b981;--success-dim:rgba(16,185,129,0.08);--danger:#ef4444;--danger-dim:rgba(239,68,68,0.08);--info:#3b82f6;--info-dim:rgba(59,130,246,0.08);--text-1:#f8fafc;--text-2:#94a3b8;--text-3:#475569}
+        *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+        html{scroll-behavior:smooth}
+        body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg-deep);color:var(--text-1);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+        .mono{font-family:'JetBrains Mono',monospace}
+        .glass{background:var(--bg-surface);backdrop-filter:blur(40px) saturate(1.2);-webkit-backdrop-filter:blur(40px) saturate(1.2);border:1px solid var(--border-subtle)}
+        .glass-elevated{background:var(--bg-elevated);backdrop-filter:blur(50px) saturate(1.3);-webkit-backdrop-filter:blur(50px) saturate(1.3);border:1px solid var(--border-light)}
+        .sidebar-panel{background:linear-gradient(180deg,#08090f 0%,#060710 100%);border-right:1px solid var(--border-subtle);transition:transform .35s cubic-bezier(.16,1,.3,1);will-change:transform}
+        .menu-btn{position:relative;transition:all .2s cubic-bezier(.16,1,.3,1)}
+        .menu-btn::before{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%) scaleY(0);width:3px;height:60%;border-radius:4px 0 0 4px;background:var(--accent);transition:transform .25s cubic-bezier(.16,1,.3,1)}
+        .menu-active{background:rgba(245,158,11,0.06)!important;color:#fff!important;font-weight:700}
+        .menu-active::before{transform:translateY(-50%) scaleY(1)}
+        .menu-active .menu-icon{color:var(--accent)}
+        .input-field{background:var(--bg-input);border:1px solid var(--border-subtle);color:#fff;transition:border-color .2s,box-shadow .2s}
+        .input-field:focus{outline:none;border-color:rgba(245,158,11,0.4);box-shadow:0 0 0 3px rgba(245,158,11,0.06)}
+        .input-field::placeholder{color:var(--text-3)}
+        .btn-primary{background:#fff;color:#000;font-weight:700;position:relative;overflow:hidden;transition:transform .1s}
+        .btn-primary:active{transform:scale(.97)}
+        .btn-ghost{background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);color:var(--text-2);transition:all .2s}
+        .btn-ghost:active{background:rgba(255,255,255,0.08);transform:scale(.97)}
+        .btn-accent{background:var(--accent);color:#000;font-weight:700;position:relative;overflow:hidden;transition:transform .1s,box-shadow .2s}
+        .btn-accent:active{transform:scale(.97)}
+        .btn-accent:hover{box-shadow:0 4px 24px rgba(245,158,11,0.2)}
+        .btn-danger{background:var(--danger);color:#fff;font-weight:700;position:relative;overflow:hidden;transition:transform .1s}
+        .btn-danger:active{transform:scale(.97)}
+        .ripple-host{position:relative;overflow:hidden}
+        .t-ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.12);transform:translate(-50%,-50%) scale(0);animation:tRippleExpand .55s cubic-bezier(.2,.6,.3,1) forwards;pointer-events:none;z-index:5}
+        .t-ripple-out{animation:tRippleFade .35s ease-out forwards}
+        @keyframes tRippleExpand{to{transform:translate(-50%,-50%) scale(1);opacity:.6}}
+        @keyframes tRippleFade{to{opacity:0;transform:translate(-50%,-50%) scale(1.1)}}
+        .storage-track{background:rgba(255,255,255,0.04);overflow:hidden}
+        .storage-fill{background:linear-gradient(90deg,#f59e0b,#d97706,#b45309);background-size:200% 100%;animation:storageShimmer 3s ease-in-out infinite;transition:width .5s cubic-bezier(.16,1,.3,1)}
+        @keyframes storageShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .modal-backdrop{backdrop-filter:blur(24px) saturate(0.8);-webkit-backdrop-filter:blur(24px) saturate(0.8);transition:opacity .25s ease-out}
+        .modal-box{transition:all .3s cubic-bezier(.16,1,.3,1)}
+        .stat-card{position:relative;overflow:hidden}
+        .stat-card::after{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;border-radius:50%;opacity:.03;transition:opacity .3s}
+        .stat-card:hover::after{opacity:.06}
+        .stat-amber::after{background:var(--accent)}
+        .stat-green::after{background:var(--success)}
+        .stat-blue::after{background:var(--info)}
+        .stat-red::after{background:var(--danger)}
+        .badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:6px;text-transform:uppercase}
+        .badge-perm{background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.15)}
+        .badge-active{background:var(--success-dim);color:var(--success);border:1px solid rgba(16,185,129,0.15)}
+        .badge-expired{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(239,68,68,0.15)}
+        .auth-glow{position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(245,158,11,0.08) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none;animation:authPulse 4s ease-in-out infinite}
+        @keyframes authPulse{0%,100%{opacity:.5;transform:translate(-50%,-60%) scale(1)}50%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
+        .card-interactive{transition:transform .2s cubic-bezier(.16,1,.3,1),border-color .2s}
+        .card-interactive:active{transform:scale(.985)}
+        .fade-up{animation:fadeUp .4s cubic-bezier(.16,1,.3,1) forwards;opacity:0}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .toast-container{transition:all .3s cubic-bezier(.16,1,.3,1)}
+        .code-block{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.04);position:relative;overflow:hidden}
+        .code-block::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.3),transparent)}
+        ::selection{background:rgba(245,158,11,0.25);color:#fff}
+        .key-row{transition:all .2s cubic-bezier(.16,1,.3,1)}
+        .key-row:active{transform:scale(.995)}
+        select.input-field{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
     </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row">
 
-<!-- ==================== AUTH GATE ==================== -->
 <div id="authGate" class="fixed inset-0 z-[200] flex items-center justify-center" style="background:var(--bg-deep)">
     <div class="auth-glow"></div>
     <div class="w-full max-w-sm mx-4 relative z-10">
@@ -317,17 +88,15 @@
             </div>
             <div class="space-y-1.5">
                 <label class="text-[10px] font-bold uppercase tracking-wider" style="color:var(--text-3)">Security PIN</label>
-                <input type="password" id="admPass" placeholder="••••" class="w-full px-4 py-3 rounded-xl input-field text-sm mono">
+                <input type="password" id="admPass" placeholder="****" class="w-full px-4 py-3 rounded-xl input-field text-sm mono">
             </div>
             <button onclick="checkAdminGate()" class="ripple-host w-full py-3.5 rounded-xl btn-primary text-sm tracking-wide mt-2">Authenticate</button>
         </div>
     </div>
 </div>
 
-<!-- ==================== SIDEBAR ==================== -->
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] sidebar-panel flex flex-col justify-between p-5 transform -translate-x-full md:translate-x-0 md:sticky h-screen shrink-0">
     <div class="space-y-7">
-        <!-- Logo -->
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-black" style="background:var(--accent);box-shadow:0 4px 16px rgba(245,158,11,0.25)">NX</div>
@@ -343,15 +112,13 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
-
-        <!-- Navigation -->
         <nav class="space-y-1">
             <button id="btn-beranda" onclick="sw('beranda')" class="menu-btn w-full text-left px-4 py-3 rounded-xl text-[11px] font-medium flex items-center gap-3 transition cursor-pointer" style="color:var(--text-3)">
                 <svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
                 Overview
             </button>
             <button id="btn-ggscript" onclick="sw('ggscript')" class="menu-btn w-full text-left px-4 py-3 rounded-xl text-[11px] font-medium flex items-center gap-3 transition cursor-pointer" style="color:var(--text-3)">
-                <svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 Cloud Scripts
             </button>
             <button id="btn-keysystem" onclick="sw('keysystem')" class="menu-btn w-full text-left px-4 py-3 rounded-xl text-[11px] font-medium flex items-center gap-3 transition cursor-pointer" style="color:var(--text-3)">
@@ -360,25 +127,15 @@
             </button>
         </nav>
     </div>
-
-    <!-- Sidebar Footer -->
     <div class="space-y-4 border-t pt-4" style="border-color:var(--border-subtle)">
         <div class="space-y-2">
-            <div class="flex justify-between text-[10px] mono" style="color:var(--text-3)">
-                <span>Storage</span>
-                <span id="storagePercent">0%</span>
-            </div>
-            <div class="w-full h-1.5 storage-track rounded-full">
-                <div id="storageBar" class="h-full storage-fill rounded-full" style="width:0%"></div>
-            </div>
+            <div class="flex justify-between text-[10px] mono" style="color:var(--text-3)"><span>Storage</span><span id="storagePercent">0%</span></div>
+            <div class="w-full h-1.5 storage-track rounded-full"><div id="storageBar" class="h-full storage-fill rounded-full" style="width:0%"></div></div>
         </div>
         <div class="flex items-center justify-between p-3 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
             <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black text-black shrink-0" style="background:var(--accent)">R</div>
-                <div class="min-w-0">
-                    <p class="text-[11px] font-bold text-white truncate">Riski</p>
-                    <p class="text-[9px] mono tracking-wider truncate" style="color:var(--text-3)">Root Admin</p>
-                </div>
+                <div class="min-w-0"><p class="text-[11px] font-bold text-white truncate">Riski</p><p class="text-[9px] mono tracking-wider truncate" style="color:var(--text-3)">Root Admin</p></div>
             </div>
             <button onclick="logOutAdmin()" class="ripple-host p-2 rounded-lg transition shrink-0" style="background:var(--danger-dim);color:var(--danger);border:1px solid rgba(239,68,68,0.12)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -387,10 +144,8 @@
     </div>
 </aside>
 
-<!-- ==================== SIDEBAR OVERLAY ==================== -->
 <div id="sidebarOverlay" onclick="toggleSidebar(false)" class="fixed inset-0 z-40 bg-black/60 hidden md:hidden" style="backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)"></div>
 
-<!-- ==================== MOBILE HEADER ==================== -->
 <div class="md:hidden sticky top-0 z-40 w-full shrink-0 flex items-center justify-between px-4 py-3" style="background:rgba(6,7,16,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-subtle)">
     <button onclick="toggleSidebar(true)" class="ripple-host p-2.5 rounded-xl" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -399,10 +154,8 @@
     <div class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black text-black" style="background:var(--accent)">R</div>
 </div>
 
-<!-- ==================== MAIN CONTENT ==================== -->
 <main id="contentArea" class="flex-1 p-4 md:p-8 overflow-y-auto w-full">
 
-    <!-- ===== OVERVIEW ===== -->
     <div id="view-beranda" class="space-y-6">
         <div class="fade-up">
             <h2 class="text-base font-extrabold text-white tracking-tight flex items-center gap-2.5">
@@ -413,40 +166,28 @@
             </h2>
             <p class="text-[11px] mt-1 ml-[42px]" style="color:var(--text-3)">Real-time infrastructure metrics</p>
         </div>
-
-        <!-- Stat Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 fade-up" style="animation-delay:0.05s">
             <div class="stat-card stat-amber glass rounded-xl p-4 space-y-2">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--accent-glow)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                </div>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--accent-glow)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
                 <p class="text-2xl font-black text-white" id="statScripts">0</p>
                 <p class="text-[10px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Scripts</p>
             </div>
             <div class="stat-card stat-blue glass rounded-xl p-4 space-y-2">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--info-dim)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6m3.1-6.1 4.2 4.2M16 4l3 3"/></svg>
-                </div>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--info-dim)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6m3.1-6.1 4.2 4.2M16 4l3 3"/></svg></div>
                 <p class="text-2xl font-black text-white" id="statKeys">0</p>
                 <p class="text-[10px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Total Keys</p>
             </div>
             <div class="stat-card stat-green glass rounded-xl p-4 space-y-2">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--success-dim)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--success-dim)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
                 <p class="text-2xl font-black text-white" id="statActive">0</p>
                 <p class="text-[10px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Active</p>
             </div>
             <div class="stat-card stat-red glass rounded-xl p-4 space-y-2">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--danger-dim)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                </div>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--danger-dim)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
                 <p class="text-2xl font-black text-white" id="statExpired">0</p>
                 <p class="text-[10px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Expired</p>
             </div>
         </div>
-
-        <!-- Gateway URL -->
         <div class="glass rounded-xl p-4 space-y-3 fade-up" style="animation-delay:0.1s">
             <div class="flex items-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
@@ -459,7 +200,6 @@
         </div>
     </div>
 
-    <!-- ===== CLOUD SCRIPTS ===== -->
     <div id="view-ggscript" class="space-y-6 hidden">
         <div class="flex justify-between items-start fade-up">
             <div>
@@ -476,8 +216,6 @@
                 Upload .lua
             </button>
         </div>
-
-        <!-- Deploy Form -->
         <div id="edC" class="glass-elevated rounded-2xl p-5 space-y-4 fade-up" style="animation-delay:0.05s;box-shadow:0 12px 40px rgba(0,0,0,0.25)">
             <h3 class="text-[11px] font-bold text-white flex items-center gap-2">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -493,12 +231,9 @@
             </div>
             <button onclick="dep()" class="ripple-host w-full py-3 rounded-xl btn-primary text-xs tracking-wide">Publish Script</button>
         </div>
-
-        <!-- Script List -->
         <div id="fList" class="space-y-3"></div>
     </div>
 
-    <!-- ===== LICENSE KEYS ===== -->
     <div id="view-keysystem" class="space-y-6 hidden">
         <div class="fade-up">
             <h2 class="text-base font-extrabold text-white tracking-tight flex items-center gap-2.5">
@@ -509,8 +244,6 @@
             </h2>
             <p class="text-[11px] mt-1 ml-[42px]" style="color:var(--text-3)">Generate and manage access licenses</p>
         </div>
-
-        <!-- Generate Form -->
         <div class="glass-elevated rounded-2xl p-5 space-y-4 fade-up" style="animation-delay:0.05s;box-shadow:0 12px 40px rgba(0,0,0,0.25)">
             <h3 class="text-[11px] font-bold text-white flex items-center gap-2">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -530,7 +263,7 @@
                     <select id="kPreset" onchange="handlePresetDateChange(this.value)" class="w-full px-3 py-2.5 rounded-xl input-field text-xs mono appearance-none cursor-pointer">
                         <option value="1">1 Day</option>
                         <option value="3">3 Days</option>
-                        <option value="7">7 Days</option>
+                        <option value="7" selected>7 Days</option>
                         <option value="30">30 Days</option>
                         <option value="PERMANENT">Permanent</option>
                         <option value="CUSTOM">Custom Date</option>
@@ -547,15 +280,12 @@
             </div>
             <button onclick="genK()" class="ripple-host w-full py-3 rounded-xl btn-accent text-xs tracking-wide">Generate Key</button>
         </div>
-
-        <!-- Key List -->
         <div id="kList" class="space-y-3"></div>
     </div>
 </main>
 
-<!-- ==================== EDIT MODAL ==================== -->
 <div id="editModal" class="fixed inset-0 z-[150] items-center justify-center p-4 modal-backdrop hidden opacity-0" style="background:rgba(0,0,0,0.7)">
-    <div class="modal-box glass-elevated w-full max-w-2xl rounded-2xl p-5 space-y-4 scale-95 opacity-0" id="modalBox" style="box-shadow:0 24px 80px rgba(0,0,0,0.5)">
+    <div class="modal-box glass-elevated w-full max-w-2xl rounded-2xl p-5 space-y-4 scale-95 opacity-0" id="modalBox" style="box-shadow:0 24px 80px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto">
         <div class="flex justify-between items-center pb-3" style="border-bottom:1px solid var(--border-subtle)">
             <h3 class="text-[11px] font-bold text-white flex items-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -572,7 +302,7 @@
         </div>
         <div class="space-y-1.5">
             <label class="text-[10px] font-bold uppercase tracking-wider" style="color:var(--text-3)">Source Code</label>
-            <textarea id="editContent" rows="12" class="w-full px-4 py-3 rounded-xl input-field text-xs mono resize-none leading-relaxed"></textarea>
+            <textarea id="editContent" rows="14" class="w-full px-4 py-3 rounded-xl input-field text-xs mono resize-none leading-relaxed"></textarea>
         </div>
         <div class="flex gap-2.5 justify-end pt-2">
             <button onclick="closeEditModal()" class="ripple-host px-5 py-2.5 btn-ghost rounded-xl text-[11px] font-bold">Cancel</button>
@@ -581,7 +311,6 @@
     </div>
 </div>
 
-<!-- ==================== CONFIRM MODAL ==================== -->
 <div id="confirmModal" class="fixed inset-0 z-[160] items-center justify-center p-4 modal-backdrop hidden opacity-0" style="background:rgba(0,0,0,0.75)">
     <div class="modal-box glass-elevated w-full max-w-sm rounded-2xl p-6 space-y-5 scale-95 opacity-0" id="confirmBox" style="box-shadow:0 24px 80px rgba(0,0,0,0.5)">
         <div class="text-center space-y-3">
@@ -589,7 +318,7 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
             <h3 class="text-sm font-bold text-white">Delete Confirmation</h3>
-            <p class="text-[11px] leading-relaxed" style="color:var(--text-2)">This action cannot be undone. The selected node will be permanently removed from the infrastructure.</p>
+            <p class="text-[11px] leading-relaxed" style="color:var(--text-2)">This action cannot be undone. The selected node will be permanently removed.</p>
         </div>
         <div class="grid grid-cols-2 gap-3">
             <button onclick="closeConfirmModal()" class="ripple-host py-3 btn-ghost rounded-xl text-[11px] font-bold">Cancel</button>
@@ -598,24 +327,20 @@
     </div>
 </div>
 
-<!-- ==================== TOAST ==================== -->
 <div id="toast" class="toast-container fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6 glass-elevated px-5 py-3.5 rounded-xl opacity-0 translate-y-4 z-[250] text-[11px] font-bold text-white flex items-center gap-2.5 pointer-events-none" style="box-shadow:0 12px 40px rgba(0,0,0,0.4);min-width:200px">
     <span id="tIcon"></span>
     <span id="tM"></span>
 </div>
 
-<!-- ==================== SCRIPT ==================== -->
 <script>
-/* ===== STATE ===== */
 var S = { files: [], keys: [], session: '', cur: 'beranda' };
 
 /* ===== TOUCH RIPPLE ENGINE ===== */
 var TouchEngine = {
     init: function() {
-        document.addEventListener('touchstart', this._onStart.bind(this), { passive: true });
-        document.addEventListener('touchend', this._onEnd.bind(this), { passive: true });
-        document.addEventListener('touchcancel', this._onEnd.bind(this), { passive: true });
-        /* Mouse fallback for desktop */
+        document.addEventListener('touchstart', this._ts.bind(this), { passive: true });
+        document.addEventListener('touchend', this._te.bind(this), { passive: true });
+        document.addEventListener('touchcancel', this._te.bind(this), { passive: true });
         document.addEventListener('mousedown', function(e) {
             var t = e.target.closest('.ripple-host');
             if (!t) return;
@@ -631,7 +356,7 @@ var TouchEngine = {
             setTimeout(function() { if (rip.parentNode) rip.remove(); }, 750);
         });
     },
-    _onStart: function(e) {
+    _ts: function(e) {
         var touch = e.touches[0];
         var t = touch.target.closest('.ripple-host');
         if (!t) return;
@@ -644,7 +369,7 @@ var TouchEngine = {
         rip.style.top = (touch.clientY - r.top) + 'px';
         t.appendChild(rip);
     },
-    _onEnd: function() {
+    _te: function() {
         var rips = document.querySelectorAll('.t-ripple:not(.t-ripple-out)');
         for (var i = 0; i < rips.length; i++) {
             (function(rip) {
@@ -668,13 +393,11 @@ function toast(m, type) {
     icon.innerHTML = icons[type || 'info'] || icons.info;
     msg.innerText = m;
     t.style.opacity = '1';
-    t.style.transform = 'translateX(-50%) translateY(0)';
-    if (window.innerWidth >= 768) t.style.transform = 'translateY(0)';
+    t.style.transform = window.innerWidth >= 768 ? 'translateY(0)' : 'translateX(-50%) translateY(0)';
     clearTimeout(t._tid);
     t._tid = setTimeout(function() {
         t.style.opacity = '0';
-        t.style.transform = 'translateX(-50%) translateY(16px)';
-        if (window.innerWidth >= 768) t.style.transform = 'translateY(16px)';
+        t.style.transform = window.innerWidth >= 768 ? 'translateY(16px)' : 'translateX(-50%) translateY(16px)';
     }, 2500);
 }
 
@@ -696,6 +419,22 @@ function toggleSidebar(open) {
     var ov = document.getElementById('sidebarOverlay');
     if (open) { side.classList.remove('-translate-x-full'); ov.classList.remove('hidden'); }
     else { side.classList.add('-translate-x-full'); ov.classList.add('hidden'); }
+}
+
+/* ===== API HELPER ===== */
+function api(method, body, q) {
+    var opts = {
+        method: method,
+        headers: { 'Content-Type': 'application/json' }
+    };
+    if (S.session) opts.headers['X-Session'] = S.session;
+    if (body) opts.body = JSON.stringify(body);
+    var url = '/api/server';
+    if (q) url += '?' + q;
+    return fetch(url, opts).then(function(r) {
+        if (r.status === 401) { logOutAdmin(); return null; }
+        return r.json();
+    });
 }
 
 /* ===== VIEW SWITCHING ===== */
@@ -730,312 +469,393 @@ function reanimate() {
 
 /* ===== OVERVIEW ===== */
 function initB() {
-    document.getElementById('baseL2').innerText = location.origin + '/api/server?type=login';
-    var totalScripts = S.files.length;
-    var totalKeys = S.keys.length;
-    var activeKeys = 0, expiredKeys = 0;
-    for (var i = 0; i < S.keys.length; i++) {
-        var exp = new Date(S.keys[i].expiry);
-        var isPerm = exp.getFullYear() >= 2125;
-        if (isPerm || new Date() <= exp) activeKeys++;
-        else expiredKeys++;
-    }
-    document.getElementById('statScripts').innerText = totalScripts;
-    document.getElementById('statKeys').innerText = totalKeys;
-    document.getElementById('statActive').innerText = activeKeys;
-    document.getElementById('statExpired').innerText = expiredKeys;
-}
-
-function updateStorage() {
-    var count = S.files.length + S.keys.length;
-    var pct = Math.min(Math.round((count / 50) * 100), 100);
-    document.getElementById('storagePercent').innerText = pct + '%';
-    document.getElementById('storageBar').style.width = pct + '%';
-}
-
-/* ===== API ===== */
-async function api(method, url, body) {
-    var o = { method: method, headers: { 'Content-Type': 'application/json' } };
-    if (S.session) o.headers['X-Session'] = S.session;
-    if (body) o.body = JSON.stringify(body);
-    return fetch('/api/server' + url, o);
-}
-
-/* ===== AUTH ===== */
-async function checkAdminGate() {
-    var u = document.getElementById('admUser').value.trim();
-    var p = document.getElementById('admPass').value;
-    if (!u || !p) return toast('Fill all fields', 'error');
-    try {
-        var r = await fetch('/api/server', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'login', username: u, password: p })
-        });
-        if (r.ok) {
-            var d = await r.json();
-            S.session = d.session;
-            localStorage.setItem('nx_root_session', d.session);
-            document.getElementById('authGate').style.opacity = '0';
-            document.getElementById('authGate').style.transition = 'opacity 0.3s';
-            setTimeout(function() { document.getElementById('authGate').classList.add('hidden'); }, 300);
-            sw('beranda');
-            toast('Welcome back, Riski', 'success');
-        } else {
-            toast('Access denied', 'error');
+    document.getElementById('baseL2').innerText = location.origin + '/api/server?type=loader';
+    Promise.all([api('GET', null, 'type=scripts'), api('GET', null, 'type=keys')]).then(function(results) {
+        var scripts = results[0] || [];
+        var keys = results[1] || [];
+        S.files = scripts;
+        S.keys = keys;
+        document.getElementById('statScripts').innerText = scripts.length;
+        document.getElementById('statKeys').innerText = keys.length;
+        var active = 0, expired = 0;
+        var now = new Date();
+        for (var i = 0; i < keys.length; i++) {
+            var exp = new Date(keys[i].expiry);
+            if (exp.getFullYear() >= 2125 || exp > now) active++;
+            else expired++;
         }
-    } catch(e) { toast('Connection error', 'error'); }
-}
-
-function logOutAdmin() {
-    localStorage.removeItem('nx_root_session');
-    location.reload();
-}
-
-/* ===== FILE UPLOAD ===== */
-function pickLocalLuaFile() {
-    var inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = '.lua';
-    inp.onchange = function(e) {
-        var f = e.target.files[0]; if (!f) return;
-        var reader = new FileReader();
-        reader.readAsText(f, 'UTF-8');
-        reader.onload = function(ev) {
-            document.getElementById('fN').value = f.name;
-            document.getElementById('fC').value = ev.target.result;
-            toast('Loaded: ' + f.name, 'success');
-        };
-    };
-    inp.click();
-}
-
-/* ===== COPY HOOKS ===== */
-function triggerCopyHookMenu(sid) {
-    var b = location.origin;
-    cp('local A=gg.getFile() gg.getFile=function()return A end local V=gg.makeRequest("' + b + '/api/server?type=menu&id=' + sid + '").content if V then pcall(load(V)) end');
-}
-function triggerCopyLoader(sid) {
-    var b = location.origin;
-    cp('local A=gg.getFile() gg.getFile=function()return A end local V=gg.makeRequest("' + b + '/api/server?type=login&id=' + sid + '").content if V then pcall(load(V)) end');
+        document.getElementById('statActive').innerText = active;
+        document.getElementById('statExpired').innerText = expired;
+        updateStorage();
+    });
 }
 
 /* ===== LOAD SCRIPTS ===== */
-async function loadF() {
-    var r = await api('GET', ''); if (!r.ok) return;
-    S.files = await r.json();
-    var sel = document.getElementById('kT');
-    if (sel) sel.innerHTML = S.files.map(function(f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('');
+function loadF() {
+    api('GET', null, 'type=scripts').then(function(data) {
+        if (!data) return;
+        S.files = data;
+        var sel = document.getElementById('kT');
+        sel.innerHTML = '';
+        if (data.length === 0) {
+            sel.innerHTML = '<option value="">No scripts available</option>';
+        } else {
+            for (var i = 0; i < data.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = data[i].id;
+                opt.innerText = data[i].name;
+                sel.appendChild(opt);
+            }
+        }
+        renderFList();
+        updateStorage();
+    });
+}
+
+function renderFList() {
     var c = document.getElementById('fList');
-    if (!c) return;
     if (S.files.length === 0) {
-        c.innerHTML = '<div class="text-center py-12" style="color:var(--text-3)"><svg class="mx-auto mb-3 opacity-30" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p class="text-[11px]">No scripts deployed yet</p></div>';
-        updateStorage(); return;
+        c.innerHTML = '<div class="glass rounded-xl p-8 text-center"><p class="text-[11px]" style="color:var(--text-3)">No scripts deployed yet</p></div>';
+        return;
     }
-    c.innerHTML = S.files.map(function(f, i) {
-        return '<div class="glass card-interactive rounded-xl p-4 space-y-3 fade-up" style="animation-delay:' + (i * 0.03) + 's">' +
-            '<div class="flex justify-between items-start gap-3">' +
-                '<div class="min-w-0 flex-1">' +
-                    '<div class="flex items-center gap-2 mb-1">' +
-                        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
-                        '<span class="mono text-[11px] font-bold text-white truncate">' + f.name + '</span>' +
-                    '</div>' +
-                    '<span class="mono text-[9px] block" style="color:var(--text-3)">' + f.id + '</span>' +
-                '</div>' +
-                '<div class="flex gap-1.5 shrink-0">' +
-                    '<button onclick="openEditModal(\'' + f.id + '\')" class="ripple-host p-2 rounded-lg transition" style="background:var(--info-dim);color:var(--info);border:1px solid rgba(59,130,246,0.1)">' +
-                        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
-                    '</button>' +
-                    '<button onclick="openConfirmModal(\'script\',\'' + f.id + '\')" class="ripple-host p-2 rounded-lg transition" style="background:var(--danger-dim);color:var(--danger);border:1px solid rgba(239,68,68,0.1)">' +
-                        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
-                    '</button>' +
-                '</div>' +
-            '</div>' +
-            '<button onclick="triggerCopyHookMenu(\'' + f.id + '\')" class="ripple-host w-full py-2.5 btn-primary rounded-xl text-[10px] font-bold tracking-wide">Copy Hook Script</button>' +
-        '</div>';
-    }).join('');
-    updateStorage();
-}
-
-/* ===== LOAD KEYS ===== */
-async function loadK() {
-    var r = await api('GET', '?type=keys'); if (!r.ok) return;
-    S.keys = await r.json();
-    var c = document.getElementById('kList');
-    if (!c) return;
-    if (S.keys.length === 0) {
-        c.innerHTML = '<div class="text-center py-12" style="color:var(--text-3)"><svg class="mx-auto mb-3 opacity-30" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6m3.1-6.1 4.2 4.2M16 4l3 3"/></svg><p class="text-[11px]">No license keys generated</p></div>';
-        updateStorage(); return;
+    var h = '';
+    for (var i = 0; i < S.files.length; i++) {
+        var f = S.files[i];
+        var loaderUrl = location.origin + '/api/server?type=loader&id=' + f.id;
+        var lines = (f.content || '').split('\n').length;
+        var size = new Blob([f.content || '']).size;
+        var sizeStr = size > 1024 ? (size / 1024).toFixed(1) + ' KB' : size + ' B';
+        h += '<div class="key-row glass card-interactive rounded-xl p-4 space-y-3">';
+        h += '<div class="flex items-start justify-between gap-3">';
+        h += '<div class="min-w-0 flex-1">';
+        h += '<div class="flex items-center gap-2 mb-1">';
+        h += '<div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:var(--accent-glow);border:1px solid rgba(245,158,11,0.1)">';
+        h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+        h += '</div>';
+        h += '<p class="text-[12px] font-bold text-white truncate">' + escHtml(f.name) + '</p>';
+        h += '</div>';
+        h += '<div class="flex items-center gap-3 text-[9px] mono" style="color:var(--text-3)">';
+        h += '<span>' + lines + ' lines</span>';
+        h += '<span>' + sizeStr + '</span>';
+        h += '<span class="truncate max-w-[80px]">' + f.id + '</span>';
+        h += '</div>';
+        h += '</div>';
+        h += '<div class="flex items-center gap-1.5 shrink-0">';
+        h += '<button onclick="cp(\'' + loaderUrl + '\')" class="ripple-host p-2 rounded-lg transition" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);color:var(--text-2)" title="Copy Loader URL"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>';
+        h += '<button onclick="editFile(\'' + f.id + '\')" class="ripple-host p-2 rounded-lg transition" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);color:var(--text-2)" title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>';
+        h += '<button onclick="confirmDelete(\'script\',\'' + f.id + '\')" class="ripple-host p-2 rounded-lg transition" style="background:var(--danger-dim);border:1px solid rgba(239,68,68,0.12);color:var(--danger)" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+        h += '</div></div>';
+        h += '<div class="code-block rounded-lg p-2.5"><code class="text-[9px] mono block break-all" style="color:var(--text-3)">' + escHtml(loaderUrl) + '</code></div>';
+        h += '</div>';
     }
-    c.innerHTML = S.keys.map(function(k, i) {
-        var expDate = new Date(k.expiry);
-        var isPerm = expDate.getFullYear() >= 2125;
-        var expDisp = isPerm ? 'UNLIMITED' : expDate.toLocaleDateString('id-ID');
-        var isExpired = !isPerm && (new Date() > expDate);
-        var badge = isExpired
-            ? '<span class="badge badge-expired">Expired</span>'
-            : (isPerm
-                ? '<span class="badge badge-perm"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Permanent</span>'
-                : '<span class="badge badge-active">Active</span>');
-        var devCount = k.registered_devices ? k.registered_devices.length : 0;
-        var devPct = Math.min(Math.round((devCount / k.max_devices) * 100), 100);
-
-        return '<div class="glass card-interactive rounded-xl p-4 space-y-3 fade-up" style="animation-delay:' + (i * 0.03) + 's">' +
-            '<div class="flex justify-between items-start gap-3">' +
-                '<div class="min-w-0 flex-1">' +
-                    '<div class="flex items-center gap-2 flex-wrap mb-1">' +
-                        '<span class="mono text-[11px] font-bold text-white break-all">' + k.key + '</span>' +
-                        badge +
-                    '</div>' +
-                '</div>' +
-                '<button onclick="openConfirmModal(\'key\',\'' + k.key + '\')" class="ripple-host p-2 rounded-lg shrink-0 transition" style="background:var(--danger-dim);color:var(--danger);border:1px solid rgba(239,68,68,0.1)">' +
-                    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
-                '</button>' +
-            '</div>' +
-            '<div class="grid grid-cols-3 gap-3 pt-3" style="border-top:1px solid var(--border-subtle)">' +
-                '<div>' +
-                    '<p class="text-[9px] font-bold uppercase tracking-wider mb-0.5" style="color:var(--text-3)">Script</p>' +
-                    '<p class="text-[10px] mono font-semibold text-white truncate">' + (k.target_script_name || '-') + '</p>' +
-                '</div>' +
-                '<div>' +
-                    '<p class="text-[9px] font-bold uppercase tracking-wider mb-0.5" style="color:var(--text-3)">Devices</p>' +
-                    '<p class="text-[10px] mono font-bold" style="color:' + (devPct >= 100 ? 'var(--danger)' : 'var(--success)') + '">' + devCount + '/' + k.max_devices + '</p>' +
-                    '<div class="w-full h-1 rounded-full mt-1" style="background:rgba(255,255,255,0.04)"><div class="h-full rounded-full" style="width:' + devPct + '%;background:' + (devPct >= 100 ? 'var(--danger)' : 'var(--success)') + ';transition:width 0.3s"></div></div>' +
-                '</div>' +
-                '<div>' +
-                    '<p class="text-[9px] font-bold uppercase tracking-wider mb-0.5" style="color:var(--text-3)">Expiry</p>' +
-                    '<p class="text-[10px] mono font-medium text-white truncate">' + expDisp + '</p>' +
-                '</div>' +
-            '</div>' +
-            '<div class="grid grid-cols-2 gap-2 pt-1">' +
-                '<button onclick="triggerCopyLoader(\'' + k.script_id + '\')" class="ripple-host py-2.5 btn-primary rounded-xl text-[10px] font-bold tracking-wide">Copy Loader</button>' +
-                '<button onclick="triggerCopyHookMenu(\'' + k.script_id + '\')" class="ripple-host py-2.5 rounded-xl text-[10px] font-bold tracking-wide" style="background:var(--accent-glow);color:var(--accent);border:1px solid rgba(245,158,11,0.15)">Copy Hook</button>' +
-            '</div>' +
-        '</div>';
-    }).join('');
-    updateStorage();
-}
-
-/* ===== EDIT MODAL ===== */
-function openEditModal(id) {
-    var target = S.files.find(function(f) { return f.id === id; });
-    if (!target) return;
-    document.getElementById('editTargetId').value = id;
-    document.getElementById('editName').value = target.name;
-    document.getElementById('editContent').value = target.content;
-    var m = document.getElementById('editModal');
-    var b = document.getElementById('modalBox');
-    m.classList.remove('hidden'); m.classList.add('flex');
-    requestAnimationFrame(function() {
-        m.classList.remove('opacity-0');
-        b.classList.remove('scale-95', 'opacity-0');
-        b.classList.add('scale-100', 'opacity-100');
-    });
-}
-function closeEditModal() {
-    var m = document.getElementById('editModal');
-    var b = document.getElementById('modalBox');
-    b.classList.add('scale-95', 'opacity-0');
-    b.classList.remove('scale-100', 'opacity-100');
-    m.classList.add('opacity-0');
-    setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 250);
-}
-async function submitUpdateScript() {
-    var id = document.getElementById('editTargetId').value;
-    var name = document.getElementById('editName').value.trim();
-    var content = document.getElementById('editContent').value;
-    if (!name || !content) return toast('Fields cannot be empty', 'error');
-    var r = await api('POST', '', { name: name, content: content, existingScriptId: id });
-    if (r.ok) { toast('Script updated', 'success'); closeEditModal(); loadF(); }
-    else toast('Update failed', 'error');
-}
-
-/* ===== CONFIRM MODAL ===== */
-function openConfirmModal(type, targetKey) {
-    var m = document.getElementById('confirmModal');
-    var b = document.getElementById('confirmBox');
-    var btn = document.getElementById('executeConfirmBtn');
-    btn.onclick = async function() {
-        if (type === 'script') { await api('DELETE', '?id=' + targetKey); loadF(); }
-        else { await api('DELETE', '?deleteKey=' + targetKey); loadK(); }
-        closeConfirmModal();
-        toast('Deleted successfully', 'success');
-    };
-    m.classList.remove('hidden'); m.classList.add('flex');
-    requestAnimationFrame(function() {
-        m.classList.remove('opacity-0');
-        b.classList.remove('scale-95', 'opacity-0');
-        b.classList.add('scale-100', 'opacity-100');
-    });
-}
-function closeConfirmModal() {
-    var m = document.getElementById('confirmModal');
-    var b = document.getElementById('confirmBox');
-    b.classList.add('scale-95', 'opacity-0');
-    b.classList.remove('scale-100', 'opacity-100');
-    m.classList.add('opacity-0');
-    setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 250);
+    c.innerHTML = h;
 }
 
 /* ===== DEPLOY SCRIPT ===== */
-async function dep() {
-    var n = document.getElementById('fN').value.trim();
-    var c = document.getElementById('fC').value;
-    if (!n || !c) return toast('Fill all fields', 'error');
-    var r = await api('POST', '', { name: n, content: c });
-    if (r.ok) {
-        toast('Script published', 'success');
+function dep() {
+    var name = document.getElementById('fN').value.trim();
+    var content = document.getElementById('fC').value;
+    if (!name) { toast('Filename is required', 'error'); return; }
+    if (!content.trim()) { toast('Source code is required', 'error'); return; }
+    toast('Deploying...', 'info');
+    api('POST', { name: name, content: content }).then(function(r) {
+        if (!r) return;
+        if (r.error) { toast(r.error, 'error'); return; }
+        toast('Script deployed successfully', 'success');
         document.getElementById('fN').value = '';
         document.getElementById('fC').value = '';
         loadF();
-    } else toast('Publish failed', 'error');
+    });
+}
+
+/* ===== EDIT SCRIPT ===== */
+function editFile(id) {
+    var f = null;
+    for (var i = 0; i < S.files.length; i++) {
+        if (S.files[i].id === id) { f = S.files[i]; break; }
+    }
+    if (!f) return;
+    document.getElementById('editTargetId').value = f.id;
+    document.getElementById('editName').value = f.name;
+    document.getElementById('editContent').value = f.content || '';
+    openEditModal();
+}
+
+function submitUpdateScript() {
+    var id = document.getElementById('editTargetId').value;
+    var name = document.getElementById('editName').value.trim();
+    var content = document.getElementById('editContent').value;
+    if (!name) { toast('Filename is required', 'error'); return; }
+    toast('Saving...', 'info');
+    api('POST', { name: name, content: content, existingScriptId: id }).then(function(r) {
+        if (!r) return;
+        if (r.error) { toast(r.error, 'error'); return; }
+        toast('Script updated', 'success');
+        closeEditModal();
+        loadF();
+    });
+}
+
+/* ===== DELETE ===== */
+var pendingDelete = { type: '', id: '' };
+
+function confirmDelete(type, id) {
+    pendingDelete = { type: type, id: id };
+    openConfirmModal();
+}
+
+function executeDelete() {
+    var type = pendingDelete.type;
+    var id = pendingDelete.id;
+    closeConfirmModal();
+    toast('Deleting...', 'info');
+    if (type === 'script') {
+        api('DELETE', null, 'id=' + encodeURIComponent(id)).then(function(r) {
+            if (!r) return;
+            toast('Script deleted', 'success');
+            loadF();
+        });
+    } else if (type === 'key') {
+        api('DELETE', null, 'deleteKey=' + encodeURIComponent(id)).then(function(r) {
+            if (!r) return;
+            toast('Key deleted', 'success');
+            loadK();
+        });
+    }
+}
+
+/* ===== LOAD KEYS ===== */
+function loadK() {
+    api('GET', null, 'type=keys').then(function(data) {
+        if (!data) return;
+        S.keys = data;
+        renderKList();
+    });
+}
+
+function renderKList() {
+    var c = document.getElementById('kList');
+    if (S.keys.length === 0) {
+        c.innerHTML = '<div class="glass rounded-xl p-8 text-center"><p class="text-[11px]" style="color:var(--text-3)">No license keys generated yet</p></div>';
+        return;
+    }
+    var h = '';
+    var now = new Date();
+    for (var i = 0; i < S.keys.length; i++) {
+        var k = S.keys[i];
+        var exp = new Date(k.expiry);
+        var isPerm = exp.getFullYear() >= 2125;
+        var isExpired = !isPerm && exp <= now;
+        var statusBadge = isPerm ? '<span class="badge badge-perm">Permanent</span>' : (isExpired ? '<span class="badge badge-expired">Expired</span>' : '<span class="badge badge-active">Active</span>');
+        var expStr = isPerm ? 'PERMANENT' : exp.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+        var devCount = (k.registered_devices || []).length;
+        var maxDev = k.max_devices >= 9999 ? '∞' : k.max_devices;
+
+        h += '<div class="key-row glass card-interactive rounded-xl p-4 space-y-3">';
+        h += '<div class="flex items-start justify-between gap-3">';
+        h += '<div class="min-w-0 flex-1 space-y-2">';
+        h += '<div class="flex items-center gap-2 flex-wrap">';
+        h += '<p class="text-[12px] font-bold text-white mono truncate max-w-[200px]">' + escHtml(k.key) + '</p>';
+        h += statusBadge;
+        h += '</div>';
+        h += '<div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[9px]" style="color:var(--text-3)">';
+        h += '<span class="flex items-center gap-1"><span style="color:var(--text-2)">Script:</span> <span class="mono truncate">' + escHtml(k.target_script_name || '-') + '</span></span>';
+        h += '<span class="flex items-center gap-1"><span style="color:var(--text-2)">Expiry:</span> <span class="mono">' + expStr + '</span></span>';
+        h += '<span class="flex items-center gap-1"><span style="color:var(--text-2)">Devices:</span> <span class="mono">' + devCount + '/' + maxDev + '</span></span>';
+        h += '<span class="flex items-center gap-1"><span style="color:var(--text-2)">Script ID:</span> <span class="mono truncate">' + escHtml(k.script_id || '-') + '</span></span>';
+        h += '</div></div>';
+        h += '<div class="flex items-center gap-1.5 shrink-0">';
+        h += '<button onclick="cp(\'' + escAttr(k.key) + '\')" class="ripple-host p-2 rounded-lg transition" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);color:var(--text-2)" title="Copy Key"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>';
+        h += '<button onclick="confirmDelete(\'key\',\'' + escAttr(k.key) + '\')" class="ripple-host p-2 rounded-lg transition" style="background:var(--danger-dim);border:1px solid rgba(239,68,68,0.12);color:var(--danger)" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+        h += '</div></div>';
+        if (devCount > 0) {
+            h += '<div class="flex flex-wrap gap-1">';
+            for (var d = 0; d < k.registered_devices.length; d++) {
+                h += '<span class="text-[8px] mono px-2 py-0.5 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);color:var(--text-3)">' + escHtml(k.registered_devices[d].substring(0, 16)) + '...</span>';
+            }
+            h += '</div>';
+        }
+        h += '</div>';
+    }
+    c.innerHTML = h;
 }
 
 /* ===== GENERATE KEY ===== */
 function handlePresetDateChange(val) {
     var zone = document.getElementById('customDateZone');
-    if (val === 'CUSTOM') zone.classList.remove('hidden');
-    else zone.classList.add('hidden');
+    if (val === 'CUSTOM') {
+        zone.classList.remove('hidden');
+    } else {
+        zone.classList.add('hidden');
+    }
 }
 
-async function genK() {
-    var scriptId = document.getElementById('kT').value;
-    var maxDevices = document.getElementById('kM').value;
+function getExpiryDate() {
     var preset = document.getElementById('kPreset').value;
-    var customName = document.getElementById('kC').value.trim();
-    if (!scriptId) return toast('Select target script', 'error');
-    var finalExpiry = '';
-    if (preset === 'PERMANENT') {
-        var d = new Date(); d.setFullYear(d.getFullYear() + 100);
-        finalExpiry = d.toISOString();
-    } else if (preset === 'CUSTOM') {
-        var raw = document.getElementById('kE').value;
-        if (!raw) return toast('Select custom date', 'error');
-        finalExpiry = new Date(raw).toISOString();
-    } else {
-        var d = new Date(); d.setDate(d.getDate() + parseInt(preset));
-        finalExpiry = d.toISOString();
+    if (preset === 'PERMANENT') return '2125-01-01T00:00:00.000Z';
+    if (preset === 'CUSTOM') {
+        var v = document.getElementById('kE').value;
+        if (!v) { toast('Select a custom expiry date', 'error'); return null; }
+        return new Date(v).toISOString();
     }
-    var r = await api('POST', '', { action: 'createKey', scriptId: scriptId, expiry: finalExpiry, maxDevices: maxDevices, customName: customName });
-    if (r.ok) {
-        toast('Key generated', 'success');
+    var days = parseInt(preset) || 7;
+    var d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString();
+}
+
+function genK() {
+    var scriptId = document.getElementById('kT').value;
+    var maxDevices = parseInt(document.getElementById('kM').value) || 1;
+    var customName = document.getElementById('kC').value.trim();
+    var expiry = getExpiryDate();
+    if (!expiry) return;
+    if (!scriptId) { toast('Select a target script first', 'error'); return; }
+    toast('Generating license...', 'info');
+    api('POST', { action: 'createKey', scriptId: scriptId, expiry: expiry, maxDevices: maxDevices, customName: customName }).then(function(r) {
+        if (!r) return;
+        if (r.error) { toast(r.error, 'error'); return; }
+        toast('Key generated: ' + r.key, 'success');
+        cp(r.key);
         document.getElementById('kC').value = '';
         loadK();
-    } else {
-        var err = await r.json();
-        toast(err.error || 'Failed to generate', 'error');
-    }
+    });
 }
 
-/* ===== INIT ===== */
-window.onload = function() {
-    TouchEngine.init();
-    var saved = localStorage.getItem('nx_root_session');
-    if (saved && saved === 'NEXUS_RISKI_SECURE_TOKEN') {
-        S.session = saved;
-        document.getElementById('authGate').classList.add('hidden');
-        sw('beranda');
+/* ===== FILE UPLOAD ===== */
+function pickLocalLuaFile() {
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.lua,.txt';
+    inp.onchange = function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            document.getElementById('fN').value = file.name;
+            document.getElementById('fC').value = ev.target.result;
+            toast('File loaded: ' + file.name, 'success');
+        };
+        reader.readAsText(file);
+    };
+    inp.click();
+}
+
+/* ===== STORAGE BAR ===== */
+function updateStorage() {
+    var total = S.files.length + S.keys.length;
+    var pct = Math.min(100, total * 2);
+    document.getElementById('storageBar').style.width = pct + '%';
+    document.getElementById('storagePercent').innerText = pct + '%';
+}
+
+/* ===== MODALS ===== */
+function openEditModal() {
+    var m = document.getElementById('editModal');
+    var b = document.getElementById('modalBox');
+    m.classList.remove('hidden');
+    m.style.display = 'flex';
+    requestAnimationFrame(function() {
+        m.style.opacity = '1';
+        b.style.transform = 'scale(1)';
+        b.style.opacity = '1';
+    });
+}
+
+function closeEditModal() {
+    var m = document.getElementById('editModal');
+    var b = document.getElementById('modalBox');
+    m.style.opacity = '0';
+    b.style.transform = 'scale(0.95)';
+    b.style.opacity = '0';
+    setTimeout(function() {
+        m.classList.add('hidden');
+        m.style.display = '';
+    }, 250);
+}
+
+function openConfirmModal() {
+    var m = document.getElementById('confirmModal');
+    var b = document.getElementById('confirmBox');
+    m.classList.remove('hidden');
+    m.style.display = 'flex';
+    document.getElementById('executeConfirmBtn').onclick = executeDelete;
+    requestAnimationFrame(function() {
+        m.style.opacity = '1';
+        b.style.transform = 'scale(1)';
+        b.style.opacity = '1';
+    });
+}
+
+function closeConfirmModal() {
+    var m = document.getElementById('confirmModal');
+    var b = document.getElementById('confirmBox');
+    m.style.opacity = '0';
+    b.style.transform = 'scale(0.95)';
+    b.style.opacity = '0';
+    setTimeout(function() {
+        m.classList.add('hidden');
+        m.style.display = '';
+    }, 250);
+}
+
+/* ===== AUTH ===== */
+function checkAdminGate() {
+    var u = document.getElementById('admUser').value.trim();
+    var p = document.getElementById('admPass').value;
+    if (!u || !p) { toast('Fill in all fields', 'error'); return; }
+    toast('Authenticating...', 'info');
+    fetch('/api/server', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', username: u, password: p })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data && data.session) {
+            S.session = data.session;
+            document.getElementById('authGate').style.opacity = '0';
+            document.getElementById('authGate').style.transition = 'opacity 0.4s ease-out';
+            setTimeout(function() {
+                document.getElementById('authGate').style.display = 'none';
+                sw('beranda');
+            }, 400);
+            toast('Welcome back, Riski', 'success');
+        } else {
+            toast('Invalid credentials', 'error');
+        }
+    }).catch(function() {
+        toast('Connection failed', 'error');
+    });
+}
+
+function logOutAdmin() {
+    S.session = '';
+    var g = document.getElementById('authGate');
+    g.style.display = 'flex';
+    requestAnimationFrame(function() { g.style.opacity = '1'; });
+    document.getElementById('admUser').value = '';
+    document.getElementById('admPass').value = '';
+}
+
+/* ===== UTILS ===== */
+function escHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escAttr(s) {
+    if (!s) return '';
+    return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+/* ===== KEYBOARD SHORTCUT ON AUTH ===== */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && document.getElementById('authGate').style.display !== 'none') {
+        checkAdminGate();
     }
-};
+});
+
+/* ===== INIT ===== */
+TouchEngine.init();
 </script>
 </body>
 </html>

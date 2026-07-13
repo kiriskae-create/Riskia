@@ -85,10 +85,10 @@ export default async function handler(req, res) {
             const createdAt = new Date().toLocaleString('sv-SE').replace('T', ' ');
             const maxDev = license.max_devices >= 9999 ? 'tak terbatas' : license.max_devices;
             
-            const infoText = `PENGGUNA: VERSI SCRIPT\\nVERSI: ISAC SCRIPT\\nPERANGKAT: ${maxDev}\\nTERDAFTAR: ${createdAt}\\nBERLAKU HINGGA: ${expFull}\\nPENJUAL: NEXUS SCRIPT`;
+            const infoText = 'PENGGUNA: VERSI SCRIPT\\nVERSI: ISAC SCRIPT\\nPERANGKAT: ' + maxDev + '\\nTERDAFTAR: ' + createdAt + '\\nBERLAKU HINGGA: ' + expFull + '\\nPENJUAL: NEXUS SCRIPT';
             
             const c = [
-                'gg.toast("⚡ ACCESS GRANTED")',
+                'gg.toast("ACCESS GRANTED")',
                 'gg.alert("' + infoText + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
@@ -98,62 +98,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        const loginLua = `gg.setVisible(false)
-local BASE = "https://${host}"
-local SCRIPT_ID = "${targetScriptId}"
-
-local function getHwid()
-    local raw = "NX-" .. tostring(gg.getTargetPackage())
-    local enc = ""
-    for i = 1, #raw do enc = enc .. string.format("%02X", string.byte(raw, i)) end
-    return enc
-end
-
-local function doValidate(k)
-    gg.toast("[X] Verifying...")
-    local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
-    if r and r.code == 200 then
-        local fn = load(r.content)
-        if fn then fn() end
-        return true
-    end
-    return false
-end
-
-while true do
-    gg.setVisible(false)
-    local input = gg.prompt(
-        {
-            "🔑 Masukkan License Key:",
-            "✅ LOGIN [Centang untuk Masuk]",
-            "❌ EXIT [Centang untuk Keluar]"
-        },
-        {"", false, false},
-        {"text", "checkbox", "checkbox"}
-    )
-    
-    if input then
-        if input[3] == true then
-            gg.toast("Keluar dari Nexus Script")
-            os.exit()
-        elseif input[2] == true then
-            local targetKey = (input[1]):match("^%s*(.-)%s*$")
-            if targetKey ~= "" then
-                if doValidate(targetKey) then break end
-            else
-                gg.toast("[X] Key tidak boleh kosong!")
-            end
-        else
-            gg.toast("[!] Centang kotak LOGIN untuk melanjutkan")
-        end
-    else
-        gg.toast("Tap icon GG untuk membuka kembali menu login")
-        while true do
-            if gg.isVisible() then break end
-            gg.sleep(200)
-        end
-    end
-end`;
+        const loginLua = 'gg.setVisible(false)\nlocal BASE = "https://' + host + '"\nlocal SCRIPT_ID = "' + targetScriptId + '"\n\nlocal function getHwid()\n    local raw = "NX-" .. tostring(gg.getTargetPackage())\n    local enc = ""\n    for i = 1, #raw do enc = enc .. string.format("%02X", string.byte(raw, i)) end\n    return enc\nend\n\nlocal function doValidate(k)\n    gg.toast("Verifying...")\n    local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)\n    if r and r.code == 200 then\n        local fn = load(r.content)\n        if fn then fn() end\n        return true\n    end\n    return false\nend\n\nwhile true do\n    gg.setVisible(false)\n    local input = gg.prompt({"Masukkan License Key:", "LOGIN [Centang untuk Masuk]", "EXIT [Centang untuk Keluar]"}, {"", false, false}, {"text", "checkbox", "checkbox"})\n    if input then\n        if input[3] == true then\n            os.exit()\n        elseif input[2] == true then\n            local targetKey = (input[1]):match("^%s*(.-)%s*$")\n            if targetKey ~= "" then\n                if doValidate(targetKey) then break end\n            else\n                gg.toast("Key tidak boleh kosong!")\n            end\n        else\n            gg.toast("Centang kotak LOGIN untuk melanjutkan")\n        end\n    else\n        gg.toast("Tap icon GG untuk membuka kembali")\n        while true do\n            if gg.isVisible() then break end\n            gg.sleep(200)\n        end\n    end\nend';
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(loginLua);
     }
