@@ -17,16 +17,14 @@
         .input-dark:focus { outline: none; border-color: rgba(255, 255, 255, 0.2); background: rgba(8, 10, 18, 0.9); }
         .storage-progress { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        /* PREMIUM BLUR OVERLAY EFFECT (TETAP TRANSPARAN KELIHATAN PETA UTAMA) */
+        /* PREMIUM BLUR OVERLAY EFFECT */
         .premium-blur { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(5, 6, 9, 0.65); transition: opacity 0.25s ease; }
         
-        /* Optimized Mobile Drawer Control Layout */
         #mainSidebar { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
         #mainSidebar.open { transform: translateX(0); }
         #sidebarOverlay { opacity: 0; pointer-events: none; }
         #sidebarOverlay.open { opacity: 1; pointer-events: auto; }
         
-        /* Custom Dialog Animations */
         .modal-animate { transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); transform: scale(0.95); opacity: 0; }
         .modal-animate.show { transform: scale(1); opacity: 1; }
     </style>
@@ -91,9 +89,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <div>
-            <h1 class="text-sm font-extrabold text-white tracking-tight flex items-center gap-2">
-                NEXUS PLATFORM
-            </h1>
+            <h1 class="text-sm font-extrabold text-white tracking-tight flex items-center gap-2">NEXUS PLATFORM</h1>
             <p class="text-[9px] text-slate-500 tracking-wider font-medium uppercase">Active Portal Endpoint</p>
         </div>
     </header>
@@ -102,13 +98,6 @@
         <div class="glass-panel rounded-2xl p-5 space-y-4">
             <h3 class="text-[9px] font-bold text-slate-400 tracking-widest uppercase">Base Gateway Routing System</h3>
             <div class="space-y-3">
-                <div class="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
-                    <div class="flex justify-between items-center"><span class="text-[11px] font-bold text-slate-300">Raw Script Loader Engine</span></div>
-                    <div class="flex gap-2">
-                        <code class="text-[9px] text-slate-400 mono bg-black/40 px-2.5 py-1.5 rounded border border-white/5 truncate flex-1" id="dL1">-</code>
-                        <button id="copyL1Btn" class="px-2.5 bg-white text-black font-bold rounded-lg text-[9px] cursor-pointer hover:bg-slate-200 transition">COPY</button>
-                    </div>
-                </div>
                 <div class="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
                     <div class="flex justify-between items-center"><span class="text-[11px] font-bold text-slate-300">Strict Validation Node Hub</span></div>
                     <div class="flex gap-2">
@@ -320,7 +309,6 @@ function sw(t){
 
 function initB(){
     var b=location.origin;
-    document.getElementById('dL1').innerText=b+'/api/server?type=raw&id={script_id}';
     document.getElementById('dL2').innerText=b+'/api/server?type=login&id={script_id}&validate={license_key}';
 }
 
@@ -343,10 +331,10 @@ async function api(m,u,b){
     return fetch('/api/server'+u,o);
 }
 
-// BINDING DIRECT HOOK RAW TARGET LUA FILE ASLINYA
+// FORMAT COPY KEY VALIDATION BACK TO ORIGINAL RULES WITH EXPIRY COMPATIBILITY
 function triggerCopyHook(scriptId) {
     var b = location.origin;
-    cp('local V = gg.makeRequest("' + b + '/api/server?type=raw&id=' + scriptId + '").content if V then pcall(load(V)) end');
+    cp('local V = gg.makeRequest("' + b + '/api/server?type=login&id=' + scriptId + '&validate={license_key}").content if V then pcall(load(V)) end');
 }
 
 function handleFileSelect(e){
@@ -363,13 +351,19 @@ function handleFileSelect(e){
 function applyDurationPreset(val){
     var wrap = document.getElementById('customExpiryWrapper');
     var input = document.getElementById('kE');
-    if(val === 'PERMANENT'){ wrap.classList.add('hidden'); input.value = ''; } 
+    if(val === 'PERMANENT'){ 
+        wrap.classList.add('hidden'); 
+        input.value = 'PERMANENT'; 
+    } 
     else if(val !== '') {
         wrap.classList.remove('hidden');
         var d = new Date(); d.setDate(d.getDate() + parseInt(val));
         var pad = num => String(num).padStart(2, '0');
         input.value = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-    } else { wrap.classList.remove('hidden'); input.value = ''; }
+    } else { 
+        wrap.classList.remove('hidden'); 
+        input.value = ''; 
+    }
 }
 
 async function loadF(){
@@ -460,11 +454,21 @@ async function loadK(){
 
 async function genK(){
     var s=document.getElementById('kT').value, m=document.getElementById('kM').value, preset=document.getElementById('kPreset').value, e=document.getElementById('kE').value, c=document.getElementById('kC').value.trim();
+    
+    // FIX HANDLING SUBMIT UNTUK PRESET PERMANEN
     var finalExpiry = preset === 'PERMANENT' ? 'PERMANENT' : e;
     if(!s || !finalExpiry) return toast('Target & Masa Durasi Berlaku Wajib Terisi!');
     
     var r=await api('POST','',{action:'createKey',scriptId:s,expiry:finalExpiry,maxDevices:m,customName:c});
-    if(r.ok){ toast('Lisensi Baru Berhasil Dibuat!'); document.getElementById('kC').value=''; document.getElementById('kPreset').value=''; document.getElementById('kE').value=''; loadK(); }
+    if(r.ok){ 
+        toast('Lisensi Baru Berhasil Dibuat!'); 
+        document.getElementById('kC').value=''; 
+        document.getElementById('kPreset').value=''; 
+        document.getElementById('kE').value=''; 
+        loadK(); 
+    } else {
+        toast('Gagal memproses pembuatan lisensi cluster.');
+    }
 }
 
 function dlF(id, name){
@@ -510,7 +514,6 @@ window.onload=function(){
     bindTap('btn-ggscript', function() { sw('ggscript'); });
     bindTap('btn-keysystem', function() { sw('keysystem'); });
     
-    bindTap('copyL1Btn', function() { cp(document.getElementById('dL1').innerText); });
     bindTap('copyL2Btn', function() { cp(document.getElementById('dL2').innerText); });
     bindTap('importFileBtn', function() { document.getElementById('hiddenFileInput').click(); });
     bindTap('deployScriptBtn', function() { dep(false); });
