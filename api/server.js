@@ -166,26 +166,35 @@ end`;
     }
 
     if (req.method === 'POST') {
-        const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action } = req.body;
+        const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action, targetKey, newLimit } = req.body;
         
         if (action === 'createKey') {
             if (!scriptId) return res.status(400).json({ error: 'Target Script Module belum dipilih!' });
-            
             let finalKey = '';
             const expCheckDate = new Date(expiry);
             const isPermanent = expCheckDate.getFullYear() >= 2125;
-
             if (isPermanent) {
                 finalKey = customName ? ('NX-PERM-' + customName.replace(/\s+/g, '-').toUpperCase()) : ('NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase());
             } else {
                 finalKey = customName ? customName.replace(/\s+/g, '-').toUpperCase() : ('NX-' + Math.random().toString(36).substring(2, 8).toUpperCase());
             }
-            
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
             if (target.length === 0) return res.status(400).json({ error: 'Script tidak ditemukan!' });
 
             await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0].name}, ${expiry}, ${parseInt(maxDevices) || 1})`;
             return res.status(200).json({ key: finalKey });
+        }
+
+        if (action === 'updateKeyLimit') {
+            if (!targetKey || !newLimit) return res.status(400).json({ error: 'Bad Request' });
+            await sql`UPDATE keys SET max_devices = ${parseInt(newLimit)} WHERE key = ${targetKey}`;
+            return res.status(200).json({ success: true });
+        }
+
+        if (action === 'resetKeyDevices') {
+            if (!targetKey) return res.status(400).json({ error: 'Bad Request' });
+            await sql`UPDATE keys SET registered_devices = ${[]} WHERE key = ${targetKey}`;
+            return res.status(200).json({ success: true });
         }
 
         if (name && content) {
