@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         const targetScriptId = id || 'default';
         const code = [
             'gg.setVisible(false)',
-            'gg.toast("[X] Connecting to Nexus Core...")',
+            'gg.toast("Connecting...")',
             'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
@@ -70,7 +70,7 @@ export default async function handler(req, res) {
             if (device && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
-                        'gg.alert("[X] Max Device Limit Reached! Harap hapus perangkat lama di panel.")',
+                        'gg.alert("[X] Max Device Limit Reached!")',
                         'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                         'if r and r.code == 200 then load(r.content)() end'
                     ].join('\n');
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
             const infoText = `PENGGUNA: VERSI SCRIPT\\nVERSI: NEXUS BERBAYAR\\nPERANGKAT: ${maxDev}\\nTERDAFTAR: ${createdAt}\\nBERLAKU HINGGA: ${expFull}\\nPENJUAL: NEXUS SCRIPT`;
             
             const c = [
-                'gg.toast("⚡ ACCESS GRANTED")',
+                'gg.toast("ACCESS GRANTED")',
                 'gg.alert("' + infoText + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
@@ -110,7 +110,7 @@ local function getHwid()
 end
 
 local function doValidate(k)
-    gg.toast("[X] Verifying License...")
+    gg.toast("Verifying...")
     local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
     if r and r.code == 200 then
         local fn = load(r.content)
@@ -124,8 +124,8 @@ while true do
     gg.setVisible(false)
     local input = gg.prompt(
         {
-            "License Key:",
-            "LOGIN [Centang untuk Masuk]"
+            "Masukkan License Key:",
+            "EXIT [Centang untuk Keluar]"
         },
         {"", false},
         {"text", "checkbox"}
@@ -133,20 +133,21 @@ while true do
     
     if input then
         if input[2] == true then
+            gg.toast("Keluar dari Nexus Script")
+            os.exit()
+        else
             local targetKey = (input[1]):match("^%s*(.-)%s*$")
             if targetKey ~= "" then
                 if doValidate(targetKey) then break end
             else
-                gg.toast("[X] Key tidak boleh kosong!")
+                gg.toast("Key tidak boleh kosong!")
             end
-        else
-            gg.toast("[!] Centang kotak LOGIN untuk melanjutkan")
         end
     else
         gg.toast("Tap icon GG untuk membuka kembali menu login")
         while true do
             if gg.isVisible() then break end
-            gg.sleep(100)
+            gg.sleep(200)
         end
     end
 end`;
@@ -166,34 +167,35 @@ end`;
     }
 
     if (req.method === 'POST') {
-        const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action, targetKey, newLimit } = req.body;
+        const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action, targetKey, clearHwid } = req.body;
         
         if (action === 'createKey') {
             if (!scriptId) return res.status(400).json({ error: 'Target Script Module belum dipilih!' });
+            
             let finalKey = '';
             const expCheckDate = new Date(expiry);
             const isPermanent = expCheckDate.getFullYear() >= 2125;
+
             if (isPermanent) {
                 finalKey = customName ? ('NX-PERM-' + customName.replace(/\s+/g, '-').toUpperCase()) : ('NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase());
             } else {
                 finalKey = customName ? customName.replace(/\s+/g, '-').toUpperCase() : ('NX-' + Math.random().toString(36).substring(2, 8).toUpperCase());
             }
+            
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
             if (target.length === 0) return res.status(400).json({ error: 'Script tidak ditemukan!' });
 
-            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0].name}, ${expiry}, ${parseInt(maxDevices) || 1})`;
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices, registered_devices) VALUES (${finalKey}, ${scriptId}, ${target[0].name}, ${expiry}, ${parseInt(maxDevices) || 1}, '[]'::jsonb)`;
             return res.status(200).json({ key: finalKey });
         }
 
-        if (action === 'updateKeyLimit') {
-            if (!targetKey || !newLimit) return res.status(400).json({ error: 'Bad Request' });
-            await sql`UPDATE keys SET max_devices = ${parseInt(newLimit)} WHERE key = ${targetKey}`;
-            return res.status(200).json({ success: true });
-        }
-
-        if (action === 'resetKeyDevices') {
-            if (!targetKey) return res.status(400).json({ error: 'Bad Request' });
-            await sql`UPDATE keys SET registered_devices = ${[]} WHERE key = ${targetKey}`;
+        if (action === 'updateKey') {
+            if (!targetKey) return res.status(400).json({ error: 'Missing core target key parameter' });
+            if (clearHwid) {
+                await sql`UPDATE keys SET registered_devices = '[]'::jsonb WHERE key = ${targetKey}`;
+            } else {
+                await sql`UPDATE keys SET expiry = ${expiry}, max_devices = ${parseInt(maxDevices) || 1} WHERE key = ${targetKey}`;
+            }
             return res.status(200).json({ success: true });
         }
 
@@ -208,6 +210,11 @@ end`;
     }
 
     if (req.method === 'GET') {
+        if (type === 'all_metrics') {
+            const scripts = await sql`SELECT * FROM scripts`;
+            const keys = await sql`SELECT * FROM keys ORDER BY expiry DESC`;
+            return res.status(200).json({ scripts, keys });
+        }
         return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys ORDER BY expiry DESC` : await sql`SELECT * FROM scripts`);
     }
 
