@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         const targetScriptId = id || 'default';
         const code = [
             'gg.setVisible(false)',
-            'gg.toast("Connecting...")',
+            'gg.toast("[X] Connecting...")',
             'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
@@ -85,10 +85,10 @@ export default async function handler(req, res) {
             const createdAt = new Date().toLocaleString('sv-SE').replace('T', ' ');
             const maxDev = license.max_devices >= 9999 ? 'tak terbatas' : license.max_devices;
             
-            const infoText = `PENGGUNA: VERSI SCRIPT\\nVERSI: NEXUS BERBAYAR\\nPERANGKAT: ${maxDev}\\nTERDAFTAR: ${createdAt}\\nBERLAKU HINGGA: ${expFull}\\nPENJUAL: NEXUS SCRIPT`;
+            const infoText = `PENGGUNA: VERSI SCRIPT\\nVERSI: ISAC SCRIPT\\nPERANGKAT: ${maxDev}\\nTERDAFTAR: ${createdAt}\\nBERLAKU HINGGA: ${expFull}\\nPENJUAL: NEXUS SCRIPT`;
             
             const c = [
-                'gg.toast("ACCESS GRANTED")',
+                'gg.toast("⚡ ACCESS GRANTED")',
                 'gg.alert("' + infoText + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
@@ -110,7 +110,7 @@ local function getHwid()
 end
 
 local function doValidate(k)
-    gg.toast("Verifying...")
+    gg.toast("[X] Verifying...")
     local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
     if r and r.code == 200 then
         local fn = load(r.content)
@@ -124,24 +124,27 @@ while true do
     gg.setVisible(false)
     local input = gg.prompt(
         {
-            "Masukkan License Key:",
-            "EXIT [Centang untuk Keluar]"
+            "🔑 Masukkan License Key:",
+            "✅ LOGIN [Centang untuk Masuk]",
+            "❌ EXIT [Centang untuk Keluar]"
         },
-        {"", false},
-        {"text", "checkbox"}
+        {"", false, false},
+        {"text", "checkbox", "checkbox"}
     )
     
     if input then
-        if input[2] == true then
+        if input[3] == true then
             gg.toast("Keluar dari Nexus Script")
             os.exit()
-        else
+        elseif input[2] == true then
             local targetKey = (input[1]):match("^%s*(.-)%s*$")
             if targetKey ~= "" then
                 if doValidate(targetKey) then break end
             else
-                gg.toast("Key tidak boleh kosong!")
+                gg.toast("[X] Key tidak boleh kosong!")
             end
+        else
+            gg.toast("[!] Centang kotak LOGIN untuk melanjutkan")
         end
     else
         gg.toast("Tap icon GG untuk membuka kembali menu login")
@@ -167,7 +170,7 @@ end`;
     }
 
     if (req.method === 'POST') {
-        const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action, targetKey, clearHwid } = req.body;
+        const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action } = req.body;
         
         if (action === 'createKey') {
             if (!scriptId) return res.status(400).json({ error: 'Target Script Module belum dipilih!' });
@@ -185,18 +188,8 @@ end`;
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
             if (target.length === 0) return res.status(400).json({ error: 'Script tidak ditemukan!' });
 
-            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices, registered_devices) VALUES (${finalKey}, ${scriptId}, ${target[0].name}, ${expiry}, ${parseInt(maxDevices) || 1}, '[]'::jsonb)`;
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0].name}, ${expiry}, ${parseInt(maxDevices) || 1})`;
             return res.status(200).json({ key: finalKey });
-        }
-
-        if (action === 'updateKey') {
-            if (!targetKey) return res.status(400).json({ error: 'Missing core target key parameter' });
-            if (clearHwid) {
-                await sql`UPDATE keys SET registered_devices = '[]'::jsonb WHERE key = ${targetKey}`;
-            } else {
-                await sql`UPDATE keys SET expiry = ${expiry}, max_devices = ${parseInt(maxDevices) || 1} WHERE key = ${targetKey}`;
-            }
-            return res.status(200).json({ success: true });
         }
 
         if (name && content) {
@@ -210,11 +203,6 @@ end`;
     }
 
     if (req.method === 'GET') {
-        if (type === 'all_metrics') {
-            const scripts = await sql`SELECT * FROM scripts`;
-            const keys = await sql`SELECT * FROM keys ORDER BY expiry DESC`;
-            return res.status(200).json({ scripts, keys });
-        }
         return res.status(200).json(type === 'keys' ? await sql`SELECT * FROM keys ORDER BY expiry DESC` : await sql`SELECT * FROM scripts`);
     }
 
