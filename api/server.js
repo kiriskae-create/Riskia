@@ -15,13 +15,13 @@ export default async function handler(req, res) {
         const targetScriptId = id || 'default';
         const code = [
             'gg.setVisible(false)',
-            'gg.toast("Connecting...")',
+            'gg.toast("[X] Connecting...")',
             'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
-            '    if fn then fn() else gg.alert("Script Empty!") end',
+            '    if fn then fn() else gg.alert("[X] Script Empty!") end',
             'else',
-            '    gg.alert("Connection Failed!")',
+            '    gg.alert("[X] Connection Failed!")',
             'end'
         ].join('\n');
         res.setHeader('Content-Type', 'text/plain');
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("Script not found!")');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
     }
 
     if (req.method === 'GET' && type === 'login') {
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
             
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
-                    'gg.alert("Invalid License Key!")',
+                    'gg.alert("[X] License Key tidak valid untuk Script ini!")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
             if (new Date() > expDate) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
-                    'gg.alert("License EXPIRED!\\nExpired on: ' + fd + '")',
+                    'gg.alert("[X] License EXPIRED!\\nExpired on: ' + fd + '")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
             if (device && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
-                        'gg.alert("Max Device Limit Reached!")',
+                        'gg.alert("[X] Max Device Limit Reached!")',
                         'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                         'if r and r.code == 200 then load(r.content)() end'
                     ].join('\n');
@@ -82,20 +82,20 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
+            const toastMsg = isPermanent ? "⚡ PERMANENT ACCESS" : "⚡ ACCESS GRANTED";
             const expDisplay = isPermanent ? 'PERMANENT' : expDate.toLocaleDateString('id-ID');
             
             const c = [
-                'gg.toast("Access Granted")',
-                'gg.alert("ACCESS GRANTED\\n\\nExp: ' + expDisplay + '")',
+                'gg.toast("' + toastMsg + '")',
+                'gg.alert("[X] ACCESS GRANTED\\n\\nExp: ' + expDisplay + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
-                'if fn then fn() else gg.alert("Failed to load menu!") end'
+                'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
             ].join('\n');
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(c);
         }
 
-        // LUA LOGIN PROMPT - SIMPLE, NO FILE, NO BRANDING, CANCEL = EXIT
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local SCRIPT_ID = "${targetScriptId}"
@@ -108,7 +108,7 @@ local function getHwid()
 end
 
 local function doValidate(k)
-    gg.toast("Verifying...")
+    gg.toast("[X] Verifying...")
     local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
     if r and r.code == 200 then
         local fn = load(r.content)
@@ -121,20 +121,24 @@ end
 while true do
     gg.setVisible(false)
     local input = gg.prompt(
-        {"Enter License"},
+        {"Enter License Key"},
         {""},
         {"text"}
     )
-
-    if not input then
-        return
-    end
-
-    local targetKey = (input[1]):match("^%s*(.-)%s*$")
-    if targetKey ~= "" then
-        if doValidate(targetKey) then break end
+    
+    if input then
+        local targetKey = (input[1]):match("^%s*(.-)%s*$")
+        if targetKey ~= "" then
+            if doValidate(targetKey) then break end
+        else
+            gg.toast("[X] Key cannot be empty!")
+        end
     else
-        gg.toast("Key cannot be empty!")
+        gg.toast("Tap GG icon to login")
+        while true do
+            if gg.isVisible() then break end
+            gg.sleep(200)
+        end
     end
 end`;
         res.setHeader('Content-Type', 'text/plain');
