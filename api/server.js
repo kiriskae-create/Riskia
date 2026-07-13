@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session');
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { id, type, key, device, deleteKey, validate } = req.query;
+    const { id, type, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
     if (req.method === 'GET' && type === 'loader') {
@@ -39,6 +39,41 @@ export default async function handler(req, res) {
 
         if (validate) {
             const clientHwid = device || 'NX-UNKNOWN';
+
+            // JIKA KEY PERMANEN DIAWALI DENGAN TEMPLATE NX-PERM ATAU TULISAN PERMANENT
+            if (validate.startsWith('NX-PERM-') || validate === 'PERMANENT') {
+                const checkPermKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
+                if (checkPermKey.length > 0) {
+                    const license = checkPermKey[0];
+                    let registeredDevices = license.registered_devices || [];
+                    if (device && !registeredDevices.includes(clientHwid)) {
+                        if (registeredDevices.length >= license.max_devices) {
+                            const c = [
+                                'os.remove("/sdcard/.nexus_auth")',
+                                'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!\\n\\nContact admin.")',
+                                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+                                'if r and r.code == 200 then load(r.content)() end'
+                            ].join('\n');
+                            res.setHeader('Content-Type', 'text/plain');
+                            return res.status(200).send(c);
+                        }
+                        registeredDevices.push(clientHwid);
+                        await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
+                    }
+                }
+                
+                const c = [
+                    'local f = io.open("/sdcard/.nexus_auth", "w")',
+                    'if f then f:write("' + validate + '"); f:close() end',
+                    'gg.toast("⚡ NEXUS X UNLIMITED PERMANENT ACCESS GRANTED ⚡")',
+                    'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + targetScriptId + '")',
+                    'local fn = load(r.content)',
+                    'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
+                ].join('\n');
+                res.setHeader('Content-Type', 'text/plain');
+                return res.status(200).send(c);
+            }
+
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
@@ -53,10 +88,8 @@ export default async function handler(req, res) {
             }
             
             const license = checkKey[0];
-            const expiryStr = String(license.expiry);
-            const isPermanent = expiryStr === 'PERMANENT' || expiryStr.includes('2099-12-31');
 
-            if (!isPermanent) {
+            if (license.expiry !== 'PERMANENT') {
                 const expDate = new Date(license.expiry);
                 if (new Date() > expDate) {
                     const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -71,11 +104,7 @@ export default async function handler(req, res) {
                 }
             }
 
-            let registeredDevices = [];
-            try {
-                registeredDevices = typeof license.registered_devices === 'string' ? JSON.parse(license.registered_devices) : (license.registered_devices || []);
-            } catch(e) { registeredDevices = []; }
-
+            let registeredDevices = license.registered_devices || [];
             if (device && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
@@ -88,10 +117,10 @@ export default async function handler(req, res) {
                     return res.status(200).send(c);
                 }
                 registeredDevices.push(clientHwid);
-                await sql`UPDATE keys SET registered_devices = ${JSON.stringify(registeredDevices)} WHERE key = ${validate}`;
+                await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            const expDisplay = isPermanent ? 'PERMANENT' : new Date(license.expiry).toLocaleDateString('id-ID');
+            const expDisplay = license.expiry === 'PERMANENT' ? 'PERMANENT' : new Date(license.expiry).toLocaleDateString('id-ID');
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
                 'if f then f:write("' + validate + '"); f:close() end',
@@ -150,11 +179,13 @@ while true do
             if doValidate(targetKey) then break end
         else
             gg.alert("[X] Key tidak boleh kosong!")
-        }
+        end
     else
         gg.toast("💡 Script running in background. Tap GG icon to login.")
         while true do
-            if gg.isVisible() then break end
+            if gg.isVisible() then
+                break
+            end
             gg.sleep(200)
         end
     end
@@ -179,17 +210,13 @@ end`;
         
         if (action === 'createKey') {
             let finalKey = '';
-            let dbExpiry = expiry;
-            
             if (expiry === 'PERMANENT') {
                 finalKey = customName ? ('NX-PERM-' + customName.replace(/\s+/g, '-').toUpperCase()) : ('NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase());
-                dbExpiry = '2099-12-31 23:59:59'; // Universal safe future timestamp
             } else {
                 finalKey = customName ? customName.replace(/\s+/g, '-').toUpperCase() : ('NX-' + Math.random().toString(36).substring(2, 8).toUpperCase());
             }
-            
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
-            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices, registered_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${dbExpiry}, ${parseInt(maxDevices) || 1}, ${JSON.stringify([])})`;
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${expiry}, ${parseInt(maxDevices) || 1})`;
             return res.status(200).json({ key: finalKey });
         }
 
