@@ -7,74 +7,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        
-        *, *::before, *::after {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            content-visibility: auto;
-        }
-
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #030407; 
-            color: #f1f5f9; 
-            overflow-x: hidden;
-            text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-        }
-
+        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #030407; color: #f1f5f9; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        .glass { 
-            background: rgba(9, 11, 18, 0.6); 
-            backdrop-filter: blur(30px); 
-            -webkit-backdrop-filter: blur(30px); 
-            border: 1px solid rgba(255,255,255,0.03); 
-            transform: translateZ(0);
-        }
-
-        .sidebar-panel { 
-            background: #07080d; 
-            border-right: 1px solid rgba(255, 255, 255, 0.03); 
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            will-change: transform;
-            transform: translateZ(0);
-        }
-
-        .menu-active { 
-            background: rgba(255, 255, 255, 0.05) !important; 
-            color: #ffffff !important; 
-            font-weight: 700; 
-            border-right: 3px solid #f59e0b; 
-        }
-
-        .btn-premium { 
-            background: #ffffff; 
-            color: #000000; 
-            font-weight: 700; 
-            transition: background 0.2s, transform 0.1s; 
-            cursor: pointer; 
-        }
+        .glass { background: rgba(9, 11, 18, 0.6); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.03); }
+        .sidebar-panel { background: #07080d; border-right: 1px solid rgba(255, 255, 255, 0.03); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .menu-active { background: rgba(255, 255, 255, 0.05) !important; color: #ffffff !important; font-weight: 700; border-right: 3px solid #f59e0b; }
+        .btn-premium { background: #ffffff; color: #000000; font-weight: 700; transition: background 0.2s, transform 0.1s; cursor: pointer; }
         .btn-premium:active { transform: scale(0.97); }
-
-        .input-premium { 
-            background: rgba(15, 18, 28, 0.8); 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            color: #fff; 
-        }
+        .input-premium { background: rgba(15, 18, 28, 0.8); border: 1px solid rgba(255, 255, 255, 0.05); color: #fff; }
         .input-premium:focus { outline: none; border-color: #f59e0b; }
-
-        .storage-bar { 
-            background: linear-gradient(90deg, #f59e0b, #d97706); 
-            transition: width 0.4s cubic-bezier(0.1, 0.8, 0.2, 1); 
-        }
-
-        .modal-blur {
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transition: all 0.25s ease-out;
-        }
+        .storage-bar { background: linear-gradient(90deg, #f59e0b, #d97706); transition: width 0.4s cubic-bezier(0.1, 0.8, 0.2, 1); }
+        .modal-blur { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row">
@@ -110,7 +54,6 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
-
         <nav class="space-y-1">
             <button id="btn-beranda" onclick="sw('beranda')" class="w-full text-left px-4 py-3 rounded-xl text-xs font-medium flex items-center gap-3.5 text-slate-400 transition hover:bg-white/5 cursor-pointer">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -121,28 +64,18 @@
                 Cloud Scripts
             </button>
             <button id="btn-keysystem" onclick="sw('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs font-medium flex items-center gap-3.5 text-slate-400 transition hover:bg-white/5 cursor-pointer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6m3.1-6.1 4.2 4.2M16 4l3 3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6m3.1-6.1 4.2 4.2M16 4l3 3"/></svg>
                 License Keys
             </button>
         </nav>
     </div>
-
     <div class="space-y-4 border-t border-white/5 pt-4">
         <div class="space-y-1.5">
-            <div class="flex justify-between text-[10px] mono text-slate-400">
-                <span>Storage Allocation</span>
-                <span id="storagePercent">0%</span>
-            </div>
-            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div id="storageBar" class="h-full storage-bar w-0"></div>
-            </div>
+            <div class="flex justify-between text-[10px] mono text-slate-400"><span>Storage Allocation</span><span id="storagePercent">0%</span></div>
+            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div id="storageBar" class="h-full storage-bar w-0"></div></div>
         </div>
-
         <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
-            <div class="min-w-0">
-                <p class="text-xs font-bold text-white truncate">Riski</p>
-                <p class="text-[9px] text-slate-500 mono tracking-wider truncate">Root Administrator</p>
-            </div>
+            <div><p class="text-xs font-bold text-white">Riski</p><p class="text-[9px] text-slate-500 mono tracking-wider">Root Administrator</p></div>
             <button onclick="logOutAdmin()" class="p-1.5 bg-red-500/10 text-red-400 rounded-lg border border-red-500/20 hover:bg-red-500/20 transition cursor-pointer">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
@@ -152,27 +85,15 @@
 
 <div id="sidebarOverlay" onclick="toggleSidebar(false)" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm hidden md:hidden"></div>
 
-<div class="md:hidden bg-[#07080d] border-b border-white/5 px-4 py-3 flex items-center justify-between sticky top-0 z-40 w-full shrink-0">
-    <button onclick="toggleSidebar(true)" class="p-2 bg-white/5 rounded-lg text-white">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <div class="text-xs font-bold tracking-widest text-white uppercase">NEXUS CORE</div>
-    <div class="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold">R</div>
-</div>
-
-<main id="contentArea" class="flex-1 p-4 md:p-8 overflow-y-auto w-full transition-all duration-300">
-
+<main id="contentArea" class="flex-1 p-4 md:p-8 overflow-y-auto w-full">
     <div id="view-beranda" class="space-y-6">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            System Architecture Overview
-        </h2>
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">System Architecture Overview</h2>
         <div class="glass rounded-2xl p-5 space-y-3">
             <div class="p-3 bg-white/5 border border-white/5 rounded-xl space-y-1.5">
                 <span class="text-xs font-semibold text-slate-300">Universal Gateway Validator</span>
                 <div class="flex gap-2 items-center">
                     <code class="text-[10px] text-amber-400 mono bg-black/40 px-2.5 py-1.5 rounded-lg truncate flex-1" id="baseL2">-</code>
-                    <button onclick="cp(document.getElementById('baseL2').innerText)" class="px-3 py-1.5 bg-white text-black font-bold text-[10px] rounded-lg cursor-pointer">COPY</button>
+                    <button onclick="cp(document.getElementById('baseL2').innerText)" class="px-3 py-1.5 bg-white text-black font-bold text-[10px] rounded-lg">COPY</button>
                 </div>
             </div>
         </div>
@@ -180,32 +101,19 @@
 
     <div id="view-ggscript" class="space-y-6 hidden">
         <div class="flex justify-between items-center">
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
-                Cloud Scripts Node
-            </h2>
-            <button onclick="pickLocalLuaFile()" class="px-3 py-2 bg-white/5 border border-white/10 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                Upload File (.lua)
-            </button>
+            <h2 class="text-lg font-bold text-white">Cloud Scripts Node</h2>
+            <button onclick="pickLocalLuaFile()" class="px-3 py-2 bg-white/5 border border-white/10 text-white text-xs font-bold rounded-xl flex items-center gap-2">Upload File (.lua)</button>
         </div>
-
         <div id="edC" class="glass rounded-2xl p-5 space-y-4">
-            <h3 class="text-xs font-bold text-white flex items-center gap-2">Deploy New Core Node</h3>
             <input type="text" id="fN" placeholder="filename.lua" class="w-full px-4 py-2.5 rounded-xl input-premium text-xs mono">
             <textarea id="fC" rows="6" placeholder="-- Add structural content payload..." class="w-full px-4 py-3 rounded-xl input-premium text-xs mono resize-none"></textarea>
             <button onclick="dep()" class="w-full py-2.5 rounded-xl btn-premium text-xs">Publish Core Script</button>
         </div>
-
         <div id="fList" class="space-y-3"></div>
     </div>
 
     <div id="view-keysystem" class="space-y-6 hidden">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6m3.1-6.1 4.2 4.2M16 4l3 3"/></svg>
-            License System Infrastructure
-        </h2>
-
+        <h2 class="text-lg font-bold text-white">License System Infrastructure</h2>
         <div class="glass rounded-2xl p-5 space-y-4">
             <h3 class="text-xs font-bold text-white">Generate License Keys</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -239,60 +147,37 @@
             </div>
             <button onclick="genK()" class="w-full py-2.5 rounded-xl btn-premium text-xs">Generate Access License Key</button>
         </div>
-
         <div id="kList" class="space-y-3"></div>
     </div>
 </main>
 
 <div id="editModal" class="fixed inset-0 z-[150] items-center justify-center p-4 bg-black/75 modal-blur hidden opacity-0">
     <div class="glass w-full max-w-2xl rounded-2xl p-5 space-y-4 shadow-2xl scale-95 transition-all duration-200" id="modalBox">
-        <div class="flex justify-between items-center border-b border-white/5 pb-2">
-            <h3 class="text-xs font-bold text-white flex items-center gap-2">Modify Cloud Source Content</h3>
-            <button onclick="closeEditModal()" class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs text-slate-400">✕</button>
-        </div>
         <input type="hidden" id="editTargetId">
         <input type="text" id="editName" class="w-full px-4 py-2.5 rounded-xl input-premium text-xs mono">
         <textarea id="editContent" rows="10" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono resize-none"></textarea>
-        <div class="flex gap-2 justify-end pt-2">
-            <button onclick="closeEditModal()" class="px-5 py-2.5 bg-white/5 text-white border border-white/5 rounded-xl text-xs font-bold cursor-pointer">Batal</button>
-            <button onclick="submitUpdateScript()" class="px-5 py-2.5 bg-amber-500 text-black rounded-xl text-xs font-bold cursor-pointer">Update Source</button>
-        </div>
+        <div class="flex gap-2 justify-end"><button onclick="closeEditModal()" class="px-5 py-2.5 bg-white/5 text-white rounded-xl text-xs font-bold">Batal</button><button onclick="submitUpdateScript()" class="px-5 py-2.5 bg-amber-500 text-black rounded-xl text-xs font-bold">Update Source</button></div>
     </div>
 </div>
 
 <div id="confirmModal" class="fixed inset-0 z-[160] items-center justify-center p-4 bg-black/80 modal-blur hidden opacity-0">
     <div class="glass w-full max-w-sm rounded-2xl p-6 space-y-5 shadow-2xl scale-95 transition-all duration-200" id="confirmBox">
         <div class="text-center space-y-2">
-            <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center mx-auto shadow-inner">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </div>
             <h3 class="text-sm font-bold text-white">Konfirmasi Penghapusan</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">Apakah Anda yakin ingin memusnahkan node data ini secara permanen dari infrastruktur cloud?</p>
+            <p class="text-xs text-slate-400">Apakah Anda yakin ingin menghapus data ini secara permanen?</p>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-            <button onclick="closeConfirmModal()" class="py-2.5 bg-white/5 border border-white/5 text-white rounded-xl text-xs font-bold cursor-pointer">Batal</button>
-            <button id="executeConfirmBtn" class="py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold cursor-pointer">Hapus Node</button>
-        </div>
+        <div class="grid grid-cols-2 gap-3"><button onclick="closeConfirmModal()" class="py-2.5 bg-white/5 text-white rounded-xl text-xs font-bold">Batal</button><button id="executeConfirmBtn" class="py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold">Hapus</button></div>
     </div>
 </div>
 
-<div id="toast" class="fixed bottom-6 right-6 bg-white text-black px-4 py-3 rounded-xl shadow-2xl opacity-0 transition-opacity duration-200 z-[250] text-xs font-bold">
-    <span id="tM"></span>
-</div>
+<div id="toast" class="fixed bottom-6 right-6 bg-white text-black px-4 py-3 rounded-xl shadow-2xl opacity-0 transition-opacity duration-200 z-[250] text-xs font-bold"><span id="tM"></span></div>
 
 <script>
-var S = { files: [], keys: [], session: '', cur: 'beranda', activeDeleteAction: null };
+var S = { files: [], keys: [], session: '', cur: 'beranda' };
 
 function setupTouchOptimizations() {
-    var buttons = document.querySelectorAll('button, nav button, [onclick]');
-    buttons.forEach(function(btn) {
+    document.querySelectorAll('button, nav button, [onclick]').forEach(btn => {
         btn.style.cursor = 'pointer';
-        btn.addEventListener('touchstart', function() {
-            this.style.opacity = '0.75';
-        }, {passive: true});
-        btn.addEventListener('touchend', function() {
-            this.style.opacity = '1';
-        }, {passive: true});
     });
 }
 
@@ -304,48 +189,32 @@ function toast(m) {
 }
 
 function cp(t, msg = '📋 Copied to clipboard!') {
-    var area = document.createElement('textarea');
-    area.value = t;
-    document.body.appendChild(area);
-    area.select();
-    document.execCommand('copy');
-    document.body.removeChild(area);
-    toast(msg);
+    var area = document.createElement('textarea'); area.value = t; document.body.appendChild(area); area.select(); document.execCommand('copy'); document.body.removeChild(area); toast(msg);
 }
 
 function toggleSidebar(open) {
     var side = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
-    if (open) {
-        side.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-    } else {
-        side.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-    }
+    if (open) { side.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); }
+    else { side.classList.add('-translate-x-full'); overlay.classList.add('hidden'); }
 }
 
 function sw(t) {
     S.cur = t;
-    ['beranda', 'ggscript', 'keysystem'].forEach(function(m) {
+    ['beranda', 'ggscript', 'keysystem'].forEach(m => {
         document.getElementById('view-' + m).classList.add('hidden');
         document.getElementById('btn-' + m).classList.remove('menu-active');
     });
     document.getElementById('view-' + t).classList.remove('hidden');
     document.getElementById('btn-' + t).classList.add('menu-active');
-    
     toggleSidebar(false);
-    
     if (t === 'beranda') initB();
     if (t === 'ggscript') loadF();
     if (t === 'keysystem') { loadF(); loadK(); }
     updateStorageHealth();
 }
 
-function initB() {
-    var b = location.origin;
-    document.getElementById('baseL2').innerText = b + '/api/server?type=login';
-}
+function initB() { document.getElementById('baseL2').innerText = location.origin + '/api/server?type=login'; }
 
 function updateStorageHealth() {
     var allocatedCount = S.files.length + S.keys.length;
@@ -370,127 +239,76 @@ async function checkAdminGate() {
         body: JSON.stringify({ action: 'login', username: u, password: p })
     });
     if (r.ok) {
-        var d = await r.json();
-        S.session = d.session;
+        var d = await r.json(); S.session = d.session;
         localStorage.setItem('nx_root_session', d.session);
         document.getElementById('authGate').classList.add('hidden');
-        sw('beranda');
-        setupTouchOptimizations();
-    } else {
-        toast('🚨 ACCESS DENIED: Master token invalid!');
-    }
+        sw('beranda'); setupTouchOptimizations();
+    } else { toast('🚨 ACCESS DENIED!'); }
 }
 
-function logOutAdmin() {
-    localStorage.removeItem('nx_root_session');
-    location.reload();
-}
+function logOutAdmin() { localStorage.removeItem('nx_root_session'); location.reload(); }
 
 async function pickLocalLuaFile() {
-    var input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.lua';
+    var input = document.createElement('input'); input.type = 'file'; input.accept = '.lua';
     input.onchange = e => {
-        var file = e.target.files[0];
-        var reader = new FileReader();
-        reader.readAsText(file,'UTF-8');
-        reader.onload = ev => {
-            document.getElementById('fN').value = file.name;
-            document.getElementById('fC').value = ev.target.result;
-            toast('📂 Loaded File: ' + file.name);
-        }
+        var file = e.target.files[0]; var reader = new FileReader(); reader.readAsText(file,'UTF-8');
+        reader.onload = ev => { document.getElementById('fN').value = file.name; document.getElementById('fC').value = ev.target.result; }
     }
     input.click();
 }
 
 function triggerCopyHookMenu(scriptId) {
-    var b = location.origin;
-    var formatPayload = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=menu&id=' + scriptId + '").content if V then pcall(load(V)) end';
-    cp(formatPayload, '📋 Pure LUA Script Hook Copied!');
+    cp('local V = gg.makeRequest("' + location.origin + '/api/server?type=menu&id=' + scriptId + '").content if V then pcall(load(V)) end', '📋 Script Hook Copied!');
 }
 
 function triggerCopyLoader(scriptId) {
-    var b = location.origin;
-    var formatLoader = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=login&id=' + scriptId + '").content if V then pcall(load(V)) end';
-    cp(formatLoader, '📋 Loader Script Hook Copied!');
+    cp('local V = gg.makeRequest("' + location.origin + '/api/server?type=login&id=' + scriptId + '").content if V then pcall(load(V)) end', '📋 Loader Copied!');
 }
 
 async function loadF() {
-    var r = await api('GET', ''); if (!r.ok) return;
-    S.files = await r.json();
-    var s = document.getElementById('kT');
-    if (s) s.innerHTML = S.files.map(function(f) { return '<option value="' + f.id + '">' + f.name + '</option>' }).join('');
-    var c = document.getElementById('fList');
-    if (!c) return;
-    
-    c.innerHTML = S.files.map(function(f) {
-        return '<div class="glass rounded-xl p-4 space-y-3 border border-white/5">' +
-            '<div class="flex justify-between items-center">' +
-                '<div><span class="mono text-xs font-bold text-white block">' + f.name + '</span><span class="text-[9px] text-slate-500 mono block mt-0.5">' + f.id + '</span></div>' +
-                '<div class="flex gap-2">' +
-                    '<button onclick="openEditModal(\'' + f.id + '\')" class="p-2 bg-white/5 text-blue-400 rounded-lg border border-white/5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
-                    '<button onclick="openConfirmModal(\'script\', \'' + f.id + '\')" class="p-2 bg-white/5 text-red-400 rounded-lg border border-white/5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
-                '</div>' +
-            '</div>' +
-            '<div class="pt-1">' +
-                '<button onclick="triggerCopyHookMenu(\'' + f.id + '\')" class="w-full py-2.5 bg-white text-black rounded-xl text-[10px] font-bold tracking-wide transition active:scale-98">Copy Pure LUA Script Hook</button>' +
-            '</div>' +
-        '</div>';
-    }).join('');
-    setupTouchOptimizations();
-    updateStorageHealth();
+    var r = await api('GET', ''); if (!r.ok) return; S.files = await r.json();
+    var s = document.getElementById('kT'); if (s) s.innerHTML = S.files.map(f => '<option value="' + f.id + '">' + f.name + '</option>').join('');
+    var c = document.getElementById('fList'); if (!c) return;
+    c.innerHTML = S.files.map(f => `
+        <div class="glass rounded-xl p-4 space-y-3 border border-white/5">
+            <div class="flex justify-between items-center">
+                <div><span class="mono text-xs font-bold text-white block">${f.name}</span></div>
+                <div class="flex gap-2">
+                    <button onclick="openEditModal('${f.id}')" class="p-2 bg-white/5 text-blue-400 rounded-lg">Edit</button>
+                    <button onclick="openConfirmModal('script', '${f.id}')" class="p-2 bg-white/5 text-red-400 rounded-lg">Hapus</button>
+                </div>
+            </div>
+            <button onclick="triggerCopyHookMenu('${f.id}')" class="w-full py-2 bg-white text-black rounded-xl text-[10px] font-bold">Copy Menu Script Hook</button>
+        </div>`).join('');
+    setupTouchOptimizations(); updateStorageHealth();
 }
 
 function openEditModal(id) {
-    var target = S.files.find(function(f) { return f.id === id; });
-    if (!target) return;
-    document.getElementById('editTargetId').value = id;
-    document.getElementById('editName').value = target.name;
-    document.getElementById('editContent').value = target.content;
-    
-    var m = document.getElementById('editModal');
-    m.classList.remove('hidden');
-    m.classList.add('flex');
-    setTimeout(function() { 
-        m.classList.remove('opacity-0'); 
-        document.getElementById('modalBox').classList.remove('scale-95'); 
-    }, 50);
+    var target = S.files.find(f => f.id === id); if (!target) return;
+    document.getElementById('editTargetId').value = id; document.getElementById('editName').value = target.name; document.getElementById('editContent').value = target.content;
+    var m = document.getElementById('editModal'); m.classList.remove('hidden'); m.classList.add('flex');
+    setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('modalBox').classList.remove('scale-95'); }, 50);
 }
 
 function closeEditModal() {
-    var m = document.getElementById('editModal');
-    m.classList.add('opacity-0');
-    document.getElementById('modalBox').classList.add('scale-95');
-    setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
+    var m = document.getElementById('editModal'); m.classList.add('opacity-0'); document.getElementById('modalBox').classList.add('scale-95');
+    setTimeout(() => m.classList.add('hidden'), 200);
 }
 
 function openConfirmModal(type, targetKey) {
-    var m = document.getElementById('confirmModal');
-    var btn = document.getElementById('executeConfirmBtn');
-    
+    var m = document.getElementById('confirmModal'); var btn = document.getElementById('executeConfirmBtn');
     btn.onclick = async function() {
-        if (type === 'script') {
-            await api('DELETE', '?id=' + targetKey);
-            loadF();
-        } else {
-            await api('DELETE', '?deleteKey=' + targetKey);
-            loadK();
-        }
+        if (type === 'script') { await api('DELETE', '?id=' + targetKey); loadF(); } 
+        else { await api('DELETE', '?deleteKey=' + targetKey); loadK(); }
         closeConfirmModal();
     };
-
-    m.classList.remove('hidden');
-    m.classList.add('flex');
-    setTimeout(function() { 
-        m.classList.remove('opacity-0'); 
-        document.getElementById('confirmBox').classList.remove('scale-95'); 
-    }, 50);
+    m.classList.remove('hidden'); m.classList.add('flex');
+    setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('confirmBox').classList.remove('scale-95'); }, 50);
 }
 
 function closeConfirmModal() {
-    var m = document.getElementById('confirmModal');
-    document.getElementById('confirmBox').classList.add('scale-95');
-    setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
+    var m = document.getElementById('confirmModal'); document.getElementById('confirmBox').classList.add('scale-95');
+    setTimeout(() => m.classList.add('hidden'), 200);
 }
 
 async function submitUpdateScript() {
@@ -498,20 +316,17 @@ async function submitUpdateScript() {
     var name = document.getElementById('editName').value.trim();
     var content = document.getElementById('editContent').value;
     var r = await api('POST', '', { name: name, content: content, existingScriptId: id });
-    if (r.ok) { toast('✅ Node source update deployment successful.'); closeEditModal(); loadF(); }
+    if (r.ok) { toast('✅ Node source updated.'); closeEditModal(); loadF(); }
 }
 
 async function dep() {
-    var n = document.getElementById('fN').value.trim();
-    var c = document.getElementById('fC').value;
+    var n = document.getElementById('fN').value.trim(); var c = document.getElementById('fC').value;
     if (!n || !c) return toast('Fields empty!');
     var r = await api('POST', '', { name: n, content: c });
     if (r.ok) { toast('🚀 Published live.'); document.getElementById('fN').value = ''; document.getElementById('fC').value = ''; loadF(); }
 }
 
-function handlePresetDateChange(val) {
-    document.getElementById('customDateZone').classList.toggle('hidden', val !== 'CUSTOM');
-}
+function handlePresetDateChange(val) { document.getElementById('customDateZone').classList.toggle('hidden', val !== 'CUSTOM'); }
 
 async function genK() {
     var scriptId = document.getElementById('kT').value;
@@ -527,7 +342,12 @@ async function genK() {
     } else if (preset === 'CUSTOM') {
         var rawVal = document.getElementById('kE').value;
         if (!rawVal) return toast('Pilih Tanggal Custom!');
-        finalExpiry = new Date(rawVal).toISOString();
+        try {
+            finalExpiry = new Date(rawVal).toISOString();
+        } catch(e) {
+            // Fallback safe formatting if browser input buggy
+            finalExpiry = new Date(rawVal.replace('T', ' ')).toISOString();
+        }
     } else {
         var calculatedDate = new Date();
         calculatedDate.setDate(calculatedDate.getDate() + parseInt(preset));
@@ -535,60 +355,48 @@ async function genK() {
     }
     
     var r = await api('POST', '', { action: 'createKey', scriptId: scriptId, expiry: finalExpiry, maxDevices: maxDevices, customName: customName });
-    if (r.ok) { 
-        toast('🔑 Key successfully generated!'); 
-        document.getElementById('kC').value = '';
-        loadK(); 
-    } else {
-        toast('🚨 Gagal generate key, periksa database!');
-    }
+    if (r.ok) { toast('🔑 Key successfully generated!'); document.getElementById('kC').value = ''; loadK(); } 
+    else { toast('🚨 Gagal generate key, periksa database!'); }
 }
 
 async function loadK() {
-    var r = await api('GET', '?type=keys'); if (!r.ok) return;
-    S.keys = await r.json();
-    var c = document.getElementById('kList');
-    if (!c) return;
+    var r = await api('GET', '?type=keys'); if (!r.ok) return; S.keys = await r.json();
+    var c = document.getElementById('kList'); if (!c) return;
     
-    c.innerHTML = S.keys.map(function(k) {
-        var isPermanent = k.expiry === 'PERMANENT';
+    c.innerHTML = S.keys.map(k => {
+        var expiryStr = String(k.expiry);
+        var isPermanent = expiryStr === 'PERMANENT' || expiryStr.includes('2099-12-31');
         var expDisplay = isPermanent ? 'PERMANENT BYPASS' : new Date(k.expiry).toLocaleDateString('id-ID');
         
         let parseDevices = [];
-        try {
-            parseDevices = typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices) : (k.registered_devices || []);
-        } catch(e) { parseDevices = []; }
+        try { parseDevices = typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices) : (k.registered_devices || []); } catch(e) {}
 
         var isExpired = !isPermanent && (new Date() > new Date(k.expiry));
         var badge = isExpired ? '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 text-[9px] font-bold rounded">EXPIRED</span>' : (isPermanent ? '<span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-bold rounded">⚡ PERMANENT</span>' : '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded">ACTIVE</span>');
         
-        return '<div class="glass rounded-xl p-4 space-y-3 border border-white/5">' +
-            '<div class="flex justify-between items-start">' +
-                '<div><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold text-white break-all">' + k.key + '</span>' + badge + '</div></div>' +
-                '<button onclick="openConfirmModal(\'key\', \'' + k.key + '\')" class="p-2 bg-white/5 text-red-400 rounded-lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
-            '</div>' +
-            '<div class="grid grid-cols-3 gap-2 text-[10px] text-slate-400 mono pt-2 border-t border-white/5">' +
-                '<div>Script: <span class="text-white block font-semibold truncate">' + k.target_script_name + '</span></div>' +
-                '<div>HWID: <span class="text-emerald-400 block font-bold">' + parseDevices.length + '/' + k.max_devices + '</span></div>' +
-                '<div>Exp: <span class="text-slate-300 block font-medium truncate">' + expDisplay + '</span></div>' +
-            '</div>' +
-            '<div class="grid grid-cols-2 gap-2 pt-1">' +
-                '<button onclick="triggerCopyLoader(\'' + k.script_id + '\')" class="py-2.5 bg-white text-black rounded-xl text-[10px] font-bold transition active:scale-98">Copy Loader Script</button>' +
-                '<button onclick="triggerCopyHookMenu(\'' + k.script_id + '\')" class="py-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-[10px] font-bold transition active:scale-98">Copy Hook Script</button>' +
-            '</div>' +
-        '</div>';
+        return `
+        <div class="glass rounded-xl p-4 space-y-3 border border-white/5">
+            <div class="flex justify-between items-start">
+                <div><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold text-white break-all">${k.key}</span>${badge}</div></div>
+                <button onclick="openConfirmModal('key', '${k.key}')" class="p-2 bg-white/5 text-red-400 rounded-lg">Hapus</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-[10px] text-slate-400 mono pt-2 border-t border-white/5">
+                <div>Script: <span class="text-white font-semibold truncate block">${k.target_script_name}</span></div>
+                <div>HWID: <span class="text-emerald-400 font-bold block">${parseDevices.length}/${k.max_devices}</span></div>
+                <div>Exp: <span class="text-slate-300 font-medium truncate block">${expDisplay}</span></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="triggerCopyLoader('${k.script_id}')" class="py-2 bg-white text-black rounded-xl text-[10px] font-bold">Copy Loader</button>
+                <button onclick="triggerCopyHookMenu('${k.script_id}')" class="py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-[10px] font-bold">Copy Hook</button>
+            </div>
+        </div>`;
     }).join('');
-    setupTouchOptimizations();
-    updateStorageHealth();
+    setupTouchOptimizations(); updateStorageHealth();
 }
 
 window.onload = function() {
     var sessionCheck = localStorage.getItem('nx_root_session');
-    if (sessionCheck) {
-        S.session = sessionCheck;
-        document.getElementById('authGate').classList.add('hidden');
-        sw('beranda');
-    }
+    if (sessionCheck) { S.session = sessionCheck; document.getElementById('authGate').classList.add('hidden'); sw('beranda'); }
 }
 </script>
 </body>
