@@ -39,8 +39,9 @@ export default async function handler(req, res) {
 
         if (validate) {
             const clientHwid = device || 'NX-UNKNOWN';
-            const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
 
+            const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
+            
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
                     'gg.alert("[X] License Key tidak valid untuk Script ini!")',
@@ -50,7 +51,7 @@ export default async function handler(req, res) {
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
             }
-
+            
             const license = checkKey[0];
             const expDate = new Date(license.expiry);
             const isPermanent = expDate.getFullYear() >= 2125;
@@ -81,19 +82,12 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            const pad = (n) => String(n).padStart(2, '0');
-            const now = new Date();
-            const regDateStr = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-
-            let expDisplay;
-            if (isPermanent) {
-                expDisplay = 'PERMANENT';
-            } else {
-                expDisplay = expDate.getFullYear() + '-' + pad(expDate.getMonth() + 1) + '-' + pad(expDate.getDate()) + ' ' + pad(expDate.getHours()) + ':' + pad(expDate.getMinutes()) + ':' + pad(expDate.getSeconds());
-            }
-
+            const toastMsg = isPermanent ? "⚡ PERMANENT ACCESS" : "⚡ ACCESS GRANTED";
+            const expDisplay = isPermanent ? 'PERMANENT' : expDate.toLocaleDateString('id-ID');
+            
             const c = [
-                'gg.alert("PENGGUNA: VERSI SCRIPT\\nVERSI: ISAC SCRIPT\\nPERANGKAT: tak terbatas\\nTERDAFTAR: ' + regDateStr + '\\nBERLAKU HINGGA: ' + expDisplay + '\\nPENJUAL: NEXUS SCRIPT")',
+                'gg.toast("' + toastMsg + '")',
+                'gg.alert("[X] ACCESS GRANTED\\n\\nExp: ' + expDisplay + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
                 'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
@@ -127,17 +121,24 @@ end
 while true do
     gg.setVisible(false)
     local input = gg.prompt(
-        {"License Key", "Exit"},
-        {"", false},
-        {"text", "checkbox"}
+        {"Enter License Key"},
+        {""},
+        {"text"}
     )
-    if input == nil then break end
-    if input[2] then break end
-    local k = (input[1]):match("^%s*(.-)%s*$")
-    if k ~= "" then
-        if doValidate(k) then break end
+    
+    if input then
+        local targetKey = (input[1]):match("^%s*(.-)%s*$")
+        if targetKey ~= "" then
+            if doValidate(targetKey) then break end
+        else
+            gg.toast("[X] Key cannot be empty!")
+        end
     else
-        gg.toast("[X] Key cannot be empty!")
+        gg.toast("Tap GG icon to login")
+        while true do
+            if gg.isVisible() then break end
+            gg.sleep(200)
+        end
     end
 end`;
         res.setHeader('Content-Type', 'text/plain');
@@ -157,10 +158,10 @@ end`;
 
     if (req.method === 'POST') {
         const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action } = req.body;
-
+        
         if (action === 'createKey') {
             if (!scriptId) return res.status(400).json({ error: 'Target Script Module belum dipilih!' });
-
+            
             let finalKey = '';
             const expCheckDate = new Date(expiry);
             const isPermanent = expCheckDate.getFullYear() >= 2125;
@@ -170,7 +171,7 @@ end`;
             } else {
                 finalKey = customName ? customName.replace(/\s+/g, '-').toUpperCase() : ('NX-' + Math.random().toString(36).substring(2, 8).toUpperCase());
             }
-
+            
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
             if (target.length === 0) return res.status(400).json({ error: 'Script tidak ditemukan!' });
 
