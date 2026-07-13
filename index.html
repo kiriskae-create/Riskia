@@ -150,8 +150,9 @@
             pointer-events: none;
             z-index: 5;
         }
-        .t-ripple-dark { background: rgba(0,0,0,0.08); }
-        .t-ripple-out { animation: tRippleFade 0.35s ease-out forwards; }
+        .t-ripple-out {
+            animation: tRippleFade 0.35s ease-out forwards;
+        }
         @keyframes tRippleExpand {
             to { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
         }
@@ -176,7 +177,9 @@
             -webkit-backdrop-filter: blur(24px) saturate(0.8);
             transition: opacity 0.25s ease-out;
         }
-        .modal-box { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-box {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
         .stat-card { position: relative; overflow: hidden; }
         .stat-card::after {
@@ -229,7 +232,9 @@
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
-        .card-interactive { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s; }
+        .card-interactive {
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+        }
         .card-interactive:active { transform: scale(0.985); }
 
         .fade-up {
@@ -241,7 +246,20 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .toast-container { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .toast-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.92);
+            opacity: 0;
+            z-index: 999;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast-box.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
 
         .code-block {
             background: rgba(0,0,0,0.4);
@@ -258,20 +276,10 @@
         }
 
         ::selection { background: rgba(245,158,11,0.25); color: #fff; }
-
-        select.input-field {
-            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23475569' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 32px;
-        }
-
-        .key-row { animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row">
 
-<!-- AUTH GATE -->
 <div id="authGate" class="fixed inset-0 z-[200] flex items-center justify-center" style="background:var(--bg-deep)">
     <div class="auth-glow"></div>
     <div class="w-full max-w-sm mx-4 relative z-10">
@@ -296,7 +304,6 @@
     </div>
 </div>
 
-<!-- SIDEBAR -->
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] sidebar-panel flex flex-col justify-between p-5 transform -translate-x-full md:translate-x-0 md:sticky h-screen shrink-0">
     <div class="space-y-7">
         <div class="flex items-center justify-between">
@@ -354,10 +361,8 @@
     </div>
 </aside>
 
-<!-- SIDEBAR OVERLAY -->
 <div id="sidebarOverlay" onclick="toggleSidebar(false)" class="fixed inset-0 z-40 bg-black/60 hidden md:hidden" style="backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)"></div>
 
-<!-- MOBILE HEADER -->
 <div class="md:hidden sticky top-0 z-40 w-full shrink-0 flex items-center justify-between px-4 py-3" style="background:rgba(6,7,16,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-subtle)">
     <button onclick="toggleSidebar(true)" class="ripple-host p-2.5 rounded-xl" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -366,10 +371,8 @@
     <div class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black text-black" style="background:var(--accent)">R</div>
 </div>
 
-<!-- MAIN CONTENT -->
 <main id="contentArea" class="flex-1 p-4 md:p-8 overflow-y-auto w-full">
 
-    <!-- OVERVIEW -->
     <div id="view-beranda" class="space-y-6">
         <div class="fade-up">
             <h2 class="text-base font-extrabold text-white tracking-tight flex items-center gap-2.5">
@@ -422,7 +425,6 @@
         </div>
     </div>
 
-    <!-- CLOUD SCRIPTS -->
     <div id="view-ggscript" class="space-y-6 hidden">
         <div class="flex justify-between items-start fade-up">
             <div>
@@ -457,7 +459,6 @@
         <div id="fList" class="space-y-3"></div>
     </div>
 
-    <!-- LICENSE KEYS -->
     <div id="view-keysystem" class="space-y-6 hidden">
         <div class="fade-up">
             <h2 class="text-base font-extrabold text-white tracking-tight flex items-center gap-2.5">
@@ -508,7 +509,6 @@
     </div>
 </main>
 
-<!-- EDIT MODAL -->
 <div id="editModal" class="fixed inset-0 z-[150] items-center justify-center p-4 modal-backdrop hidden opacity-0" style="background:rgba(0,0,0,0.7)">
     <div class="modal-box glass-elevated w-full max-w-2xl rounded-2xl p-5 space-y-4 scale-95 opacity-0" id="modalBox" style="box-shadow:0 24px 80px rgba(0,0,0,0.5)">
         <div class="flex justify-between items-center pb-3" style="border-bottom:1px solid var(--border-subtle)">
@@ -536,7 +536,6 @@
     </div>
 </div>
 
-<!-- CONFIRM MODAL -->
 <div id="confirmModal" class="fixed inset-0 z-[160] items-center justify-center p-4 modal-backdrop hidden opacity-0" style="background:rgba(0,0,0,0.75)">
     <div class="modal-box glass-elevated w-full max-w-sm rounded-2xl p-6 space-y-5 scale-95 opacity-0" id="confirmBox" style="box-shadow:0 24px 80px rgba(0,0,0,0.5)">
         <div class="text-center space-y-3">
@@ -544,7 +543,7 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
             <h3 class="text-sm font-bold text-white">Delete Confirmation</h3>
-            <p class="text-[11px] leading-relaxed" style="color:var(--text-2)">This action cannot be undone. The selected node will be permanently removed from the infrastructure.</p>
+            <p class="text-[11px] leading-relaxed" style="color:var(--text-2)">This action cannot be undone. The selected node will be permanently removed.</p>
         </div>
         <div class="grid grid-cols-2 gap-3">
             <button onclick="closeConfirmModal()" class="ripple-host py-3 btn-ghost rounded-xl text-[11px] font-bold">Cancel</button>
@@ -553,25 +552,19 @@
     </div>
 </div>
 
-<!-- TOAST -->
-<div id="toast" class="toast-container fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6 glass-elevated px-5 py-3.5 rounded-xl opacity-0 translate-y-4 z-[250] text-[11px] font-bold text-white flex items-center gap-2.5 pointer-events-none" style="box-shadow:0 12px 40px rgba(0,0,0,0.4);min-width:200px">
+<div id="toast" class="toast-box glass-elevated px-6 py-4 rounded-2xl text-[12px] font-bold text-white flex items-center gap-3" style="box-shadow:0 16px 48px rgba(0,0,0,0.5);min-width:240px">
     <span id="tIcon"></span>
     <span id="tM"></span>
 </div>
 
-<!-- HIDDEN FILE INPUT -->
-<input type="file" id="luaFileInput" accept=".lua" style="display:none" onchange="handleLuaFilePick(event)">
-
 <script>
-/* ===== STATE ===== */
 var S = { files: [], keys: [], session: '', cur: 'beranda' };
 
-/* ===== TOUCH RIPPLE ENGINE ===== */
 var TouchEngine = {
     init: function() {
-        document.addEventListener('touchstart', this._onStart.bind(this), { passive: true });
-        document.addEventListener('touchend', this._onEnd.bind(this), { passive: true });
-        document.addEventListener('touchcancel', this._onEnd.bind(this), { passive: true });
+        document.addEventListener('touchstart', this._ts, { passive: true });
+        document.addEventListener('touchend', this._te, { passive: true });
+        document.addEventListener('touchcancel', this._te, { passive: true });
         document.addEventListener('mousedown', function(e) {
             var t = e.target.closest('.ripple-host');
             if (!t) return;
@@ -587,7 +580,7 @@ var TouchEngine = {
             setTimeout(function() { if (rip.parentNode) rip.remove(); }, 750);
         });
     },
-    _onStart: function(e) {
+    _ts: function(e) {
         var touch = e.touches[0];
         var t = touch.target.closest('.ripple-host');
         if (!t) return;
@@ -600,7 +593,7 @@ var TouchEngine = {
         rip.style.top = (touch.clientY - r.top) + 'px';
         t.appendChild(rip);
     },
-    _onEnd: function() {
+    _te: function() {
         var rips = document.querySelectorAll('.t-ripple:not(.t-ripple-out)');
         for (var i = 0; i < rips.length; i++) {
             (function(rip) {
@@ -611,30 +604,22 @@ var TouchEngine = {
     }
 };
 
-/* ===== TOAST ===== */
 function toast(m, type) {
     var t = document.getElementById('toast');
     var icon = document.getElementById('tIcon');
     var msg = document.getElementById('tM');
     var icons = {
-        success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
-        error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-        info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+        success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+        error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
     };
     icon.innerHTML = icons[type || 'info'] || icons.info;
     msg.innerText = m;
-    t.style.opacity = '1';
-    t.style.transform = 'translateX(-50%) translateY(0)';
-    if (window.innerWidth >= 768) t.style.transform = 'translateY(0)';
+    t.classList.add('show');
     clearTimeout(t._tid);
-    t._tid = setTimeout(function() {
-        t.style.opacity = '0';
-        t.style.transform = 'translateX(-50%) translateY(16px)';
-        if (window.innerWidth >= 768) t.style.transform = 'translateY(16px)';
-    }, 2500);
+    t._tid = setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
 
-/* ===== CLIPBOARD ===== */
 function cp(t) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(t).then(function() { toast('Copied to clipboard', 'success'); });
@@ -646,7 +631,6 @@ function cp(t) {
     }
 }
 
-/* ===== SIDEBAR ===== */
 function toggleSidebar(open) {
     var side = document.getElementById('sidebar');
     var ov = document.getElementById('sidebarOverlay');
@@ -654,7 +638,6 @@ function toggleSidebar(open) {
     else { side.classList.add('-translate-x-full'); ov.classList.add('hidden'); }
 }
 
-/* ===== VIEW SWITCHING ===== */
 function sw(t) {
     S.cur = t;
     var views = ['beranda', 'ggscript', 'keysystem'];
@@ -668,7 +651,7 @@ function sw(t) {
     document.getElementById('btn-' + t).classList.add('menu-active');
     document.getElementById('btn-' + t).style.color = '';
     toggleSidebar(false);
-    if (t === 'beranda') { loadF(); loadK(); initB(); }
+    if (t === 'beranda') initB();
     if (t === 'ggscript') loadF();
     if (t === 'keysystem') { loadF(); loadK(); }
     updateStorage();
@@ -684,7 +667,6 @@ function reanimate() {
     }
 }
 
-/* ===== OVERVIEW ===== */
 function initB() {
     document.getElementById('baseL2').innerText = location.origin + '/api/server?type=login';
     var totalScripts = S.files.length;
@@ -692,8 +674,7 @@ function initB() {
     var activeKeys = 0, expiredKeys = 0;
     for (var i = 0; i < S.keys.length; i++) {
         var exp = new Date(S.keys[i].expiry);
-        var isPerm = exp.getFullYear() >= 2125;
-        if (isPerm || new Date() <= exp) activeKeys++;
+        if (exp.getFullYear() >= 2125 || new Date() <= exp) activeKeys++;
         else expiredKeys++;
     }
     document.getElementById('statScripts').innerText = totalScripts;
@@ -702,518 +683,315 @@ function initB() {
     document.getElementById('statExpired').innerText = expiredKeys;
 }
 
-/* ===== STORAGE BAR ===== */
 function updateStorage() {
     var count = S.files.length + S.keys.length;
-    var maxItems = 200;
-    var pct = Math.min(Math.round((count / maxItems) * 100), 100);
+    var pct = Math.min(100, Math.round((count / 50) * 100));
     document.getElementById('storagePercent').innerText = pct + '%';
     document.getElementById('storageBar').style.width = pct + '%';
 }
 
-/* ===== API HELPER ===== */
 function api(method, path, body) {
-    var opts = {
+    return fetch('/api/server' + path, {
         method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Session': S.session
-        }
-    };
-    if (body) opts.body = JSON.stringify(body);
-    return fetch(path, opts).then(function(r) { return r.json(); });
+        headers: { 'Content-Type': 'application/json', 'X-Session': S.session },
+        body: body ? JSON.stringify(body) : undefined
+    }).then(function(r) { return r.json(); });
 }
 
-/* ===== LOAD SCRIPTS ===== */
 function loadF() {
-    api('GET', '/api/server').then(function(data) {
-        S.files = data;
-        renderScriptList();
+    api('GET', '').then(function(d) {
+        S.files = d;
+        renderF();
+        var sel = document.getElementById('kT');
+        sel.innerHTML = '<option value="">-- Select Script --</option>';
+        for (var i = 0; i < d.length; i++) {
+            sel.innerHTML += '<option value="' + d[i].id + '">' + d[i].name + '</option>';
+        }
         if (S.cur === 'beranda') initB();
         updateStorage();
-        populateScriptSelect();
-    }).catch(function() {
-        toast('Failed to load scripts', 'error');
     });
 }
 
-/* ===== RENDER SCRIPT LIST ===== */
-function renderScriptList() {
+function renderF() {
     var c = document.getElementById('fList');
     if (S.files.length === 0) {
         c.innerHTML = '<div class="glass rounded-xl p-8 text-center"><p class="text-[11px]" style="color:var(--text-3)">No scripts deployed yet</p></div>';
         return;
     }
-    var html = '';
+    var h = '';
     for (var i = 0; i < S.files.length; i++) {
         var f = S.files[i];
-        var lines = f.content ? f.content.split('\n').length : 0;
-        var chars = f.content ? f.content.length : 0;
-        var sizeStr = chars > 1024 ? (chars / 1024).toFixed(1) + ' KB' : chars + ' B';
-        var loaderUrl = location.origin + '/api/server?type=loader&id=' + f.id;
-
-        html += '<div class="key-row glass card-interactive rounded-xl p-4 space-y-3" style="animation-delay:' + (i * 0.04) + 's">';
-        html += '<div class="flex items-start justify-between gap-3">';
-        html += '<div class="min-w-0 flex-1">';
-        html += '<div class="flex items-center gap-2 mb-1">';
-        html += '<div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:var(--accent-glow);border:1px solid rgba(245,158,11,0.1)">';
-        html += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
-        html += '</div>';
-        html += '<p class="text-[12px] font-bold text-white truncate mono">' + escHtml(f.name) + '</p>';
-        html += '</div>';
-        html += '<p class="text-[10px] mono ml-9" style="color:var(--text-3)">ID: ' + escHtml(f.id) + '</p>';
-        html += '</div>';
-        html += '<div class="flex items-center gap-1.5 shrink-0">';
-        html += '<button onclick="cp(\'' + escAttr(loaderUrl) + '\')" class="ripple-host p-2 rounded-lg transition" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle)" title="Copy Loader URL">';
-        html += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-        html += '</button>';
-        html += '<button onclick="openEditModal(\'' + escAttr(f.id) + '\')" class="ripple-host p-2 rounded-lg transition" style="background:var(--info-dim);border:1px solid rgba(59,130,246,0.12)" title="Edit">';
-        html += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-        html += '</button>';
-        html += '<button onclick="deleteScript(\'' + escAttr(f.id) + '\')" class="ripple-host p-2 rounded-lg transition" style="background:var(--danger-dim);border:1px solid rgba(239,68,68,0.12)" title="Delete">';
-        html += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-        html += '</button>';
-        html += '</div></div>';
-
-        html += '<div class="flex items-center gap-3 ml-9">';
-        html += '<span class="text-[10px] mono" style="color:var(--text-3)">' + lines + ' lines</span>';
-        html += '<span class="w-0.5 h-0.5 rounded-full" style="background:var(--text-3)"></span>';
-        html += '<span class="text-[10px] mono" style="color:var(--text-3)">' + sizeStr + '</span>';
-        html += '</div>';
-
-        html += '<div class="code-block rounded-lg p-2.5 ml-9">';
-        html += '<code class="text-[9px] mono break-all" style="color:var(--text-3)">' + escHtml(loaderUrl) + '</code>';
-        html += '</div>';
-
-        html += '</div>';
+        var preview = f.content ? f.content.substring(0, 80).replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+        h += '<div class="card-interactive glass rounded-xl p-4 space-y-3 fade-up" style="animation-delay:' + (i * 0.03) + 's">' +
+            '<div class="flex justify-between items-start">' +
+                '<div class="flex items-center gap-3 min-w-0">' +
+                    '<div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:var(--accent-glow);border:1px solid rgba(245,158,11,0.1)">' +
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                    '</div>' +
+                    '<div class="min-w-0">' +
+                        '<p class="text-[11px] font-bold text-white truncate">' + f.name + '</p>' +
+                        '<p class="text-[9px] mono mt-0.5 truncate" style="color:var(--text-3)">' + f.id + '</p>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="flex gap-1.5 shrink-0">' +
+                    '<button onclick="openEditModal(\'' + f.id + '\')" class="ripple-host p-2 rounded-lg transition" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);color:var(--text-2)">' +
+                        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+                    '</button>' +
+                    '<button onclick="confirmDelete(\'script\',\'' + f.id + '\')" class="ripple-host p-2 rounded-lg transition" style="background:var(--danger-dim);border:1px solid rgba(239,68,68,0.1);color:var(--danger)">' +
+                        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="code-block rounded-lg p-2.5"><code class="text-[9px] mono leading-relaxed block" style="color:var(--text-3)">' + (preview || 'empty') + '</code></div>' +
+        '</div>';
     }
-    c.innerHTML = html;
+    c.innerHTML = h;
+    reanimate();
 }
 
-/* ===== DEPLOY SCRIPT ===== */
-function dep() {
-    var name = document.getElementById('fN').value.trim();
-    var content = document.getElementById('fC').value;
-    if (!name) { toast('Filename is required', 'error'); return; }
-    if (!content) { toast('Source code is required', 'error'); return; }
-    if (!name.endsWith('.lua')) name = name + '.lua';
-
-    api('POST', '/api/server', { name: name, content: content }).then(function(r) {
-        if (r.success) {
-            toast('Script deployed successfully', 'success');
-            document.getElementById('fN').value = '';
-            document.getElementById('fC').value = '';
-            loadF();
-        } else {
-            toast(r.error || 'Deploy failed', 'error');
-        }
-    }).catch(function() {
-        toast('Network error', 'error');
-    });
-}
-
-/* ===== UPLOAD .LUA FILE ===== */
-function pickLocalLuaFile() {
-    document.getElementById('luaFileInput').click();
-}
-
-function handleLuaFilePick(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    if (!file.name.endsWith('.lua')) {
-        toast('Only .lua files allowed', 'error');
-        e.target.value = '';
-        return;
-    }
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-        document.getElementById('fN').value = file.name;
-        document.getElementById('fC').value = ev.target.result;
-        toast('File loaded: ' + file.name, 'success');
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-}
-
-/* ===== EDIT MODAL ===== */
-function openEditModal(id) {
-    var script = null;
-    for (var i = 0; i < S.files.length; i++) {
-        if (S.files[i].id === id) { script = S.files[i]; break; }
-    }
-    if (!script) { toast('Script not found', 'error'); return; }
-
-    document.getElementById('editTargetId').value = id;
-    document.getElementById('editName').value = script.name;
-    document.getElementById('editContent').value = script.content || '';
-
-    var modal = document.getElementById('editModal');
-    var box = document.getElementById('modalBox');
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-    requestAnimationFrame(function() {
-        modal.style.opacity = '1';
-        box.style.transform = 'scale(1)';
-        box.style.opacity = '1';
-    });
-}
-
-function closeEditModal() {
-    var modal = document.getElementById('editModal');
-    var box = document.getElementById('modalBox');
-    modal.style.opacity = '0';
-    box.style.transform = 'scale(0.95)';
-    box.style.opacity = '0';
-    setTimeout(function() {
-        modal.classList.add('hidden');
-        modal.style.display = '';
-    }, 250);
-}
-
-function submitUpdateScript() {
-    var id = document.getElementById('editTargetId').value;
-    var name = document.getElementById('editName').value.trim();
-    var content = document.getElementById('editContent').value;
-    if (!name) { toast('Filename is required', 'error'); return; }
-    if (!content) { toast('Source code is required', 'error'); return; }
-
-    api('POST', '/api/server', { name: name, content: content, existingScriptId: id }).then(function(r) {
-        if (r.success) {
-            toast('Script updated', 'success');
-            closeEditModal();
-            loadF();
-        } else {
-            toast(r.error || 'Update failed', 'error');
-        }
-    }).catch(function() {
-        toast('Network error', 'error');
-    });
-}
-
-/* ===== DELETE SCRIPT ===== */
-function deleteScript(id) {
-    var modal = document.getElementById('confirmModal');
-    var box = document.getElementById('confirmBox');
-    var btn = document.getElementById('executeConfirmBtn');
-
-    btn.onclick = function() {
-        api('DELETE', '/api/server?id=' + encodeURIComponent(id)).then(function(r) {
-            if (r.success) {
-                toast('Script deleted', 'success');
-                loadF();
-            } else {
-                toast('Delete failed', 'error');
-            }
-            closeConfirmModal();
-        }).catch(function() {
-            toast('Network error', 'error');
-            closeConfirmModal();
-        });
-    };
-
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-    requestAnimationFrame(function() {
-        modal.style.opacity = '1';
-        box.style.transform = 'scale(1)';
-        box.style.opacity = '1';
-    });
-}
-
-/* ===== CONFIRM MODAL ===== */
-function closeConfirmModal() {
-    var modal = document.getElementById('confirmModal');
-    var box = document.getElementById('confirmBox');
-    modal.style.opacity = '0';
-    box.style.transform = 'scale(0.95)';
-    box.style.opacity = '0';
-    setTimeout(function() {
-        modal.classList.add('hidden');
-        modal.style.display = '';
-    }, 250);
-}
-
-/* ===== LOAD KEYS ===== */
 function loadK() {
-    api('GET', '/api/server?type=keys').then(function(data) {
-        S.keys = data;
-        renderKeyList();
+    api('GET', '?type=keys').then(function(d) {
+        S.keys = d;
+        renderK();
         if (S.cur === 'beranda') initB();
         updateStorage();
-    }).catch(function() {
-        toast('Failed to load keys', 'error');
     });
 }
 
-/* ===== RENDER KEY LIST ===== */
-function renderKeyList() {
+function renderK() {
     var c = document.getElementById('kList');
     if (S.keys.length === 0) {
         c.innerHTML = '<div class="glass rounded-xl p-8 text-center"><p class="text-[11px]" style="color:var(--text-3)">No license keys generated yet</p></div>';
         return;
     }
-    var html = '';
+    var h = '';
     for (var i = 0; i < S.keys.length; i++) {
         var k = S.keys[i];
         var exp = new Date(k.expiry);
         var isPerm = exp.getFullYear() >= 2125;
-        var isExpired = !isPerm && new Date() > exp;
-        var isActive = isPerm || !isExpired;
-
-        var badgeClass = isPerm ? 'badge-perm' : (isActive ? 'badge-active' : 'badge-expired');
-        var badgeText = isPerm ? 'Permanent' : (isActive ? 'Active' : 'Expired');
-        var expText = isPerm ? 'PERMANENT' : exp.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
-        var devices = k.registered_devices || [];
-        var devCount = devices.length;
-        var maxDev = k.max_devices || 1;
-
-        html += '<div class="key-row glass card-interactive rounded-xl p-4 space-y-3" style="animation-delay:' + (i * 0.04) + 's">';
-        html += '<div class="flex items-start justify-between gap-3">';
-        html += '<div class="min-w-0 flex-1 space-y-1.5">';
-        html += '<div class="flex items-center gap-2 flex-wrap">';
-        html += '<span class="text-[11px] font-bold text-white mono break-all">' + escHtml(k.key) + '</span>';
-        html += '<span class="badge ' + badgeClass + '">' + badgeText + '</span>';
-        html += '</div>';
-        html += '<p class="text-[10px]" style="color:var(--text-3)">Target: <span class="mono font-semibold" style="color:var(--text-2)">' + escHtml(k.target_script_name || k.script_id || '-') + '</span></p>';
-        html += '</div>';
-        html += '<button onclick="deleteKey(\'' + escAttr(k.key) + '\')" class="ripple-host p-2 rounded-lg transition shrink-0" style="background:var(--danger-dim);border:1px solid rgba(239,68,68,0.12)" title="Delete Key">';
-        html += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-        html += '</button></div>';
-
-        html += '<div class="flex items-center gap-4 text-[10px] mono" style="color:var(--text-3)">';
-        html += '<span>Exp: ' + expText + '</span>';
-        html += '<span>Devices: ' + devCount + '/' + maxDev + '</span>';
-        html += '</div>';
-
-        if (devCount > 0) {
-            html += '<div class="space-y-1">';
-            for (var d = 0; d < devices.length; d++) {
-                html += '<div class="code-block rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-2">';
-                html += '<code class="text-[9px] mono truncate" style="color:var(--text-3)">' + escHtml(devices[d]) + '</code>';
-                html += '<button onclick="removeDeviceFromKey(\'' + escAttr(k.key) + '\', ' + d + ')" class="text-[9px] font-bold px-2 py-0.5 rounded" style="color:var(--danger);background:var(--danger-dim)">REMOVE</button>';
-                html += '</div>';
-            }
-            html += '</div>';
-        }
-
-        html += '<button onclick="cp(\'' + escAttr(k.key) + '\')" class="ripple-host w-full py-2 btn-ghost rounded-lg text-[10px] font-bold flex items-center justify-center gap-1.5">';
-        html += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-        html += 'Copy Key';
-        html += '</button>';
-
-        html += '</div>';
+        var isActive = isPerm || new Date() <= exp;
+        var bc = isPerm ? 'badge-perm' : (isActive ? 'badge-active' : 'badge-expired');
+        var bt = isPerm ? 'PERMANENT' : (isActive ? 'ACTIVE' : 'EXPIRED');
+        var et = isPerm ? 'Permanent' : exp.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+        var dc = k.registered_devices ? k.registered_devices.length : 0;
+        var safeKey = k.key.replace(/'/g, "\\'");
+        h += '<div class="card-interactive glass rounded-xl p-4 space-y-3 fade-up" style="animation-delay:' + (i * 0.03) + 's">' +
+            '<div class="flex justify-between items-start">' +
+                '<div class="min-w-0 flex-1">' +
+                    '<div class="flex items-center gap-2 flex-wrap">' +
+                        '<code class="text-[11px] font-bold mono text-white">' + k.key + '</code>' +
+                        '<span class="badge ' + bc + '">' + bt + '</span>' +
+                    '</div>' +
+                    '<p class="text-[9px] mt-1.5" style="color:var(--text-3)">Target: <span class="text-white font-semibold">' + (k.target_script_name || '-') + '</span></p>' +
+                '</div>' +
+                '<button onclick="confirmDelete(\'key\',\'' + safeKey + '\')" class="ripple-host p-2 rounded-lg shrink-0 transition" style="background:var(--danger-dim);border:1px solid rgba(239,68,68,0.1);color:var(--danger)">' +
+                    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+                '</button>' +
+            '</div>' +
+            '<div class="flex gap-4 text-[9px]" style="color:var(--text-3)">' +
+                '<span>Exp: <span class="text-white">' + et + '</span></span>' +
+                '<span>Devices: <span class="text-white">' + dc + '/' + (k.max_devices || 1) + '</span></span>' +
+            '</div>' +
+            '<button onclick="cp(\'' + safeKey + '\')" class="ripple-host w-full py-2 rounded-lg btn-ghost text-[10px] font-bold">Copy Key</button>' +
+        '</div>';
     }
-    c.innerHTML = html;
+    c.innerHTML = h;
+    reanimate();
 }
 
-/* ===== POPULATE SCRIPT SELECT ===== */
-function populateScriptSelect() {
-    var sel = document.getElementById('kT');
-    var html = '<option value="">-- Select Script --</option>';
-    for (var i = 0; i < S.files.length; i++) {
-        var f = S.files[i];
-        html += '<option value="' + escAttr(f.id) + '">' + escHtml(f.name) + ' (' + f.id + ')</option>';
-    }
-    sel.innerHTML = html;
+function dep() {
+    var name = document.getElementById('fN').value.trim();
+    var content = document.getElementById('fC').value.trim();
+    if (!name) { toast('Filename is required', 'error'); return; }
+    if (!content) { toast('Source code is required', 'error'); return; }
+    toast('Deploying...', 'info');
+    api('POST', '', { name: name, content: content }).then(function(d) {
+        if (d.error) { toast(d.error, 'error'); return; }
+        toast('Script deployed successfully', 'success');
+        document.getElementById('fN').value = '';
+        document.getElementById('fC').value = '';
+        loadF();
+    });
 }
 
-/* ===== HANDLE PRESET DATE ===== */
 function handlePresetDateChange(val) {
-    var zone = document.getElementById('customDateZone');
-    if (val === 'CUSTOM') {
-        zone.classList.remove('hidden');
-    } else {
-        zone.classList.add('hidden');
-    }
+    var cdz = document.getElementById('customDateZone');
+    if (val === 'CUSTOM') cdz.classList.remove('hidden');
+    else cdz.classList.add('hidden');
 }
 
-/* ===== GET EXPIRY DATE FROM PRESET ===== */
-function getExpiryDate() {
-    var preset = document.getElementById('kPreset').value;
-    if (preset === 'PERMANENT') {
-        return '2200-01-01T00:00:00.000Z';
-    }
-    if (preset === 'CUSTOM') {
-        var raw = document.getElementById('kE').value;
-        if (!raw) { toast('Please select a custom date', 'error'); return null; }
-        return new Date(raw).toISOString();
-    }
-    var days = parseInt(preset) || 1;
-    var d = new Date();
-    d.setDate(d.getDate() + days);
-    d.setHours(23, 59, 59, 999);
-    return d.toISOString();
-}
-
-/* ===== GENERATE KEY ===== */
 function genK() {
     var scriptId = document.getElementById('kT').value;
-    var maxDevices = document.getElementById('kM').value;
+    var maxD = document.getElementById('kM').value;
+    var preset = document.getElementById('kPreset').value;
     var customName = document.getElementById('kC').value.trim();
-
     if (!scriptId) { toast('Select a target script first', 'error'); return; }
-
-    var expiry = getExpiryDate();
-    if (!expiry) return;
-
-    api('POST', '/api/server', {
-        action: 'createKey',
-        scriptId: scriptId,
-        expiry: expiry,
-        maxDevices: parseInt(maxDevices) || 1,
-        customName: customName
-    }).then(function(r) {
-        if (r.key) {
-            toast('Key generated: ' + r.key, 'success');
-            cp(r.key);
-            document.getElementById('kC').value = '';
-            loadK();
-        } else {
-            toast(r.error || 'Generation failed', 'error');
-        }
-    }).catch(function() {
-        toast('Network error', 'error');
-    });
-}
-
-/* ===== DELETE KEY ===== */
-function deleteKey(key) {
-    var modal = document.getElementById('confirmModal');
-    var box = document.getElementById('confirmBox');
-    var btn = document.getElementById('executeConfirmBtn');
-
-    btn.onclick = function() {
-        api('DELETE', '/api/server?deleteKey=' + encodeURIComponent(key)).then(function(r) {
-            if (r.success) {
-                toast('Key deleted', 'success');
-                loadK();
-            } else {
-                toast('Delete failed', 'error');
-            }
-            closeConfirmModal();
-        }).catch(function() {
-            toast('Network error', 'error');
-            closeConfirmModal();
-        });
-    };
-
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-    requestAnimationFrame(function() {
-        modal.style.opacity = '1';
-        box.style.transform = 'scale(1)';
-        box.style.opacity = '1';
-    });
-}
-
-/* ===== REMOVE DEVICE FROM KEY (API call) ===== */
-function removeDeviceFromKey(key, deviceIndex) {
-    /* We need to update the registered_devices array by removing the index */
-    var targetKey = null;
-    for (var i = 0; i < S.keys.length; i++) {
-        if (S.keys[i].key === key) { targetKey = S.keys[i]; break; }
+    var expiry;
+    if (preset === 'PERMANENT') {
+        expiry = '2125-01-01T00:00:00Z';
+    } else if (preset === 'CUSTOM') {
+        expiry = document.getElementById('kE').value;
+        if (!expiry) { toast('Select a custom expiry date', 'error'); return; }
+        expiry = new Date(expiry).toISOString();
+    } else {
+        var days = parseInt(preset);
+        var d = new Date();
+        d.setDate(d.getDate() + days);
+        expiry = d.toISOString();
     }
-    if (!targetKey) return;
-
-    var devices = (targetKey.registered_devices || []).slice();
-    if (deviceIndex < 0 || deviceIndex >= devices.length) return;
-
-    devices.splice(deviceIndex, 1);
-
-    /* Use a POST to update - we abuse the script update endpoint concept,
-       but since server doesn't have a direct endpoint for this,
-       we call a special action */
-    api('POST', '/api/server', {
-        action: 'removeDevice',
-        key: key,
-        devices: devices
-    }).then(function(r) {
-        if (r.success) {
-            toast('Device removed', 'success');
-            loadK();
-        } else {
-            toast(r.error || 'Failed to remove device', 'error');
-        }
-    }).catch(function() {
-        toast('Network error', 'error');
+    toast('Generating key...', 'info');
+    api('POST', '', { action: 'createKey', scriptId: scriptId, expiry: expiry, maxDevices: maxD, customName: customName }).then(function(d) {
+        if (d.error) { toast(d.error, 'error'); return; }
+        toast('Key generated: ' + d.key, 'success');
+        loadK();
     });
 }
 
-/* ===== AUTH GATE ===== */
+function openEditModal(id) {
+    var f = null;
+    for (var i = 0; i < S.files.length; i++) {
+        if (S.files[i].id === id) { f = S.files[i]; break; }
+    }
+    if (!f) return;
+    document.getElementById('editTargetId').value = f.id;
+    document.getElementById('editName').value = f.name;
+    document.getElementById('editContent').value = f.content || '';
+    var m = document.getElementById('editModal');
+    var b = document.getElementById('modalBox');
+    m.classList.remove('hidden');
+    requestAnimationFrame(function() {
+        m.style.opacity = '1';
+        b.style.transform = 'scale(1)';
+        b.style.opacity = '1';
+    });
+}
+
+function closeEditModal() {
+    var m = document.getElementById('editModal');
+    var b = document.getElementById('modalBox');
+    m.style.opacity = '0';
+    b.style.transform = 'scale(0.95)';
+    b.style.opacity = '0';
+    setTimeout(function() { m.classList.add('hidden'); }, 250);
+}
+
+function submitUpdateScript() {
+    var id = document.getElementById('editTargetId').value;
+    var name = document.getElementById('editName').value.trim();
+    var content = document.getElementById('editContent').value.trim();
+    if (!name || !content) { toast('Name and content required', 'error'); return; }
+    toast('Updating...', 'info');
+    api('POST', '', { name: name, content: content, existingScriptId: id }).then(function(d) {
+        if (d.error) { toast(d.error, 'error'); return; }
+        toast('Script updated', 'success');
+        closeEditModal();
+        loadF();
+    });
+}
+
+var pendingDelete = null;
+
+function confirmDelete(type, id) {
+    pendingDelete = { type: type, id: id };
+    var m = document.getElementById('confirmModal');
+    var b = document.getElementById('confirmBox');
+    m.classList.remove('hidden');
+    requestAnimationFrame(function() {
+        m.style.opacity = '1';
+        b.style.transform = 'scale(1)';
+        b.style.opacity = '1';
+    });
+}
+
+function closeConfirmModal() {
+    var m = document.getElementById('confirmModal');
+    var b = document.getElementById('confirmBox');
+    m.style.opacity = '0';
+    b.style.transform = 'scale(0.95)';
+    b.style.opacity = '0';
+    setTimeout(function() { m.classList.add('hidden'); }, 250);
+    pendingDelete = null;
+}
+
+document.getElementById('executeConfirmBtn').onclick = function() {
+    if (!pendingDelete) return;
+    var type = pendingDelete.type;
+    var id = pendingDelete.id;
+    var path = '';
+    if (type === 'script') path = '?id=' + encodeURIComponent(id);
+    else path = '?deleteKey=' + encodeURIComponent(id);
+    toast('Deleting...', 'info');
+    api('DELETE', path).then(function(d) {
+        if (d.error) { toast(d.error, 'error'); return; }
+        toast('Deleted successfully', 'success');
+        closeConfirmModal();
+        if (type === 'script') loadF();
+        else loadK();
+    });
+};
+
+function pickLocalLuaFile() {
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.lua,.txt';
+    inp.onchange = function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            document.getElementById('fN').value = file.name;
+            document.getElementById('fC').value = ev.target.result;
+            toast('File loaded: ' + file.name, 'success');
+        };
+        reader.readAsText(file);
+    };
+    inp.click();
+}
+
 function checkAdminGate() {
     var u = document.getElementById('admUser').value.trim();
     var p = document.getElementById('admPass').value.trim();
     if (!u || !p) { toast('Fill all fields', 'error'); return; }
-
+    toast('Authenticating...', 'info');
     fetch('/api/server', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'login', username: u, password: p })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-        if (data.session) {
-            S.session = data.session;
-            localStorage.setItem('nx_session', data.session);
+    }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.session) {
+            S.session = d.session;
+            localStorage.setItem('nx_s', d.session);
             document.getElementById('authGate').style.opacity = '0';
-            document.getElementById('authGate').style.transition = 'opacity 0.4s ease-out';
-            setTimeout(function() {
-                document.getElementById('authGate').style.display = 'none';
-                sw('beranda');
-            }, 400);
+            document.getElementById('authGate').style.pointerEvents = 'none';
+            setTimeout(function() { document.getElementById('authGate').style.display = 'none'; }, 300);
             toast('Welcome back, Riski', 'success');
+            sw('beranda');
         } else {
-            toast(data.error || 'Authentication failed', 'error');
+            toast('Authentication failed', 'error');
         }
-    }).catch(function() {
-        toast('Connection error', 'error');
     });
 }
 
-/* ===== LOGOUT ===== */
 function logOutAdmin() {
     S.session = '';
-    localStorage.removeItem('nx_session');
-    document.getElementById('authGate').style.display = 'flex';
-    requestAnimationFrame(function() {
-        document.getElementById('authGate').style.opacity = '1';
-    });
-    document.getElementById('admUser').value = '';
-    document.getElementById('admPass').value = '';
-    toast('Logged out', 'info');
+    localStorage.removeItem('nx_s');
+    location.reload();
 }
 
-/* ===== ESCAPE HELPERS ===== */
-function escHtml(s) {
-    if (!s) return '';
-    var d = document.createElement('div');
-    d.appendChild(document.createTextNode(s));
-    return d.innerHTML;
-}
-function escAttr(s) {
-    if (!s) return '';
-    return s.replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/* ===== ENTER KEY ON AUTH ===== */
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        var gate = document.getElementById('authGate');
-        if (gate && gate.style.display !== 'none') {
-            checkAdminGate();
-        }
-    }
-});
-
-/* ===== INIT ===== */
 function init() {
     TouchEngine.init();
-
-    /* Restore session */
-    var saved = localStorage.getItem('nx_session');
+    var saved = localStorage.getItem('nx_s');
     if (saved) {
         S.session = saved;
         document.getElementById('authGate').style.display = 'none';
         sw('beranda');
     }
+    document.getElementById('admPass').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkAdminGate();
+    });
+    document.getElementById('admUser').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('admPass').focus();
+    });
 }
 
 init();
