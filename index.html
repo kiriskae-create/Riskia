@@ -8,12 +8,11 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
         
-        /* TOUCH-ACTION & RENDERING OFFSETS FOR ZERO LAG */
         *, *::before, *::after {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation; /* Removes 300ms click delay natively */
-            content-visibility: auto; /* DOM layout optimization */
+            touch-action: manipulation;
+            content-visibility: auto;
         }
 
         body { 
@@ -32,10 +31,9 @@
             backdrop-filter: blur(30px); 
             -webkit-backdrop-filter: blur(30px); 
             border: 1px solid rgba(255,255,255,0.03); 
-            transform: translateZ(0); /* Hardware Acceleration Trigger */
+            transform: translateZ(0);
         }
 
-        /* FIXED MOBILE LAYOUT - NO GAPS/RONGGA */
         .sidebar-panel { 
             background: #07080d; 
             border-right: 1px solid rgba(255, 255, 255, 0.03); 
@@ -58,7 +56,7 @@
             transition: background 0.2s, transform 0.1s; 
             cursor: pointer; 
         }
-        .btn-premium:active { transform: scale(0.98); }
+        .btn-premium:active { transform: scale(0.97); }
 
         .input-premium { 
             background: rgba(15, 18, 28, 0.8); 
@@ -72,11 +70,10 @@
             transition: width 0.4s cubic-bezier(0.1, 0.8, 0.2, 1); 
         }
 
-        /* SMOOTH DIALOG POPUPS */
         .modal-blur {
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            transition: opacity 0.2s ease;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.25s ease-out;
         }
     </style>
 </head>
@@ -124,7 +121,7 @@
                 Cloud Scripts
             </button>
             <button id="btn-keysystem" onclick="sw('keysystem')" class="w-full text-left px-4 py-3 rounded-xl text-xs font-medium flex items-center gap-3.5 text-slate-400 transition hover:bg-white/5 cursor-pointer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6m3.1-6.1 4.2 4.2M16 4l3 3"/></svg>
                 License Keys
             </button>
         </nav>
@@ -172,13 +169,6 @@
         </h2>
         <div class="glass rounded-2xl p-5 space-y-3">
             <div class="p-3 bg-white/5 border border-white/5 rounded-xl space-y-1.5">
-                <span class="text-xs font-semibold text-slate-300">Master Dynamic Loader URL</span>
-                <div class="flex gap-2 items-center">
-                    <code class="text-[10px] text-amber-400 mono bg-black/40 px-2.5 py-1.5 rounded-lg truncate flex-1" id="baseL1">-</code>
-                    <button onclick="cp(document.getElementById('baseL1').innerText)" class="px-3 py-1.5 bg-white text-black font-bold text-[10px] rounded-lg cursor-pointer">COPY</button>
-                </div>
-            </div>
-            <div class="p-3 bg-white/5 border border-white/5 rounded-xl space-y-1.5">
                 <span class="text-xs font-semibold text-slate-300">Universal Gateway Validator</span>
                 <div class="flex gap-2 items-center">
                     <code class="text-[10px] text-amber-400 mono bg-black/40 px-2.5 py-1.5 rounded-lg truncate flex-1" id="baseL2">-</code>
@@ -212,7 +202,7 @@
 
     <div id="view-keysystem" class="space-y-6 hidden">
         <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6m3.1-6.1 4.2 4.2M16 4l3 3"/></svg>
             License System Infrastructure
         </h2>
 
@@ -234,7 +224,7 @@
                         <option value="3">3 Hari Access</option>
                         <option value="7">7 Hari Access</option>
                         <option value="30">30 Hari Access</option>
-                        <option value="PERMANENT">PERMANENT ACCESS (Bypass Client)</option>
+                        <option value="PERMANENT">PERMANENT ACCESS</option>
                         <option value="CUSTOM">Custom Picker</option>
                     </select>
                 </div>
@@ -254,8 +244,8 @@
     </div>
 </main>
 
-<div id="editModal" class="fixed inset-0 z-[150] items-center justify-center p-4 bg-black/70 modal-blur hidden opacity-0">
-    <div class="glass w-full max-w-2xl rounded-2xl p-5 space-y-4 shadow-2xl scale-95 transition-transform duration-200" id="modalBox">
+<div id="editModal" class="fixed inset-0 z-[150] items-center justify-center p-4 bg-black/75 modal-blur hidden opacity-0">
+    <div class="glass w-full max-w-2xl rounded-2xl p-5 space-y-4 shadow-2xl scale-95 transition-all duration-200" id="modalBox">
         <div class="flex justify-between items-center border-b border-white/5 pb-2">
             <h3 class="text-xs font-bold text-white flex items-center gap-2">Modify Cloud Source Content</h3>
             <button onclick="closeEditModal()" class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs text-slate-400">✕</button>
@@ -263,9 +253,25 @@
         <input type="hidden" id="editTargetId">
         <input type="text" id="editName" class="w-full px-4 py-2.5 rounded-xl input-premium text-xs mono">
         <textarea id="editContent" rows="10" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono resize-none"></textarea>
-        <div class="flex gap-2 justify-end">
-            <button onclick="closeEditModal()" class="px-4 py-2 bg-white/5 text-white rounded-xl text-xs font-bold">Batal</button>
-            <button onclick="submitUpdateScript()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">Update Source</button>
+        <div class="flex gap-2 justify-end pt-2">
+            <button onclick="closeEditModal()" class="px-5 py-2.5 bg-white/5 text-white border border-white/5 rounded-xl text-xs font-bold cursor-pointer">Batal</button>
+            <button onclick="submitUpdateScript()" class="px-5 py-2.5 bg-amber-500 text-black rounded-xl text-xs font-bold cursor-pointer">Update Source</button>
+        </div>
+    </div>
+</div>
+
+<div id="confirmModal" class="fixed inset-0 z-[160] items-center justify-center p-4 bg-black/80 modal-blur hidden opacity-0">
+    <div class="glass w-full max-w-sm rounded-2xl p-6 space-y-5 shadow-2xl scale-95 transition-all duration-200" id="confirmBox">
+        <div class="text-center space-y-2">
+            <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center mx-auto shadow-inner">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <h3 class="text-sm font-bold text-white">Konfirmasi Penghapusan</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Apakah Anda yakin ingin memusnahkan node data ini secara permanen dari infrastruktur cloud?</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="closeConfirmModal()" class="py-2.5 bg-white/5 border border-white/5 text-white rounded-xl text-xs font-bold cursor-pointer">Batal</button>
+            <button id="executeConfirmBtn" class="py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold cursor-pointer">Hapus Node</button>
         </div>
     </div>
 </div>
@@ -275,13 +281,18 @@
 </div>
 
 <script>
-var S = { files: [], keys: [], session: '', cur: 'beranda' };
+var S = { files: [], keys: [], session: '', cur: 'beranda', activeDeleteAction: null };
 
-// ZERO-LAG TOUCH & CLICK RESPONSE
 function setupTouchOptimizations() {
-    var buttons = document.querySelectorAll('button, nav button');
+    var buttons = document.querySelectorAll('button, nav button, [onclick]');
     buttons.forEach(function(btn) {
-        btn.addEventListener('touchstart', function() { }, {passive: true});
+        btn.style.cursor = 'pointer';
+        btn.addEventListener('touchstart', function() {
+            this.style.opacity = '0.75';
+        }, {passive: true});
+        btn.addEventListener('touchend', function() {
+            this.style.opacity = '1';
+        }, {passive: true});
     });
 }
 
@@ -293,8 +304,13 @@ function toast(m) {
 }
 
 function cp(t) {
-    navigator.clipboard.writeText(t);
-    toast('📋 Copied inside terminal clipboard layer!');
+    var area = document.createElement('textarea');
+    area.value = t;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    document.body.removeChild(area);
+    toast('📋 Format Intercept Hook copied inside clipboard!');
 }
 
 function toggleSidebar(open) {
@@ -328,7 +344,6 @@ function sw(t) {
 
 function initB() {
     var b = location.origin;
-    document.getElementById('baseL1').innerText = b + '/api/server?type=loader';
     document.getElementById('baseL2').innerText = b + '/api/server?type=login';
 }
 
@@ -388,10 +403,10 @@ async function pickLocalLuaFile() {
     input.click();
 }
 
-function triggerCopyHook(scriptId) {
+function triggerCopyHookMenu(scriptId) {
     var b = location.origin;
-    var luaCode = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '").content if V then pcall(load(V)) end';
-    cp(luaCode);
+    var formatPayload = 'local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=menu&id=' + scriptId + '").content if V then pcall(load(V)) end';
+    cp(formatPayload);
 }
 
 async function loadF() {
@@ -403,21 +418,20 @@ async function loadF() {
     if (!c) return;
     
     c.innerHTML = S.files.map(function(f) {
-        var pureRawUrl = location.origin + '/api/server?type=menu&id=' + f.id;
         return '<div class="glass rounded-xl p-4 space-y-3 border border-white/5">' +
             '<div class="flex justify-between items-center">' +
                 '<div><span class="mono text-xs font-bold text-white block">' + f.name + '</span><span class="text-[9px] text-slate-500 mono block mt-0.5">' + f.id + '</span></div>' +
                 '<div class="flex gap-2">' +
                     '<button onclick="openEditModal(\'' + f.id + '\')" class="p-2 bg-white/5 text-blue-400 rounded-lg border border-white/5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
-                    '<button onclick="dlF(\'' + f.id + '\')" class="p-2 bg-white/5 text-red-400 rounded-lg border border-white/5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+                    '<button onclick="openConfirmModal(\'script\', \'' + f.id + '\')" class="p-2 bg-white/5 text-red-400 rounded-lg border border-white/5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
                 '</div>' +
             '</div>' +
-            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">' +
-                '<button onclick="cp(\'' + pureRawUrl + '\')" class="py-2 bg-white/5 text-white rounded-xl text-[10px] font-bold">Copy Pure LUA Script URL</button>' +
-                '<button onclick="triggerCopyHook(\'' + f.id + '\')" class="py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-[10px] font-bold">Copy 1-Line Intercept Hook</button>' +
+            '<div class="pt-1">' +
+                '<button onclick="triggerCopyHookMenu(\'' + f.id + '\')" class="w-full py-2.5 bg-white text-black rounded-xl text-[10px] font-bold tracking-wide transition active:scale-98">Copy Pure LUA Script Hook</button>' +
             '</div>' +
         '</div>';
     }).join('');
+    setupTouchOptimizations();
     updateStorageHealth();
 }
 
@@ -427,10 +441,14 @@ function openEditModal(id) {
     document.getElementById('editTargetId').value = id;
     document.getElementById('editName').value = target.name;
     document.getElementById('editContent').value = target.content;
+    
     var m = document.getElementById('editModal');
     m.classList.remove('hidden');
     m.classList.add('flex');
-    setTimeout(function() { m.classList.remove('opacity-0'); document.getElementById('modalBox').classList.remove('scale-95'); }, 50);
+    setTimeout(function() { 
+        m.classList.remove('opacity-0'); 
+        document.getElementById('modalBox').classList.remove('scale-95'); 
+    }, 50);
 }
 
 function closeEditModal() {
@@ -440,12 +458,41 @@ function closeEditModal() {
     setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
 }
 
+function openConfirmModal(type, targetKey) {
+    var m = document.getElementById('confirmModal');
+    var btn = document.getElementById('executeConfirmBtn');
+    
+    btn.onclick = async function() {
+        if (type === 'script') {
+            await api('DELETE', '?id=' + targetKey);
+            loadF();
+        } else {
+            await api('DELETE', '?deleteKey=' + targetKey);
+            loadK();
+        }
+        closeConfirmModal();
+    };
+
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+    setTimeout(function() { 
+        m.classList.remove('opacity-0'); 
+        document.getElementById('confirmBox').classList.remove('scale-95'); 
+    }, 50);
+}
+
+function closeConfirmModal() {
+    var m = document.getElementById('confirmModal');
+    document.getElementById('confirmBox').classList.add('scale-95');
+    setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
+}
+
 async function submitUpdateScript() {
     var id = document.getElementById('editTargetId').value;
     var name = document.getElementById('editName').value.trim();
     var content = document.getElementById('editContent').value;
     var r = await api('POST', '', { name: name, content: content, existingScriptId: id });
-    if (r.ok) { toast('✅ Updated.'); closeEditModal(); loadF(); }
+    if (r.ok) { toast('✅ Node source update deployment successful.'); closeEditModal(); loadF(); }
 }
 
 async function dep() {
@@ -495,30 +542,24 @@ async function loadK() {
         var isExpired = !isPermanent && (new Date() > new Date(k.expiry));
         var badge = isExpired ? '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 text-[9px] font-bold rounded">EXPIRED</span>' : (isPermanent ? '<span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-bold rounded">⚡ PERMANENT</span>' : '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded">ACTIVE</span>');
         
-        // MEMULIHKAN URL SALIN DENGAN TARGET PURE LUA DAN HOOK DI BAWAH TIAP KARTU LISENSI
-        var uniqueLoaderUrl = location.origin + '/api/server?type=loader&id=' + k.script_id;
-        
         return '<div class="glass rounded-xl p-4 space-y-3 border border-white/5">' +
             '<div class="flex justify-between items-start">' +
                 '<div><div class="flex items-center gap-2 flex-wrap"><span class="mono text-xs font-bold text-white break-all">' + k.key + '</span>' + badge + '</div></div>' +
-                '<button onclick="dlK(\'' + k.key + '\')" class="p-2 bg-white/5 text-red-400 rounded-lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+                '<button onclick="openConfirmModal(\'key\', \'' + k.key + '\')" class="p-2 bg-white/5 text-red-400 rounded-lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
             '</div>' +
             '<div class="grid grid-cols-3 gap-2 text-[10px] text-slate-400 mono pt-2 border-t border-white/5">' +
                 '<div>Script: <span class="text-white block font-semibold truncate">' + k.target_script_name + '</span></div>' +
                 '<div>HWID: <span class="text-emerald-400 block font-bold">' + (k.registered_devices ? k.registered_devices.length : 0) + '/' + k.max_devices + '</span></div>' +
                 '<div>Exp: <span class="text-slate-300 block font-medium truncate">' + expDisplay + '</span></div>' +
             '</div>' +
-            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">' +
-                '<button onclick="cp(\'' + uniqueLoaderUrl + '\')" class="py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl text-[10px] font-bold">Copy Loader URL</button>' +
-                '<button onclick="triggerCopyHook(\'' + k.script_id + '\')" class="py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-[10px] font-bold">Copy Hook Script</button>' +
+            '<div class="pt-1">' +
+                '<button onclick="triggerCopyHookMenu(\'' + k.script_id + '\')" class="w-full py-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-[10px] font-bold transition active:scale-98">Copy Hook Script</button>' +
             '</div>' +
         '</div>';
     }).join('');
+    setupTouchOptimizations();
     updateStorageHealth();
 }
-
-async function dlF(id) { if (confirm('Purge script?')) { await api('DELETE', '?id=' + id); loadF(); } }
-async function dlK(k) { if (confirm('Terminate license?')) { await api('DELETE', '?deleteKey=' + k); loadK(); } }
 
 window.onload = function() {
     var sessionCheck = localStorage.getItem('nx_root_session');
@@ -526,7 +567,6 @@ window.onload = function() {
         S.session = sessionCheck;
         document.getElementById('authGate').classList.add('hidden');
         sw('beranda');
-        setupTouchOptimizations();
     }
 }
 </script>

@@ -189,7 +189,12 @@ end`;
         const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action } = req.body;
         
         if (action === 'createKey') {
-            const finalKey = expiry === 'PERMANENT' ? ('NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase()) : (customName || 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+            let finalKey = '';
+            if (expiry === 'PERMANENT') {
+                finalKey = customName ? ('NX-PERM-' + customName.replace(/\s+/g, '-').toUpperCase()) : ('NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+            } else {
+                finalKey = customName ? customName.replace(/\s+/g, '-').toUpperCase() : ('NX-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+            }
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
             await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${expiry}, ${parseInt(maxDevices) || 1})`;
             return res.status(200).json({ key: finalKey });
