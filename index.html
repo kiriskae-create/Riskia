@@ -289,7 +289,7 @@
         </div>
         
         <button onclick="toggleThemeSystem()" class="theme-toggle-btn px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-bold">
-            <span id="themeBtnText">Dark Mode</span>
+            <span id="themeBtnText">Light Mode</span>
         </button>
     </header>
 
@@ -493,13 +493,13 @@ var TouchEngine = {
 };
 
 function themeSyncVisualEngine() {
-    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
-    const btn = document.getElementById('themeBtnText');
+    var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    var btn = document.getElementById('themeBtnText');
     if (btn) btn.innerText = cur === 'dark' ? 'Light Mode' : 'Dark Mode';
 }
 
 function toggleThemeSystem() {
-    const active = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    var active = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', active);
     localStorage.setItem('nx_ui_theme', active);
     themeSyncVisualEngine();
@@ -510,10 +510,12 @@ function toast(m, type) {
     var msg = document.getElementById('tM');
     t.style.borderLeft = type === 'error' ? '3px solid var(--danger)' : '3px solid var(--success)';
     msg.innerText = m;
-    t.style.opacity = '1'; t.style.transform = 'window.innerWidth >= 768 ? "translateY(0)" : "translateX(-50%) translateY(0)"';
+    t.style.opacity = '1';
+    t.style.transform = window.innerWidth >= 768 ? 'translateY(0)' : 'translateX(-50%) translateY(0)';
     clearTimeout(t._tid);
     t._tid = setTimeout(function() {
         t.style.opacity = '0';
+        t.style.transform = window.innerWidth >= 768 ? 'translateY(16px)' : 'translateX(-50%) translateY(16px)';
     }, 2500);
 }
 
@@ -705,100 +707,121 @@ async function genK() {
 }
 
 function openEditModal(id) {
-    var target = S.files.find(f => f.id === id); if (!target) return;
+    var target = S.files.find(function(f) { return f.id === id; }); if (!target) return;
     document.getElementById('editTargetId').value = id;
     document.getElementById('editName').value = target.name;
     document.getElementById('editContent').value = target.content;
     var m = document.getElementById('editModal'); m.classList.remove('hidden'); m.classList.add('flex');
-    setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('modalBox').classList.remove('scale-95','opacity-0'); }, 50);
+    setTimeout(function() { m.classList.remove('opacity-0'); document.getElementById('modalBox').classList.remove('scale-95','opacity-0'); }, 50);
 }
 function closeEditModal() {
     var m = document.getElementById('editModal'); m.classList.add('opacity-0');
     document.getElementById('modalBox').classList.add('scale-95','opacity-0');
-    setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
+    setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
 }
 async function submitUpdateScript() {
     var id = document.getElementById('editTargetId').value;
-    var name = document.getElementById('editName').value.trim(); var content = document.getElementById('editContent').value;
+    var name = document.getElementById('editName').value.trim();
+    var content = document.getElementById('editContent').value;
+    if (!name || !content) return toast('Fields cannot be empty', 'error');
     var r = await api('POST', '', { name: name, content: content, existingScriptId: id });
-    if (r.ok) { toast('Node updated', 'success'); closeEditModal(); loadF(); }
+    if (r.ok) { toast('Script node updated', 'success'); closeEditModal(); loadF(); }
+    else { toast('Update failed', 'error'); }
 }
 
-function openEditKeyModal(key, maxDevices) {
+function openEditKeyModal(key, maxDev) {
     document.getElementById('editKeyTargetId').value = key;
-    document.getElementById('editKeyMaxDevices').value = maxDevices;
+    document.getElementById('editKeyMaxDevices').value = maxDev;
     document.getElementById('editKeyPreset').value = 'KEEP';
     var m = document.getElementById('editKeyModal'); m.classList.remove('hidden'); m.classList.add('flex');
-    setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('keyModalBox').classList.remove('scale-95','opacity-0'); }, 50);
+    setTimeout(function() { m.classList.remove('opacity-0'); document.getElementById('keyModalBox').classList.remove('scale-95','opacity-0'); }, 50);
 }
 function closeEditKeyModal() {
     var m = document.getElementById('editKeyModal'); m.classList.add('opacity-0');
     document.getElementById('keyModalBox').classList.add('scale-95','opacity-0');
-    setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
+    setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
 }
 async function submitUpdateKeySettings() {
-    var key = document.getElementById('editKeyTargetId').value;
-    var maxDevices = document.getElementById('editKeyMaxDevices').value;
+    var targetKey = document.getElementById('editKeyTargetId').value;
+    var newMax = parseInt(document.getElementById('editKeyMaxDevices').value) || 1;
     var preset = document.getElementById('editKeyPreset').value;
     
-    var found = S.keys.find(k => k.key === key);
-    if (!found) return;
+    var targetKeyData = S.keys.find(function(k) { return k.key === targetKey; });
+    if (!targetKeyData) return toast('Key data not found in cache', 'error');
     
-    var finalExpiry = found.expiry;
-    if (preset !== 'KEEP') {
-        if (preset === 'PERMANENT') {
-            var d = new Date(); d.setFullYear(d.getFullYear() + 100); finalExpiry = d.toISOString();
-        } else {
-            var d = new Date(); d.setDate(d.getDate() + parseInt(preset)); finalExpiry = d.toISOString();
-        }
+    var finalExpiry = targetKeyData.expiry;
+    if (preset === 'PERMANENT') {
+        var d = new Date(); d.setFullYear(d.getFullYear() + 100); finalExpiry = d.toISOString();
+    } else if (preset !== 'KEEP') {
+        var base = new Date(targetKeyData.expiry);
+        if (base.getFullYear() >= 2125) base = new Date();
+        base.setDate(base.getDate() + parseInt(preset));
+        finalExpiry = base.toISOString();
     }
     
-    var r = await api('POST', '', { action: 'updateKey', targetKey: key, expiry: finalExpiry, maxDevices: maxDevices });
-    if (r.ok) { toast('License database configuration verified', 'success'); closeEditKeyModal(); loadK(); }
-    else { toast('Mutation configuration payload dropped', 'error'); }
+    var r = await api('POST', '', { action: 'updateKey', targetKey: targetKey, expiry: finalExpiry, maxDevices: newMax });
+    if (r.ok) { toast('License node parameters updated', 'success'); closeEditKeyModal(); loadK(); }
+    else { toast('License update failed', 'error'); }
 }
 
 async function triggerResetHWID(key) {
     var r = await api('POST', '', { action: 'updateKey', targetKey: key, clearHwid: true });
-    if (r.ok) { toast('Hardware unique identity bindings wiped completely', 'success'); loadK(); }
+    if (r.ok) { toast('HWID bindings cleared for ' + key, 'success'); loadK(); }
+    else { toast('HWID reset failed', 'error'); }
 }
 
-function openConfirmModal(type, targetKey) {
-    var m = document.getElementById('confirmModal'); m.classList.remove('hidden'); m.classList.add('flex');
-    setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('confirmBox').classList.remove('scale-95','opacity-0'); }, 50);
-    document.getElementById('executeConfirmBtn').onclick = async function() {
-        if (type === 'script') { await api('DELETE', '?id=' + targetKey); loadF(); }
-        else { await api('DELETE', '?deleteKey=' + targetKey); loadK(); }
-        closeConfirmModal(); toast('Data structural elements erased', 'success');
+var _confirmCallback = null;
+function openConfirmModal(type, id) {
+    _confirmCallback = async function() {
+        var url = '';
+        if (type === 'key') url = '?deleteKey=' + encodeURIComponent(id);
+        else url = '?id=' + encodeURIComponent(id);
+        var r = await api('DELETE', url);
+        if (r.ok) { toast('Node removed permanently', 'success'); if (type === 'key') loadK(); else loadF(); fetchAllSystemMetricsDirect(); }
+        else { toast('Deletion failed', 'error'); }
     };
+    var m = document.getElementById('confirmModal'); m.classList.remove('hidden'); m.classList.add('flex');
+    setTimeout(function() { m.classList.remove('opacity-0'); document.getElementById('confirmBox').classList.remove('scale-95','opacity-0'); }, 50);
+    document.getElementById('executeConfirmBtn').onclick = function() { if (_confirmCallback) _confirmCallback(); closeConfirmModal(); };
 }
 function closeConfirmModal() {
+    _confirmCallback = null;
     var m = document.getElementById('confirmModal'); m.classList.add('opacity-0');
     document.getElementById('confirmBox').classList.add('scale-95','opacity-0');
-    setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
+    setTimeout(function() { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
 }
 
 async function dep() {
-    var n = document.getElementById('fN').value.trim(); var c = document.getElementById('fC').value;
-    if (!n || !c) return toast('Buffer content vacant', 'error');
-    var r = await api('POST', '', { name: n, content: c });
-    if (r.ok) { toast('Compilation verified and live', 'success'); document.getElementById('fN').value = ''; document.getElementById('fC').value = ''; loadF(); }
+    var name = document.getElementById('fN').value.trim();
+    var content = document.getElementById('fC').value;
+    if (!name || !content) return toast('Script name and source code required', 'error');
+    var r = await api('POST', '', { name: name, content: content });
+    if (r.ok) { toast('Script deployed to cloud cluster', 'success'); document.getElementById('fN').value = ''; document.getElementById('fC').value = ''; loadF(); }
+    else { toast('Deployment failed', 'error'); }
 }
 
-window.onload = function() {
-    TouchEngine.init();
-    const savedTheme = localStorage.getItem('nx_ui_theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+(function init() {
+    var savedTheme = localStorage.getItem('nx_ui_theme');
+    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+    else document.documentElement.setAttribute('data-theme', 'dark');
     themeSyncVisualEngine();
+    TouchEngine.init();
     
-    var saved = localStorage.getItem('nx_root_session');
-    if (saved && saved === 'NEXUS_RISKI_SECURE_TOKEN') {
-        S.session = saved;
+    var savedSession = localStorage.getItem('nx_root_session');
+    if (savedSession) {
+        S.session = savedSession;
         document.getElementById('authGate').classList.add('hidden');
         fetchAllSystemMetricsDirect();
         sw('beranda');
     }
-};
+    
+    document.getElementById('admPass').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkAdminGate();
+    });
+    document.getElementById('admUser').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('admPass').focus();
+    });
+})();
 </script>
 </body>
 </html>
