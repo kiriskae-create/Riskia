@@ -2,10 +2,9 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.POSTGRES_URL);
 
-/* === URL PROTECTION HTML === */
 const PROTECT_HTML = `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>403 - Endpoint Protected</title>
+<title>403 - Protected</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#02030a;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
@@ -16,52 +15,43 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .glow2{position:fixed;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(239,68,68,0.04),transparent 65%);top:60%;left:50%;transform:translate(-50%,-50%);pointer-events:none;animation:gp 5s ease-in-out infinite 2.5s}
 @keyframes gp{0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}}
 .wrap{text-align:center;position:relative;z-index:10;padding:24px;max-width:420px}
-.shield-wrap{position:relative;width:140px;height:170px;margin:0 auto 32px;animation:shFloat 4s ease-in-out infinite}
-@keyframes shFloat{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-6px) rotate(0.5deg)}75%{transform:translateY(4px) rotate(-0.5deg)}}
-.shield-ring{position:absolute;inset:-20px;border:1px solid rgba(245,158,11,0.08);border-radius:50%;animation:ringPulse 3s ease-in-out infinite}
-.shield-ring:nth-child(2){inset:-40px;animation-delay:1s;border-color:rgba(245,158,11,0.04)}
-.shield-ring:nth-child(3){inset:-60px;animation-delay:2s;border-color:rgba(245,158,11,0.02)}
-@keyframes ringPulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.8;transform:scale(1.03)}}
-.shield-svg{position:relative;z-index:2;width:100%;height:100%;filter:drop-shadow(0 0 20px rgba(245,158,11,0.15))}
-.lock-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;z-index:3}
-.lock-icon svg{width:100%;height:100%}
+.sw{position:relative;width:140px;height:170px;margin:0 auto 32px;animation:sf 4s ease-in-out infinite}
+@keyframes sf{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.sr{position:absolute;border:1px solid rgba(245,158,11,0.08);border-radius:50%;animation:rp 3s ease-in-out infinite}
+.sr:nth-child(1){inset:-20px}.sr:nth-child(2){inset:-40px;animation-delay:1s;border-color:rgba(245,158,11,0.04)}.sr:nth-child(3){inset:-60px;animation-delay:2s;border-color:rgba(245,158,11,0.02)}
+@keyframes rp{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.8;transform:scale(1.03)}}
+.ss{position:relative;z-index:2;width:100%;height:100%;filter:drop-shadow(0 0 20px rgba(245,158,11,0.15))}
+.li{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;z-index:3}
+.li svg{width:100%;height:100%}
 h1{font-size:28px;font-weight:900;letter-spacing:10px;text-transform:uppercase;margin-bottom:8px;background:linear-gradient(135deg,#f59e0b,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.sub{color:#475569;font-size:13px;max-width:360px;margin:0 auto;line-height:1.8;font-weight:400}
-.divider{width:50px;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.4),transparent);margin:20px auto}
-.tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:20px}
-.tag{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
-.tag-amber{background:rgba(245,158,11,0.06);color:#f59e0b;border:1px solid rgba(245,158,11,0.1)}
-.tag-red{background:rgba(239,68,68,0.06);color:#ef4444;border:1px solid rgba(239,68,68,0.1)}
-.tag-green{background:rgba(16,185,129,0.06);color:#10b981;border:1px solid rgba(16,185,129,0.1)}
-.tag svg{width:10px;height:10px}
-.footer-text{margin-top:32px;font-size:10px;color:#1e293b;letter-spacing:3px;text-transform:uppercase;font-weight:600}
-.warn-box{margin-top:20px;padding:12px 16px;border-radius:12px;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.08);text-align:left}
-.warn-box p{font-size:11px;color:#64748b;line-height:1.6}
-.warn-box span{color:#ef4444;font-weight:700}
+.sub{color:#475569;font-size:13px;max-width:360px;margin:0 auto;line-height:1.8}
+.dv{width:50px;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.4),transparent);margin:20px auto}
+.wb{margin-top:20px;padding:12px 16px;border-radius:12px;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.08);text-align:left}
+.wb p{font-size:11px;color:#64748b;line-height:1.6}
+.wb span{color:#ef4444;font-weight:700}
+.tgs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:20px}
+.tg{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.tg-a{background:rgba(245,158,11,0.06);color:#f59e0b;border:1px solid rgba(245,158,11,0.1)}
+.tg-r{background:rgba(239,68,68,0.06);color:#ef4444;border:1px solid rgba(239,68,68,0.1)}
+.tg-g{background:rgba(16,185,129,0.06);color:#10b981;border:1px solid rgba(16,185,129,0.1)}
+.tg svg{width:10px;height:10px}
+.ft{margin-top:32px;font-size:10px;color:#1e293b;letter-spacing:3px;text-transform:uppercase;font-weight:600}
 </style></head><body>
-<div class="scan"></div>
-<div class="glow1"></div>
-<div class="glow2"></div>
+<div class="scan"></div><div class="glow1"></div><div class="glow2"></div>
 <div class="wrap">
-<div class="shield-wrap">
-<div class="shield-ring"></div>
-<div class="shield-ring"></div>
-<div class="shield-ring"></div>
-<svg class="shield-svg" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(245,158,11,0.03)"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-<div class="lock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-</div>
+<div class="sw"><div class="sr"></div><div class="sr"></div><div class="sr"></div>
+<svg class="ss" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(245,158,11,0.03)"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+<div class="li"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
 <h1>Protected</h1>
-<p class="sub">This API endpoint is secured with multi-layer protection. Direct browser access is blocked and monitored.</p>
-<div class="divider"></div>
-<div class="warn-box">
-<p><span>WARNING:</span> Unauthorized access attempts are logged. This endpoint only accepts authenticated requests from authorized clients.</p>
+<p class="sub">This API endpoint is secured. Direct browser access is blocked and monitored.</p>
+<div class="dv"></div>
+<div class="wb"><p><span>WARNING:</span> Unauthorized access attempts are logged. This endpoint only accepts authenticated requests from authorized clients.</p></div>
+<div class="tgs">
+<span class="tg tg-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Shield Active</span>
+<span class="tg tg-r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>403 Blocked</span>
+<span class="tg tg-g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Secured</span>
 </div>
-<div class="tags">
-<span class="tag tag-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Shield Active</span>
-<span class="tag tag-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>403 Blocked</span>
-<span class="tag tag-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Endpoint Secured</span>
-</div>
-<p class="footer-text">Nexus Security Layer v3.0</p>
+<p class="ft">Nexus Security Layer v3.0</p>
 </div></body></html>`;
 
 function fmtID(d) {
@@ -78,32 +68,24 @@ export default async function handler(req, res) {
     const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
-    /* ============================================================
-       BROWSER-ONLY PROTECTION
-       ============================================================
-       2 signal yang HANYA muncul di browser navigation:
+    /* ==========================================================
+       PROTEKSI HANYA UNTUK ORANG BUKA LINK DI BROWSER
+       ==========================================================
        
-       1. Sec-Fetch-Mode: navigate
-          - Hanya ada ketik URL di address bar / klik link
-          - JavaScript fetch() TIDAK bisa set ini ke "navigate"
-            (browser otomatis override jadi "cors" atau "no-cors")
-          - gg.makeRequest() = Java HttpURLConnection = TIDAK kirim ini
-          - curl/wget/Postman = TIDAK kirim ini
-          
-       2. Upgrade-Insecure-Requests: 1
-          - Hanya browser kirim untuk auto-upgrade http→https
-          - Tidak bisa di-set manual via fetch() (di-ignore browser)
-          - gg.makeRequest() = TIDAK kirim ini
-          - curl/wget/Postman = TIDAK kirim ini
+       Ketika orang KETIK URL di browser address bar:
+         Sec-Fetch-Mode: navigate  ← HANYA muncul di sini
        
-       Jadi: keduanya muncul = 100% orang buka di browser
-       Jika 0 dari 2 muncul = GG / API client → lewat normal
-       ============================================================ */
+       Ketika gg.makeRequest() akses URL yang sama:
+         Tidak ada header Sec-Fetch-Mode  ← Java HttpURLConnection
+       
+       Ketika admin panel (fetch) akses:
+         Sec-Fetch-Mode: cors  ← BUKAN navigate
+         + ada X-Session header  ← skip via kondisi pertama
+       
+       Jadi: cek EXACTLY "navigate" = orang buka di browser
+       ========================================================== */
     if (req.method === 'GET' && !req.headers['x-session']) {
-        const sfm = (req.headers['sec-fetch-mode'] || '').toLowerCase();
-        const uir = req.headers['upgrade-insecure-requests'] || '';
-
-        if (sfm === 'navigate' || uir === '1') {
+        if ((req.headers['sec-fetch-mode'] || '') === 'navigate') {
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.setHeader('X-Content-Type-Options', 'nosniff');
             res.setHeader('X-Frame-Options', 'DENY');
@@ -188,7 +170,6 @@ export default async function handler(req, res) {
             const regDate = lic.created_at ? new Date(lic.created_at) : new Date();
             const devInfo = isPerm ? 'Tak Terbatas' : (lic.max_devices + ' Perangkat');
             const expDisp = isPerm ? 'PERMANENT' : fmtID(expDate);
-
             const info = 'PENGGUNA: ' + lic.key + '\\nVERSI: ' + lic.target_script_name + '\\nPERANGKAT: ' + devInfo + '\\nTERDAFTAR: ' + fmtID(regDate) + '\\nBERLAKU HINGGA: ' + expDisp + '\\nPENJUAL: NEXUS SCRIPT';
 
             const c = [
@@ -201,7 +182,6 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        /* === LOGIN LUA WITH SAIR + NEXUS X === */
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local SCRIPT_ID = "${sid}"
