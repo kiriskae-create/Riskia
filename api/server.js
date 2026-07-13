@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session');
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { id, type, device, deleteKey, validate } = req.query;
+    const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
     if (req.method === 'GET' && type === 'loader') {
@@ -40,33 +40,58 @@ export default async function handler(req, res) {
         if (validate) {
             const clientHwid = device || 'NX-UNKNOWN';
 
-            // JIKA KEY PERMANEN DIAWALI DENGAN TEMPLATE NX-PERM ATAU TULISAN PERMANENT
-            if (validate.startsWith('NX-PERM-') || validate === 'PERMANENT') {
+            // PERMANENT KEY PATH - Hanya NX-PERM- prefix, TIDAK ada bypass string
+            if (validate.startsWith('NX-PERM-')) {
                 const checkPermKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
-                if (checkPermKey.length > 0) {
-                    const license = checkPermKey[0];
-                    let registeredDevices = license.registered_devices || [];
-                    if (device && !registeredDevices.includes(clientHwid)) {
-                        if (registeredDevices.length >= license.max_devices) {
-                            const c = [
-                                'os.remove("/sdcard/.nexus_auth")',
-                                'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!\\n\\nContact admin.")',
-                                'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
-                                'if r and r.code == 200 then load(r.content)() end'
-                            ].join('\n');
-                            res.setHeader('Content-Type', 'text/plain');
-                            return res.status(200).send(c);
-                        }
-                        registeredDevices.push(clientHwid);
-                        await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
-                    }
+                if (checkPermKey.length === 0) {
+                    const c = [
+                        'os.remove("/sdcard/.nexus_auth")',
+                        'gg.alert("[X] NEXUS X CLOUD\\n\\nPermanent License Key tidak ditemukan!\\n\\nHubungi admin untuk mendapatkan key valid.")',
+                        'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+                        'if r and r.code == 200 then load(r.content)() end'
+                    ].join('\n');
+                    res.setHeader('Content-Type', 'text/plain');
+                    return res.status(200).send(c);
                 }
-                
+
+                const license = checkPermKey[0];
+
+                // Cek script binding
+                if (targetScriptId !== '' && license.script_id !== targetScriptId) {
+                    const c = [
+                        'os.remove("/sdcard/.nexus_auth")',
+                        'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense Key ini tidak valid untuk Script ini!")',
+                        'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+                        'if r and r.code == 200 then load(r.content)() end'
+                    ].join('\n');
+                    res.setHeader('Content-Type', 'text/plain');
+                    return res.status(200).send(c);
+                }
+
+                // Device registration
+                let registeredDevices = license.registered_devices || [];
+                if (device && !registeredDevices.includes(clientHwid)) {
+                    if (registeredDevices.length >= license.max_devices) {
+                        const c = [
+                            'os.remove("/sdcard/.nexus_auth")',
+                            'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!\\n\\nHubungi admin untuk reset device.")',
+                            'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
+                            'if r and r.code == 200 then load(r.content)() end'
+                        ].join('\n');
+                        res.setHeader('Content-Type', 'text/plain');
+                        return res.status(200).send(c);
+                    }
+                    registeredDevices.push(clientHwid);
+                    await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
+                }
+
+                // SUCCESS - Unlimited toast & alert
                 const c = [
                     'local f = io.open("/sdcard/.nexus_auth", "w")',
                     'if f then f:write("' + validate + '"); f:close() end',
-                    'gg.toast("⚡ NEXUS X UNLIMITED PERMANENT ACCESS GRANTED ⚡")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + targetScriptId + '")',
+                    'gg.toast("⚡ NEXUS X UNLIMITED ACCESS ⚡")',
+                    'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nStatus: UNLIMITED")',
+                    'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                     'local fn = load(r.content)',
                     'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
                 ].join('\n');
@@ -74,8 +99,9 @@ export default async function handler(req, res) {
                 return res.status(200).send(c);
             }
 
+            // REGULAR KEY PATH
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
-            
+
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
                     'os.remove("/sdcard/.nexus_auth")',
@@ -86,9 +112,10 @@ export default async function handler(req, res) {
                 res.setHeader('Content-Type', 'text/plain');
                 return res.status(200).send(c);
             }
-            
+
             const license = checkKey[0];
 
+            // Expiry check (skip jika PERMANENT meskipun masuk sini sebagai fallback)
             if (license.expiry !== 'PERMANENT') {
                 const expDate = new Date(license.expiry);
                 if (new Date() > expDate) {
@@ -104,6 +131,7 @@ export default async function handler(req, res) {
                 }
             }
 
+            // Device registration
             let registeredDevices = license.registered_devices || [];
             if (device && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
@@ -120,7 +148,7 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            const expDisplay = license.expiry === 'PERMANENT' ? 'PERMANENT' : new Date(license.expiry).toLocaleDateString('id-ID');
+            const expDisplay = license.expiry === 'PERMANENT' ? 'UNLIMITED' : new Date(license.expiry).toLocaleDateString('id-ID');
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
                 'if f then f:write("' + validate + '"); f:close() end',
@@ -133,6 +161,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
+        // LUA INTERACTION WITH PERSISTENT ON-TAP PROMPT SYSTEM
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -172,7 +201,7 @@ while true do
         {""},
         {"text"}
     )
-    
+
     if input then
         local targetKey = (input[1]):match("^%s*(.-)%s*$")
         if targetKey ~= "" then
@@ -181,7 +210,7 @@ while true do
             gg.alert("[X] Key tidak boleh kosong!")
         end
     else
-        gg.toast("💡 Script running in background. Tap GG icon to login.")
+        gg.toast("Tap GG icon to login.")
         while true do
             if gg.isVisible() then
                 break
@@ -207,13 +236,40 @@ end`;
 
     if (req.method === 'POST') {
         const { name, content, scriptId, expiry, maxDevices, customName, existingScriptId, action } = req.body;
-        
+
         if (action === 'createKey') {
-            let finalKey = '';
+            // PERMANENT: WAJIB customName, TIDAK auto-generate
             if (expiry === 'PERMANENT') {
-                finalKey = customName ? ('NX-PERM-' + customName.replace(/\s+/g, '-').toUpperCase()) : ('NX-PERM-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+                if (!customName || customName.trim() === '') {
+                    return res.status(400).json({ error: 'Permanent key WAJIB memiliki Custom License Name!' });
+                }
+                const finalKey = 'NX-PERM-' + customName.replace(/\s+/g, '-').toUpperCase();
+                // Cek duplikat
+                const dupCheck = await sql`SELECT key FROM keys WHERE key = ${finalKey}`;
+                if (dupCheck.length > 0) {
+                    return res.status(409).json({ error: 'Key "' + finalKey + '" sudah terdaftar!' });
+                }
+                const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
+                await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${'PERMANENT'}, ${parseInt(maxDevices) || 1})`;
+                return res.status(200).json({ key: finalKey });
+            }
+
+            // CUSTOM DATE: validasi tanggal tidak kosong
+            if (!expiry) {
+                return res.status(400).json({ error: 'Expiry date tidak boleh kosong!' });
+            }
+
+            // REGULAR KEY: boleh auto-generate atau custom name
+            let finalKey = '';
+            if (customName && customName.trim() !== '') {
+                finalKey = customName.replace(/\s+/g, '-').toUpperCase();
             } else {
-                finalKey = customName ? customName.replace(/\s+/g, '-').toUpperCase() : ('NX-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+                finalKey = 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            }
+            // Cek duplikat
+            const dupCheck = await sql`SELECT key FROM keys WHERE key = ${finalKey}`;
+            if (dupCheck.length > 0) {
+                finalKey = 'NX-' + Math.random().toString(36).substring(2, 10).toUpperCase();
             }
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
             await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${expiry}, ${parseInt(maxDevices) || 1})`;
