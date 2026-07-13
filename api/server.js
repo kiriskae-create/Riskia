@@ -65,65 +65,50 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Session');
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { id, type, key, device, deleteKey, validate } = req.query;
+    const { id, type, key, device, deleteKey, validate, _n } = req.query;
     const host = req.headers.host;
 
     /* ================================================================
-       BROWSER PROTECTION — SCORING SYSTEM
+       BROWSER PROTECTION — PARAMETER-BASED (NO HEADER DEPENDENCY)
        ================================================================
        
-       Kenapa cek 1 header gagal:
-       - Sec-Fetch-Mode: beberapa GG/Android ikut kirim
-       - User-Agent "applewebkit": beberapa GG/ROM ikut kirim  
-       - Accept "text/html": GG juga bisa kirim
+       Kenapa semua cek header gagal di device tertentu:
+       - gg.makeRequest() di beberapa device/ROM mengirim User-Agent
+         yang IDENTIK dengan Chrome/WebView full string
+       - Artinya: mozilla/ + applewebkit + like gecko + chrome/ + safari/
+         semua ada = skor tinggi = GG ketangkap = script ended
        
-       Solusi: HITUNG SKOR dari banyak sinyal sekaligus.
-       Browser punya MINIMAL 3-4 sinyal ini:
-         1. "mozilla/"      — semua browser
-         2. "applewebkit"   — Chrome, Safari, Edge
-         3. "gecko/"        — Firefox
-         4. "like gecko"    — semua browser (compat string)
-         5. "chrome/"       — Chrome/Edge/Brave
-         6. "safari/"       — Safari
-         7. "firefox/"      — Firefox
-         8. "version/"      — Safari
+       Solusi: HAPUS SEMUA CEK HEADER. Pakai URL parameter saja.
        
-       GG/Dalvik MAKSIMAL punya 1-2 sinyal (kadang "mozilla/" saja).
+       Cara kerja:
+       - Semua URL di kode Lua yang GG eksekusi diberi parameter &_n=1
+       - Browser tidak akan pernah kirim parameter ini (orang ketik
+         URL bersih di address bar)
+       - Admin panel punya X-Session header = skip
+       - type=loader tidak di-protect (hanya redirect sederhana,
+         bukan data sensitif)
        
-       Threshold: 3 sinyal = PASTI browser = PROTECT
-       < 3 sinyal = GG / curl / dll = LEWAT
+       Hasil:
+       - GG jalankan URL + &_n=1 → _n ada → LEWAT ✅
+       - Browser buka URL bersih → _n tidak ada → PROTECT ✅
+       - Tidak ada satupun header yang dicek → tidak bisa salah ✅
        ================================================================ */
-    if (req.method === 'GET' && !req.headers['x-session']) {
-        const ua = (req.headers['user-agent'] || '').toLowerCase();
-
-        let score = 0;
-        if (ua.includes('mozilla/')) score++;
-        if (ua.includes('applewebkit')) score++;
-        if (ua.includes('gecko/')) score++;
-        if (ua.includes('like gecko')) score++;
-        if (ua.includes('chrome/')) score++;
-        if (ua.includes('safari/')) score++;
-        if (ua.includes('firefox/')) score++;
-        if (ua.includes('version/')) score++;
-
-        /* 3+ sinyal = 100% browser nyata */
-        if (score >= 3) {
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.setHeader('X-Content-Type-Options', 'nosniff');
-            res.setHeader('X-Frame-Options', 'DENY');
-            res.setHeader('X-Robots-Tag', 'noindex, nofollow');
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-            return res.status(403).send(PROTECT_HTML);
-        }
+    if (req.method === 'GET' && !_n && !req.headers['x-session'] && type !== 'loader') {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+        return res.status(403).send(PROTECT_HTML);
     }
 
-    /* === LOADER === */
+    /* === LOADER (tidak di-protect, hanya redirect sederhana) === */
     if (req.method === 'GET' && type === 'loader') {
         const sid = id || 'default';
         const code = [
             'gg.setVisible(false)',
             'gg.toast("[X] Connecting...")',
-            'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + sid + '")',
+            'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + sid + '&_n=1")',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
             '    if fn then fn() else gg.alert("[X] Script Empty!") end',
@@ -153,7 +138,7 @@ export default async function handler(req, res) {
             if (ck.length === 0 || (sid !== '' && ck[0].script_id !== sid)) {
                 const c = [
                     'gg.alert("[X] License Key tidak valid untuk Script ini!")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + sid + '")',
+                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + sid + '&_n=1")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
@@ -167,7 +152,7 @@ export default async function handler(req, res) {
             if (new Date() > expDate) {
                 const c = [
                     'gg.alert("[X] License EXPIRED!\\nExpired on: ' + fmtID(expDate) + '")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + sid + '")',
+                    'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + sid + '&_n=1")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
                 res.setHeader('Content-Type', 'text/plain');
@@ -179,7 +164,7 @@ export default async function handler(req, res) {
                 if (devs.length >= lic.max_devices) {
                     const c = [
                         'gg.alert("[X] Max Device Limit Reached!")',
-                        'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + sid + '")',
+                        'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + sid + '&_n=1")',
                         'if r and r.code == 200 then load(r.content)() end'
                     ].join('\n');
                     res.setHeader('Content-Type', 'text/plain');
@@ -196,7 +181,7 @@ export default async function handler(req, res) {
 
             const c = [
                 'gg.alert("' + info + '")',
-                'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + lic.script_id + '")',
+                'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + lic.script_id + '&_n=1")',
                 'local fn = load(r.content)',
                 'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
             ].join('\n');
@@ -204,6 +189,7 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
+        /* === LOGIN PROMPT LUA === */
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local SCRIPT_ID = "${sid}"
@@ -217,7 +203,7 @@ end
 
 local function doValidate(k)
     gg.toast("Verifying...")
-    local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
+    local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID .. "&_n=1")
     if r and r.code == 200 then
         local fn = load(r.content)
         if fn then fn() end
