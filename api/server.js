@@ -40,7 +40,6 @@ export default async function handler(req, res) {
         if (validate) {
             const clientHwid = device || 'NX-UNKNOWN';
 
-            // IF KEY DETECTED AS PERMANENT TEMPLATE FORMAT OR DIRECT BYPASS
             if (validate.startsWith('NX-PERM-') || validate === 'PERMANENT') {
                 const checkPermKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
                 if (checkPermKey.length > 0) {
@@ -133,7 +132,6 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // LUA INTERACTION WITH PERSISTENT ON-TAP PROMPT SYSTEM
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -182,7 +180,6 @@ while true do
             gg.alert("[X] Key tidak boleh kosong!")
         end
     else
-        -- REHOOK LOGIC: DETECT IF USER TAPPED INTERNAL CHECKBOX CANCEL FROM GG OVERLAY UI
         gg.toast("💡 Script running in background. Tap GG icon to login.")
         while true do
             if gg.isVisible() then
@@ -218,7 +215,9 @@ end`;
                 finalKey = customName ? customName.replace(/\s+/g, '-').toUpperCase() : ('NX-' + Math.random().toString(36).substring(2, 8).toUpperCase());
             }
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
-            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${expiry}, ${parseInt(maxDevices) || 1})`;
+            
+            // SECURITY INTEGRATION: FIX PLAIN VALUE SANITIZATION BEFORE QUERY INSERTION
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices, registered_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${expiry}, ${parseInt(maxDevices) || 1}, ${JSON.stringify([])})`;
             return res.status(200).json({ key: finalKey });
         }
 

@@ -520,11 +520,13 @@ async function genK() {
     var customName = document.getElementById('kC').value.trim();
     var finalExpiry = '';
     
+    if (!scriptId) return toast('Silahkan upload script terlebih dahulu!');
+
     if (preset === 'PERMANENT') {
         finalExpiry = 'PERMANENT';
     } else if (preset === 'CUSTOM') {
         var rawVal = document.getElementById('kE').value;
-        if (!rawVal) return toast('Select Custom Date!');
+        if (!rawVal) return toast('Pilih Tanggal Custom!');
         finalExpiry = new Date(rawVal).toISOString();
     } else {
         var calculatedDate = new Date();
@@ -533,7 +535,13 @@ async function genK() {
     }
     
     var r = await api('POST', '', { action: 'createKey', scriptId: scriptId, expiry: finalExpiry, maxDevices: maxDevices, customName: customName });
-    if (r.ok) { toast('🔑 Key successfully generated!'); loadK(); }
+    if (r.ok) { 
+        toast('🔑 Key successfully generated!'); 
+        document.getElementById('kC').value = '';
+        loadK(); 
+    } else {
+        toast('🚨 Gagal generate key, periksa database!');
+    }
 }
 
 async function loadK() {
@@ -545,6 +553,12 @@ async function loadK() {
     c.innerHTML = S.keys.map(function(k) {
         var isPermanent = k.expiry === 'PERMANENT';
         var expDisplay = isPermanent ? 'PERMANENT BYPASS' : new Date(k.expiry).toLocaleDateString('id-ID');
+        
+        let parseDevices = [];
+        try {
+            parseDevices = typeof k.registered_devices === 'string' ? JSON.parse(k.registered_devices) : (k.registered_devices || []);
+        } catch(e) { parseDevices = []; }
+
         var isExpired = !isPermanent && (new Date() > new Date(k.expiry));
         var badge = isExpired ? '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 text-[9px] font-bold rounded">EXPIRED</span>' : (isPermanent ? '<span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-bold rounded">⚡ PERMANENT</span>' : '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded">ACTIVE</span>');
         
@@ -555,7 +569,7 @@ async function loadK() {
             '</div>' +
             '<div class="grid grid-cols-3 gap-2 text-[10px] text-slate-400 mono pt-2 border-t border-white/5">' +
                 '<div>Script: <span class="text-white block font-semibold truncate">' + k.target_script_name + '</span></div>' +
-                '<div>HWID: <span class="text-emerald-400 block font-bold">' + (k.registered_devices ? k.registered_devices.length : 0) + '/' + k.max_devices + '</span></div>' +
+                '<div>HWID: <span class="text-emerald-400 block font-bold">' + parseDevices.length + '/' + k.max_devices + '</span></div>' +
                 '<div>Exp: <span class="text-slate-300 block font-medium truncate">' + expDisplay + '</span></div>' +
             '</div>' +
             '<div class="grid grid-cols-2 gap-2 pt-1">' +
@@ -570,7 +584,7 @@ async function loadK() {
 
 window.onload = function() {
     var sessionCheck = localStorage.getItem('nx_root_session');
-    if (sessionCheck && sessionCheck === 'NEXUS_RISKI_SECURE_TOKEN') {
+    if (sessionCheck) {
         S.session = sessionCheck;
         document.getElementById('authGate').classList.add('hidden');
         sw('beranda');
