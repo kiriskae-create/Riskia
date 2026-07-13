@@ -15,13 +15,15 @@
         .sidebar-item:hover:not(.sidebar-active) { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
         .input-dark { background: rgba(8, 10, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); color: #f8fafc; transition: all 0.2s; }
         .input-dark:focus { outline: none; border-color: rgba(255, 255, 255, 0.2); background: rgba(8, 10, 18, 0.9); }
-        .smooth-blur { backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); background: rgba(4, 5, 8, 0.75); }
         .storage-progress { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* PREMIUM BLUR OVERLAY EFFECT (TETAP TRANSPARAN KELIHATAN PETA UTAMA) */
+        .premium-blur { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(5, 6, 9, 0.65); transition: opacity 0.25s ease; }
         
         /* Optimized Mobile Drawer Control Layout */
         #mainSidebar { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
         #mainSidebar.open { transform: translateX(0); }
-        #sidebarOverlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        #sidebarOverlay { opacity: 0; pointer-events: none; }
         #sidebarOverlay.open { opacity: 1; pointer-events: auto; }
         
         /* Custom Dialog Animations */
@@ -31,7 +33,7 @@
 </head>
 <body class="min-h-screen flex relative">
 
-<div id="sidebarOverlay" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-md smooth-blur"></div>
+<div id="sidebarOverlay" class="fixed inset-0 z-40 premium-blur opacity-0 pointer-events-none"></div>
 
 <aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 max-w-[280px] bg-[#0a0c10] border-r border-white/5 flex flex-col justify-between p-5 z-50 overflow-y-auto">
     <div class="space-y-6">
@@ -101,7 +103,7 @@
             <h3 class="text-[9px] font-bold text-slate-400 tracking-widest uppercase">Base Gateway Routing System</h3>
             <div class="space-y-3">
                 <div class="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
-                    <div class="flex justify-between items-center"><span class="text-[11px] font-bold text-slate-300">Unique Loader Webhook Core</span></div>
+                    <div class="flex justify-between items-center"><span class="text-[11px] font-bold text-slate-300">Raw Script Loader Engine</span></div>
                     <div class="flex gap-2">
                         <code class="text-[9px] text-slate-400 mono bg-black/40 px-2.5 py-1.5 rounded border border-white/5 truncate flex-1" id="dL1">-</code>
                         <button id="copyL1Btn" class="px-2.5 bg-white text-black font-bold rounded-lg text-[9px] cursor-pointer hover:bg-slate-200 transition">COPY</button>
@@ -181,7 +183,7 @@
     </div>
 </main>
 
-<div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden smooth-blur">
+<div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden premium-blur">
     <div class="w-full max-w-xl bg-[#0d0f14] border border-white/10 rounded-2xl p-5 space-y-3.5 shadow-2xl">
         <div class="flex justify-between items-center border-b border-white/5 pb-2.5">
             <h3 class="text-[11px] font-bold text-white flex items-center gap-2">Modifikasi Data Skrip</h3>
@@ -197,8 +199,8 @@
     </div>
 </div>
 
-<div id="confirmDialog" class="fixed inset-0 z-[110] flex items-center justify-center p-4 hidden smooth-blur">
-    <div id="confirmBox" class="modal-animate w-full max-w-sm bg-[#0d0f14] border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl text-center">
+<div id="confirmDialog" class="fixed inset-0 z-[110] flex items-center justify-center p-4 hidden premium-blur">
+    <div id="confirmBox" class="modal-animate w-full max-w-sm bg-[#0d0f14]/90 border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl text-center backdrop-blur-xl">
         <div class="mx-auto w-10 h-10 rounded-full bg-red-950/30 border border-red-500/20 flex items-center justify-center text-red-400 mb-1">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         </div>
@@ -233,7 +235,6 @@
 var S={files:[],keys:[],session:'',cur:'beranda'};
 var pendingConfirmAction = null;
 
-// High Performance Mobile Tap Event Setup
 function bindTap(elementId, callback) {
     var el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
     if (!el) return;
@@ -259,9 +260,11 @@ function toggleSidebar(open) {
     if (open) {
         sidebar.classList.add('open');
         overlay.classList.add('open');
+        overlay.style.pointerEvents = 'auto';
     } else {
         sidebar.classList.remove('open');
         overlay.classList.remove('open');
+        overlay.style.pointerEvents = 'none';
     }
 }
 
@@ -317,7 +320,7 @@ function sw(t){
 
 function initB(){
     var b=location.origin;
-    document.getElementById('dL1').innerText=b+'/api/server?type=loader&id={script_id}';
+    document.getElementById('dL1').innerText=b+'/api/server?type=raw&id={script_id}';
     document.getElementById('dL2').innerText=b+'/api/server?type=login&id={script_id}&validate={license_key}';
 }
 
@@ -340,9 +343,10 @@ async function api(m,u,b){
     return fetch('/api/server'+u,o);
 }
 
+// BINDING DIRECT HOOK RAW TARGET LUA FILE ASLINYA
 function triggerCopyHook(scriptId) {
     var b = location.origin;
-    cp('local A = gg.getFile() gg.getFile = function() return A end local V = gg.makeRequest("' + b + '/api/server?type=loader&id=' + scriptId + '").content if V then pcall(load(V)) end');
+    cp('local V = gg.makeRequest("' + b + '/api/server?type=raw&id=' + scriptId + '").content if V then pcall(load(V)) end');
 }
 
 function handleFileSelect(e){
@@ -388,7 +392,6 @@ async function loadF(){
         '</div>';
     }).join('');
 
-    // Dynamic Binding for generated dynamic lists
     document.querySelectorAll('.edit-action-btn').forEach(btn => {
         bindTap(btn, function() { openEditModal(this.getAttribute('data-edit-id')); });
     });
@@ -498,9 +501,7 @@ async function doLog(){
 }
 function doOut(){ localStorage.removeItem('nx_strict_session'); location.reload(); }
 
-// Initialize Modern Touch Handler Binding Controls
 window.onload=function(){
-    // Setup Navigation Layout Bindings
     bindTap('openSidebarBtn', function() { toggleSidebar(true); });
     bindTap('closeSidebarBtn', function() { toggleSidebar(false); });
     bindTap('sidebarOverlay', function() { toggleSidebar(false); });
@@ -509,7 +510,6 @@ window.onload=function(){
     bindTap('btn-ggscript', function() { sw('ggscript'); });
     bindTap('btn-keysystem', function() { sw('keysystem'); });
     
-    // Core Form Actions Bindings
     bindTap('copyL1Btn', function() { cp(document.getElementById('dL1').innerText); });
     bindTap('copyL2Btn', function() { cp(document.getElementById('dL2').innerText); });
     bindTap('importFileBtn', function() { document.getElementById('hiddenFileInput').click(); });
@@ -518,12 +518,10 @@ window.onload=function(){
     bindTap('disconnectBtn', function() { doOut(); });
     bindTap('loginBtn', function() { doLog(); });
     
-    // Modal Actions
     bindTap('closeEditModalBtn', function() { closeEditModal(); });
     bindTap('cancelEditBtn', function() { closeEditModal(); });
     bindTap('saveEditBtn', function() { dep(true); });
     
-    // Custom Dialog Bindings
     bindTap('confirmCancelBtn', function() { closeCustomConfirm(); });
     bindTap('confirmSuccessBtn', function() {
         if(typeof pendingConfirmAction === 'function') {
@@ -532,7 +530,6 @@ window.onload=function(){
         closeCustomConfirm();
     });
 
-    // Inputs & Presets change handling
     document.getElementById('hiddenFileInput').addEventListener('change', handleFileSelect);
     document.getElementById('kPreset').addEventListener('change', function(e) { applyDurationPreset(e.target.value); });
     
