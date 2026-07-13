@@ -3,562 +3,485 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEXUS X CLOUD V3.5</title>
+    <title>NEXUS X CLOUD — SERVER MANAGEMENT</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050609; color: #f8fafc; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #07090e; color: #f1f5f9; overflow-x: hidden; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .glass-panel { background: rgba(13, 16, 26, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.04); }
-        .sidebar-active { background: #ffffff !important; color: #000000 !important; font-weight: 700; box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.15); }
-        .sidebar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-item:hover:not(.sidebar-active) { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
-        .input-dark { background: rgba(8, 10, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); color: #f8fafc; transition: all 0.2s; }
-        .input-dark:focus { outline: none; border-color: rgba(255, 255, 255, 0.2); background: rgba(8, 10, 18, 0.9); }
-        .storage-progress { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        /* PREMIUM BLUR OVERLAY EFFECT */
-        .premium-blur { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(5, 6, 9, 0.65); transition: opacity 0.25s ease; }
-        
-        #mainSidebar { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
-        #mainSidebar.open { transform: translateX(0); }
-        #sidebarOverlay { opacity: 0; pointer-events: none; }
-        #sidebarOverlay.open { opacity: 1; pointer-events: auto; }
-        
-        .modal-animate { transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); transform: scale(0.95); opacity: 0; }
-        .modal-animate.show { transform: scale(1); opacity: 1; }
+        .smooth-sidebar { background: rgba(255, 255, 255, 0.98); color: #0f172a; box-shadow: 4px 0 40px rgba(0,0,0,0.15); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .smooth-item { color: #475569; font-weight: 500; transition: all 0.2s; border-radius: 12px; }
+        .smooth-item:hover { background: #f1f5f9; color: #0f172a; }
+        .smooth-active { background: #0f172a !important; color: #ffffff !important; font-weight: 700; }
+        .glass-card { background: rgba(13, 17, 28, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.04); }
+        .btn-premium { background: linear-gradient(135deg, #ffffff, #e2e8f0); color: #0f172a; font-weight: 700; transition: all 0.2s; border: 1px solid #ffffff; }
+        .btn-premium:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255,255,255,0.1); }
+        .input-premium { background: rgba(5, 7, 12, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); color: #f8fafc; transition: all 0.2s; }
+        .input-premium:focus { outline: none; border-color: rgba(255,255,255,0.4); background: #000000; }
+        .health-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 4px; transition: width 0.5s ease; }
+        .modal-blur { backdrop-filter: blur(12px); background: rgba(5, 7, 12, 0.85); }
     </style>
 </head>
-<body class="min-h-screen flex relative">
+<body class="min-h-screen flex">
 
-<div id="sidebarOverlay" class="fixed inset-0 z-40 premium-blur opacity-0 pointer-events-none"></div>
+<div id="toast" class="fixed bottom-6 right-6 bg-white text-slate-900 px-5 py-3 rounded-2xl shadow-2xl opacity-0 transition-all duration-300 z-[999] text-xs font-bold tracking-wide border border-slate-200">
+    <span id="toastMsg"></span>
+</div>
 
-<aside id="mainSidebar" class="fixed top-0 bottom-0 left-0 w-72 max-w-[280px] bg-[#0a0c10] border-r border-white/5 flex flex-col justify-between p-5 z-50 overflow-y-auto">
-    <div class="space-y-6">
-        <div class="flex items-center justify-between pb-3 border-b border-white/5">
-            <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center font-black text-xs">NX</div>
-                <span class="text-[11px] font-bold tracking-wider text-white">CONTROL NAVIGATION</span>
-            </div>
-            <button id="closeSidebarBtn" class="text-slate-400 hover:text-white text-xs p-1.5 rounded-lg bg-white/5 cursor-pointer">✕</button>
+<div id="editModal" class="fixed inset-0 z-50 modal-blur items-center justify-center p-4 hidden">
+    <div class="w-full max-w-3xl glass-card rounded-3xl p-6 space-y-4 shadow-2xl border border-blue-500/20">
+        <div class="flex justify-between items-center pb-2 border-b border-white/5">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Edit Target Script Module
+            </h3>
+            <button onclick="closeEditModal()" class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs text-slate-400 hover:bg-white/10 cursor-pointer">×</button>
         </div>
-
-        <div class="bg-white/[0.01] border border-white/5 rounded-xl p-3.5 space-y-2.5">
-            <div class="flex justify-between text-[9px] font-bold tracking-wider uppercase text-slate-400">
-                <span class="flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Space Storage</span>
-                <span id="storagePercentText" class="text-white font-mono">0%</span>
-            </div>
-            <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
-                <div id="storageProgressBar" class="storage-progress bg-white h-full w-[0%] rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)]"></div>
-            </div>
-            <p class="text-[8px] text-slate-500 mono" id="storageUsageDetails">0 / 250 MB used</p>
+        <input type="hidden" id="editScriptId">
+        <input type="text" id="editScriptName" placeholder="filename.lua" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono">
+        <textarea id="editScriptContent" rows="12" placeholder="-- Jalur modifikasi skrip..." class="w-full px-4 py-4 rounded-xl input-premium text-xs mono resize-none"></textarea>
+        <div class="flex gap-2 justify-end">
+            <button onclick="closeEditModal()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer">Batal</button>
+            <button onclick="submitUpdateScript()" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/20 transition cursor-pointer">Simpan Perubahan</button>
         </div>
-
-        <nav class="space-y-1">
-            <button id="btn-beranda" class="sidebar-item w-full text-left px-3.5 py-3 rounded-xl text-[11px] flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                Overview Infrastructure
-            </button>
-            <button id="btn-ggscript" class="sidebar-item w-full text-left px-3.5 py-3 rounded-xl text-[11px] flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Cloud Scripts Repository
-            </button>
-            <button id="btn-keysystem" class="sidebar-item w-full text-left px-3.5 py-3 rounded-xl text-[11px] flex items-center gap-3 text-slate-400 font-medium cursor-pointer">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-                License Keys Management
-            </button>
-        </nav>
     </div>
+</div>
 
-    <div class="pt-4 border-t border-white/5 space-y-3">
-        <div class="flex items-center gap-2.5 px-1">
-            <div class="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center font-bold text-[10px] text-white uppercase mono">R</div>
-            <div class="min-w-0">
-                <p class="text-[11px] font-bold text-white truncate">Riski (Admin)</p>
-                <p class="text-[8px] text-slate-500 mono">Superuser Level</p>
+<div id="authGate" class="fixed inset-0 z-[100] bg-[#07090e] flex items-center justify-center">
+    <div class="w-full max-w-sm mx-4 space-y-6">
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-white/10 mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
+            <h1 class="text-lg font-extrabold tracking-tight text-white uppercase">Nexus X Cloud</h1>
+            <p class="text-[10px] text-slate-500 font-bold tracking-widest mt-1">SECURE VERIFICATION GATEWAY</p>
         </div>
-        <button id="disconnectBtn" class="w-full py-2 bg-red-950/20 text-red-400 border border-red-500/10 rounded-xl text-[11px] font-semibold cursor-pointer hover:bg-red-950/40 transition">Disconnect</button>
+        <div class="glass-card rounded-2xl p-6 space-y-4">
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Admin Username</label>
+                <input type="text" id="admUser" placeholder="Riski" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono">
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pass-Key Code</label>
+                <input type="password" id="admPass" placeholder="••••" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono">
+            </div>
+            <button onclick="handleAdminAuth()" class="w-full py-3 rounded-xl btn-premium text-xs tracking-wider uppercase font-extrabold">Connect Session</button>
+        </div>
     </div>
-</aside>
+</div>
 
-<main id="mainContainer" class="flex-1 p-5 md:p-8 overflow-y-auto min-h-screen transition-all duration-300 w-full">
+<div id="mainApp" class="w-full min-h-screen flex hidden">
     
-    <header class="flex items-center gap-3.5 mb-6 pb-4 border-b border-white/5">
-        <button id="openSidebarBtn" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/10 text-white transition shadow-lg shrink-0">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-        <div>
-            <h1 class="text-sm font-extrabold text-white tracking-tight flex items-center gap-2">NEXUS PLATFORM</h1>
-            <p class="text-[9px] text-slate-500 tracking-wider font-medium uppercase">Active Portal Endpoint</p>
-        </div>
-    </header>
-    
-    <div id="view-beranda" class="space-y-5 max-w-4xl transition-all duration-300">
-        <div class="glass-panel rounded-2xl p-5 space-y-4">
-            <h3 class="text-[9px] font-bold text-slate-400 tracking-widest uppercase">Base Gateway Routing System</h3>
-            <div class="space-y-3">
-                <div class="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
-                    <div class="flex justify-between items-center"><span class="text-[11px] font-bold text-slate-300">Strict Validation Node Hub</span></div>
-                    <div class="flex gap-2">
-                        <code class="text-[9px] text-slate-400 mono bg-black/40 px-2.5 py-1.5 rounded border border-white/5 truncate flex-1" id="dL2">-</code>
-                        <button id="copyL2Btn" class="px-2.5 bg-white text-black font-bold rounded-lg text-[9px] cursor-pointer hover:bg-slate-200 transition">COPY</button>
-                    </div>
+    <aside class="w-64 smooth-sidebar flex flex-col justify-between p-5 shrink-0 fixed h-screen z-40">
+        <div class="space-y-8">
+            <div class="flex items-center gap-3 px-2 py-1">
+                <div class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="view-ggscript" class="space-y-5 max-w-4xl hidden transition-all duration-300">
-        <div class="flex justify-between items-center">
-            <h2 class="text-sm font-bold text-white tracking-tight">Cloud Scripts Modul</h2>
-            <button id="importFileBtn" class="px-3 py-1.5 bg-white text-black text-[11px] font-bold rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-slate-200 transition">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                Impor (.lua)
-            </button>
-            <input type="file" id="hiddenFileInput" accept=".lua" class="hidden">
-        </div>
-
-        <div class="glass-panel rounded-2xl p-5 space-y-3.5">
-            <h3 class="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-2">Upload Skrip Baru</h3>
-            <input type="text" id="fN" placeholder="filename.lua" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
-            <textarea id="fC" rows="5" placeholder="-- Paste atau tulis struktur skrip LUA..." class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono resize-none"></textarea>
-            <button id="deployScriptBtn" class="w-full py-2.5 bg-white text-black font-bold rounded-xl text-[11px] cursor-pointer hover:bg-slate-200 transition">Deploy to Registry</button>
-        </div>
-
-        <div id="fList" class="space-y-2.5"></div>
-    </div>
-
-    <div id="view-keysystem" class="space-y-5 max-w-4xl hidden transition-all duration-300">
-        <h2 class="text-sm font-bold text-white tracking-tight">License System</h2>
-        
-        <div class="glass-panel rounded-2xl p-5 space-y-3.5">
-            <h3 class="text-[11px] font-bold text-white uppercase tracking-wider">Generate License Ticket</h3>
-            <div class="space-y-3.5">
                 <div>
-                    <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Target Allocation Modul</label>
-                    <select id="kT" class="w-full px-2.5 py-2.5 rounded-xl input-dark text-[11px] mono"></select>
+                    <h2 class="text-xs font-black tracking-wider text-slate-900">NEXUS CONSOLE</h2>
+                    <span class="text-[9px] text-emerald-600 font-black tracking-widest uppercase">Admin Active</span>
                 </div>
-                <div class="grid grid-cols-2 gap-3.5">
+            </div>
+
+            <nav class="space-y-1.5">
+                <button id="nav-over" onclick="switchTab('over')" class="w-full smooth-item text-left px-4 py-3 text-xs flex items-center gap-3 cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Overview Panel
+                </button>
+                <button id="nav-script" onclick="switchTab('script')" class="w-full smooth-item text-left px-4 py-3 text-xs flex items-center gap-3 cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Lua File Center
+                </button>
+                <button id="nav-license" onclick="switchTab('license')" class="w-full smooth-item text-left px-4 py-3 text-xs flex items-center gap-3 cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                    License Keys Matrix
+                </button>
+            </nav>
+        </div>
+
+        <div class="space-y-4 pt-4 border-t border-slate-200">
+            <div>
+                <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1 mono">
+                    <span>Vercel Storage</span>
+                    <span id="storagePerc">42% Allocated</span>
+                </div>
+                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden p-[1px]">
+                    <div id="storageBar" class="health-bar-fill" style="width: 42%;"></div>
+                </div>
+            </div>
+            <div class="bg-slate-100 p-2.5 rounded-xl text-center">
+                <p class="text-[9px] text-slate-600 font-bold mono truncate" id="adminLabel">riski@nexus.internal</p>
+            </div>
+            <button onclick="terminateSession()" class="w-full py-2.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-xl text-xs font-bold transition cursor-pointer">Exit Console</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 ml-64 p-8 overflow-y-auto min-h-screen">
+        
+        <div id="view-over" class="space-y-6 hidden">
+            <h2 class="text-xl font-extrabold text-white">Cloud Ecosystem Overview</h2>
+
+            <div class="glass-card rounded-2xl p-6 space-y-4">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Base Router Reference</h3>
+                
+                <div class="space-y-3">
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Max HWID Limit Pool</label>
-                        <input type="number" id="kM" value="1" class="w-full px-2.5 py-2.5 rounded-xl input-dark text-[11px] mono">
+                        <span class="text-[10px] font-bold text-blue-400 mono">Main Content Direct Stream (Loader Lua Only)</span>
+                        <div class="flex gap-2 mt-1">
+                            <code class="text-[10px] text-slate-300 mono bg-black/40 px-3 py-2 rounded-xl flex-1 truncate" id="urlL1">-</code>
+                            <button onclick="copyToClipboard(document.getElementById('urlL1').innerText)" class="px-3 bg-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/20 transition cursor-pointer">Copy</button>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Preset Durasi</label>
-                        <select id="kPreset" class="w-full px-2.5 py-2.5 rounded-xl input-dark text-[11px] mono">
-                            <option value="">-- Pilih Preset Waktu --</option>
-                            <option value="1">1 Hari</option>
-                            <option value="3">3 Hari</option>
-                            <option value="7">7 Hari</option>
-                            <option value="30">30 Hari</option>
-                            <option value="PERMANENT">Bypass Lisensi Permanen</option>
+                        <span class="text-[10px] font-bold text-emerald-400 mono">Verification Interface Link</span>
+                        <div class="flex gap-2 mt-1">
+                            <code class="text-[10px] text-slate-300 mono bg-black/40 px-3 py-2 rounded-xl flex-1 truncate" id="urlL2">-</code>
+                            <button onclick="copyToClipboard(document.getElementById('urlL2').innerText)" class="px-3 bg-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/20 transition cursor-pointer">Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-300">
+                ⚡ <b>System Real-Time Connected:</b> Seluruh router terverifikasi berjalan lancar. Pembatasan akses berbasis Key terikat langsung ke ID unik modul skrip.
+            </div>
+        </div>
+
+        <div id="view-script" class="space-y-6 hidden">
+            <h2 class="text-xl font-extrabold text-white">Lua Script Repository</h2>
+            
+            <div class="glass-card rounded-2xl p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Register New Script Module</h3>
+                    
+                    <label class="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        Pick Local Storage (.lua)
+                        <input type="file" id="localFileInput" accept=".lua" onchange="handleFileSelection(event)" class="hidden">
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <input type="text" id="newScriptName" placeholder="filename.lua" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono">
+                    <textarea id="newScriptContent" rows="8" placeholder="-- Paste or load standard Lua modifications code structure here..." class="w-full px-4 py-3 rounded-xl input-premium text-xs mono resize-none"></textarea>
+                </div>
+                <button onclick="deployNewScript()" class="w-full py-3 rounded-xl btn-premium text-xs font-bold uppercase tracking-wider">Save & Deploy to Cloud</button>
+            </div>
+
+            <div id="scriptContainer" class="grid grid-cols-1 gap-3"></div>
+        </div>
+
+        <div id="view-license" class="space-y-6 hidden">
+            <h2 class="text-xl font-extrabold text-white">License Key Engine</h2>
+
+            <div class="glass-card rounded-2xl p-6 space-y-4">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Generate Dynamic Credentials</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Target Module</label>
+                        <select id="keyTargetScript" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono"></select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Max Device Interlock</label>
+                        <input type="number" id="keyMaxDevices" value="1" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Expiry Duration</label>
+                        <select id="keyExpiryPreset" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono">
+                            <option value="1">1 Hari (Uji Coba)</option>
+                            <option value="3">3 Hari (Regular)</option>
+                            <option value="7">7 Hari (Weekly Pack)</option>
+                            <option value="30">30 Hari (Monthly VIP)</option>
+                            <option value="PERMANENT">PERMANENT (Bypass Authentication Mode)</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Custom Key Matrix (Optional)</label>
+                        <input type="text" id="keyCustomName" placeholder="RISKI-VIP-PASS" class="w-full px-4 py-3 rounded-xl input-premium text-xs mono">
+                    </div>
                 </div>
-                <div id="customExpiryWrapper">
-                    <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Custom Expiry Time</label>
-                    <input type="datetime-local" id="kE" class="w-full px-2.5 py-2.5 rounded-xl input-dark text-[11px] mono">
-                </div>
-                <div>
-                    <label class="block text-[9px] font-bold text-slate-400 mb-1 uppercase">Custom Key Name (Opsional)</label>
-                    <input type="text" id="kC" placeholder="CUSTOM-VIP-KEY" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
-                </div>
+                <button onclick="generateLicenseKey()" class="w-full py-3 rounded-xl btn-premium text-xs font-bold uppercase tracking-wider">Generate & Authorize Access</button>
             </div>
-            <button id="generateKeyBtn" class="w-full py-2.5 bg-white text-black font-bold rounded-xl text-[11px] cursor-pointer hover:bg-slate-200 transition">Generate License Ticket</button>
+
+            <div id="licenseContainer" class="grid grid-cols-1 gap-3"></div>
         </div>
 
-        <div id="kList" class="space-y-2.5"></div>
-    </div>
-</main>
-
-<div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden premium-blur">
-    <div class="w-full max-w-xl bg-[#0d0f14] border border-white/10 rounded-2xl p-5 space-y-3.5 shadow-2xl">
-        <div class="flex justify-between items-center border-b border-white/5 pb-2.5">
-            <h3 class="text-[11px] font-bold text-white flex items-center gap-2">Modifikasi Data Skrip</h3>
-            <button id="closeEditModalBtn" class="text-slate-400 hover:text-white text-xs font-bold cursor-pointer">✕</button>
-        </div>
-        <input type="hidden" id="modalEdId">
-        <input type="text" id="modalFN" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
-        <textarea id="modalFC" rows="8" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono resize-none"></textarea>
-        <div class="flex gap-2.5 justify-end">
-            <button id="cancelEditBtn" class="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[11px] font-bold cursor-pointer">Batal</button>
-            <button id="saveEditBtn" class="px-4 py-2 bg-white text-black rounded-xl text-[11px] font-bold cursor-pointer hover:bg-slate-200">Update Skrip</button>
-        </div>
-    </div>
+    </main>
 </div>
-
-<div id="confirmDialog" class="fixed inset-0 z-[110] flex items-center justify-center p-4 hidden premium-blur">
-    <div id="confirmBox" class="modal-animate w-full max-w-sm bg-[#0d0f14]/90 border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl text-center backdrop-blur-xl">
-        <div class="mx-auto w-10 h-10 rounded-full bg-red-950/30 border border-red-500/20 flex items-center justify-center text-red-400 mb-1">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-        </div>
-        <div class="space-y-1">
-            <h4 class="text-xs font-bold text-white" id="confirmTitle">Hapus Item</h4>
-            <p class="text-[10px] text-slate-400" id="confirmMessage">Tindakan ini tidak bisa dibatalkan dari database cluster.</p>
-        </div>
-        <div class="grid grid-cols-2 gap-2.5 pt-1">
-            <button id="confirmCancelBtn" class="w-full py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[11px] font-bold cursor-pointer transition">Batal</button>
-            <button id="confirmSuccessBtn" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-[11px] font-bold cursor-pointer transition">Hapus Modul</button>
-        </div>
-    </div>
-</div>
-
-<div id="authGate" class="fixed inset-0 z-[100] bg-[#05060a] flex items-center justify-center">
-    <div class="w-full max-w-sm mx-4 space-y-5">
-        <div class="text-center">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white text-black font-black text-lg mb-3 shadow-2xl shadow-white/10">NX</div>
-            <h1 class="text-xs font-bold tracking-tight text-white">NEXUS ADMIN ACCESS</h1>
-        </div>
-        <div class="glass-panel rounded-2xl p-5 space-y-3 border-white/10">
-            <input type="text" id="lU" placeholder="Identity" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
-            <input type="password" id="lP" placeholder="Token Code" class="w-full px-3.5 py-2.5 rounded-xl input-dark text-[11px] mono">
-            <button id="loginBtn" class="w-full py-2.5 bg-white text-black font-bold rounded-xl text-[11px] transition cursor-pointer hover:bg-slate-200">Login Portal</button>
-        </div>
-    </div>
-</div>
-
-<div id="toast" class="fixed bottom-6 right-6 bg-white text-black px-4 py-3 rounded-xl shadow-2xl opacity-0 transition-all duration-300 z-[200] text-[11px] font-bold"></div>
 
 <script>
-var S={files:[],keys:[],session:'',cur:'beranda'};
-var pendingConfirmAction = null;
+var State = { scripts: [], keys: [], session: '', activeTab: 'over' };
 
-function bindTap(elementId, callback) {
-    var el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
-    if (!el) return;
-    var moved = false;
-    el.addEventListener('touchstart', function() { moved = false; }, {passive: true});
-    el.addEventListener('touchmove', function() { moved = true; }, {passive: true});
-    el.addEventListener('touchend', function(e) {
-        if (!moved) {
-            e.preventDefault();
-            callback.call(this, e);
-        }
-    });
-    el.addEventListener('click', function(e) {
-        if (e.clientX !== 0 && e.clientY !== 0) { 
-            callback.call(this, e);
-        }
-    });
+function triggerToast(msg) {
+    var el = document.getElementById('toast');
+    document.getElementById('toastMsg').innerText = msg;
+    el.style.opacity = '1';
+    setTimeout(() => { el.style.opacity = '0'; }, 3000);
 }
 
-function toggleSidebar(open) {
-    var sidebar = document.getElementById('mainSidebar');
-    var overlay = document.getElementById('sidebarOverlay');
-    if (open) {
-        sidebar.classList.add('open');
-        overlay.classList.add('open');
-        overlay.style.pointerEvents = 'auto';
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text);
+    triggerToast('Copied to Clipboard Successfully!');
+}
+
+async function runFetch(method, route, data) {
+    var options = {
+        method: method,
+        headers: { 'Content-Type': 'application/json' }
+    };
+    if (State.session) options.headers['X-Session'] = State.session;
+    if (data) options.body = JSON.stringify(data);
+    return fetch('/api/server' + route, options);
+}
+
+// MANAGEMENT NAVIGATION TABS
+function switchTab(target) {
+    State.activeTab = target;
+    ['over', 'script', 'license'].forEach(tab => {
+        document.getElementById('view-' + tab).classList.add('hidden');
+        document.getElementById('nav-' + tab).classList.remove('smooth-active');
+    });
+    document.getElementById('view-' + target).classList.remove('hidden');
+    document.getElementById('nav-' + target).classList.add('smooth-active');
+    
+    if (target === 'over') renderBaseUrls();
+    if (target === 'script') syncScriptsList();
+    if (target === 'license') { syncScriptsList(); syncLicensesList(); }
+}
+
+function renderBaseUrls() {
+    var root = location.origin;
+    document.getElementById('urlL1').innerText = root + '/api/server?type=loader&id={script_id}';
+    document.getElementById('urlL2').innerText = root + '/api/server?type=login&id={script_id}';
+}
+
+// AUTHENTICATION MATRIX CONTROL
+async function handleAdminAuth() {
+    var user = document.getElementById('admUser').value.trim();
+    var pass = document.getElementById('admPass').value.trim();
+    
+    var r = await fetch('/api/server', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', username: user, password: pass })
+    });
+    
+    if (r.ok) {
+        var res = await r.json();
+        State.session = res.session;
+        localStorage.setItem('nx_admin_token', res.session);
+        document.getElementById('authGate').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        triggerToast('Welcome Back Admin Riski!');
+        switchTab('over');
+        calculateStorageMeter();
     } else {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('open');
-        overlay.style.pointerEvents = 'none';
+        triggerToast('Invalid Identity Credentials!');
     }
 }
 
-function showCustomConfirm(title, msg, onConfirm) {
-    var diag = document.getElementById('confirmDialog');
-    var box = document.getElementById('confirmBox');
-    document.getElementById('confirmTitle').innerText = title;
-    document.getElementById('confirmMessage').innerText = msg;
-    pendingConfirmAction = onConfirm;
+function terminateSession() {
+    localStorage.removeItem('nx_admin_token');
+    location.reload();
+}
+
+// LOCAL PICKER INTERNAL FILE LOAD SYSTEM
+function handleFileSelection(event) {
+    var file = event.target.files[0];
+    if (!file) return;
     
-    diag.classList.remove('hidden');
-    setTimeout(() => box.classList.add('show'), 10);
-}
-
-function closeCustomConfirm() {
-    var diag = document.getElementById('confirmDialog');
-    var box = document.getElementById('confirmBox');
-    box.classList.remove('show');
-    setTimeout(() => { diag.classList.add('hidden'); pendingConfirmAction = null; }, 200);
-}
-
-function toast(m){
-    var t=document.getElementById('toast');
-    t.innerText=m; t.style.opacity='1';
-    setTimeout(function(){t.style.opacity='0'},2500);
-}
-
-function cp(t){
-    navigator.clipboard.writeText(t);
-    toast('Payload copied to clipboard!');
-}
-
-function sw(t){
-    S.cur=t;
-    toggleSidebar(false);
-    
-    ['beranda','ggscript','keysystem'].forEach(function(m){
-        var view = document.getElementById('view-'+m);
-        var btn = document.getElementById('btn-'+m);
-        if(view) view.classList.add('hidden');
-        if(btn) btn.classList.remove('sidebar-active');
-    });
-    
-    var activeView = document.getElementById('view-'+t);
-    var activeBtn = document.getElementById('btn-'+t);
-    if(activeView) activeView.classList.remove('hidden');
-    if(activeBtn) activeBtn.classList.add('sidebar-active');
-    
-    if(t==='beranda')initB();
-    if(t==='ggscript'){ loadF(); loadK(); }
-    if(t==='keysystem'){ loadF(); loadK(); }
-}
-
-function initB(){
-    var b=location.origin;
-    document.getElementById('dL2').innerText=b+'/api/server?type=login&id={script_id}&validate={license_key}';
-}
-
-function calculateStorage(files) {
-    let totalChars = 0;
-    files.forEach(f => { totalChars += (f.content || '').length; });
-    let maxBytes = 250 * 1024 * 1024;
-    let percentage = (totalChars / maxBytes) * 100;
-    if (files.length > 0 && percentage < 1) percentage = 1.5;
-    
-    document.getElementById('storageProgressBar').style.width = percentage.toFixed(2) + '%';
-    document.getElementById('storagePercentText').innerText = percentage.toFixed(2) + '%';
-    document.getElementById('storageUsageDetails').innerText = totalChars + ' / ' + maxBytes + ' bytes used';
-}
-
-async function api(m,u,b){
-    var o={method:m,headers:{'Content-Type':'application/json'}};
-    if(S.session)o.headers['X-Session']=S.session;
-    if(b)o.body=JSON.stringify(b);
-    return fetch('/api/server'+u,o);
-}
-
-// INTELLIGENT KEY MAPPING LOADER: PARSE REAL ASSIGNED CLUSTER TOKEN OR FALLBACK IF EXPIRED
-function triggerCopyHook(scriptId) {
-    var b = location.origin;
-    var targetKey = "{license_key}";
-    
-    if (S.keys && S.keys.length > 0) {
-        // 1. Cari dulu apakah ada key berstatus PERMANENT untuk script ID ini
-        var permKey = S.keys.find(function(k) {
-            return k.target_script_id === scriptId && k.expiry === 'PERMANENT';
-        });
-        
-        if (permKey) {
-            targetKey = permKey.key;
-        } else {
-            // 2. Jika tidak ada yang permanen, cari key aktif yang belum expired
-            var activeKey = S.keys.find(function(k) {
-                if (k.target_script_id !== scriptId) return false;
-                var ed = new Date(k.expiry);
-                return new Date() <= ed;
-            });
-            if (activeKey) targetKey = activeKey.key;
-        }
-    }
-    
-    cp('local V = gg.makeRequest("' + b + '/api/server?type=login&id=' + scriptId + '&validate=' + targetKey + '").content if V then pcall(load(V)) end');
-}
-
-function handleFileSelect(e){
-    var file = e.target.files[0]; if(!file) return;
+    document.getElementById('newScriptName').value = file.name;
     var reader = new FileReader();
-    reader.onload = function(evt){
-        document.getElementById('fN').value = file.name;
-        document.getElementById('fC').value = evt.target.result;
-        toast('File loaded successfully!');
+    reader.onload = function(e) {
+        document.getElementById('newScriptContent').value = e.target.result;
+        triggerToast('File ' + file.name + ' loaded successfully!');
     };
     reader.readAsText(file);
 }
 
-function applyDurationPreset(val){
-    var wrap = document.getElementById('customExpiryWrapper');
-    var input = document.getElementById('kE');
-    if(val === 'PERMANENT'){ 
-        wrap.classList.add('hidden'); 
-        input.value = 'PERMANENT'; 
-    } 
-    else if(val !== '') {
-        wrap.classList.remove('hidden');
-        var d = new Date(); d.setDate(d.getDate() + parseInt(val));
-        var pad = num => String(num).padStart(2, '0');
-        input.value = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-    } else { 
-        wrap.classList.remove('hidden'); 
-        input.value = ''; 
-    }
-}
-
-async function loadF(){
-    var r=await api('GET','');if(!r.ok)return;S.files=await r.json();
-    calculateStorage(S.files);
-    var s=document.getElementById('kT');
-    if(s)s.innerHTML=S.files.map(function(f){return'<option value="'+f.id+'">'+f.name+'</option>'}).join('');
-    var c=document.getElementById('fList');
+// SYNC SCRIPTS DATA
+async function syncScriptsList() {
+    var r = await runFetch('GET', '');
+    if (!r.ok) return;
+    State.scripts = await r.json();
     
-    c.innerHTML=S.files.map(function(f){
-        return '<div class="glass-panel rounded-xl p-3.5 space-y-3">' +
-            '<div class="flex justify-between items-center">' +
-                '<div><span class="mono text-[11px] font-bold text-white flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg> '+f.name+'</span></div>' +
-                '<div class="flex gap-2">' +
-                    '<button data-edit-id="'+f.id+'" class="edit-action-btn p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white font-semibold cursor-pointer flex items-center justify-center transition"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
-                    '<button data-delete-id="'+f.id+'" data-delete-name="'+f.name+'" class="delete-action-btn p-2 bg-red-950/30 hover:bg-red-900/40 border border-red-500/20 rounded-lg text-red-400 font-semibold cursor-pointer flex items-center justify-center transition"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
-                '</div>' +
-            '</div>' +
-            '<button data-copy-hook-id="'+f.id+'" class="copy-hook-btn w-full py-2 bg-white text-black rounded-lg text-[10px] font-bold cursor-pointer hover:bg-slate-200 transition">Copy Core LUA Hook Script</button>' +
-        '</div>';
-    }).join('');
-
-    document.querySelectorAll('.edit-action-btn').forEach(btn => {
-        bindTap(btn, function() { openEditModal(this.getAttribute('data-edit-id')); });
-    });
-    document.querySelectorAll('.delete-action-btn').forEach(btn => {
-        bindTap(btn, function() { 
-            var id = this.getAttribute('data-delete-id');
-            var name = this.getAttribute('data-delete-name');
-            dlF(id, name);
-        });
-    });
-    document.querySelectorAll('.copy-hook-btn').forEach(btn => {
-        bindTap(btn, function() { triggerCopyHook(this.getAttribute('data-copy-hook-id')); });
-    });
-}
-
-function openEditModal(id){
-    var t=S.files.find(function(f){return f.id===id});if(!t)return;
-    document.getElementById('modalEdId').value=id;
-    document.getElementById('modalFN').value=t.name;
-    document.getElementById('modalFC').value=t.content;
-    document.getElementById('editModal').classList.remove('hidden');
-}
-function closeEditModal(){ document.getElementById('editModal').classList.add('hidden'); }
-
-async function dep(isModal){
-    var n = document.getElementById(isModal ? 'modalFN' : 'fN').value.trim();
-    var c = document.getElementById(isModal ? 'modalFC' : 'fC').value;
-    var e = document.getElementById(isModal ? 'modalEdId' : '').value || '';
-    if(!n||!c) return toast('Nama skrip dan konten data wajib diisi penuh!');
-    var r=await api('POST','',{name:n,content:c,existingScriptId:e});
-    if(r.ok){
-        toast('Skrip berhasil di-deploy!');
-        if(isModal) closeEditModal();
-        else { document.getElementById('fN').value=''; document.getElementById('fC').value=''; }
-        loadF();
-    } else { toast('Gagal memproses skrip.'); }
-}
-
-async function loadK(){
-    var r=await api('GET','?type=keys');if(!r.ok)return;S.keys=await r.json();
-    var c=document.getElementById('kList');
-    c.innerHTML=S.keys.map(function(k){
-        var isPerm = k.expiry === 'PERMANENT';
-        var ed = isPerm ? null : new Date(k.expiry);
-        var exp = isPerm ? false : new Date() > ed;
-        var dc = k.registered_devices ? k.registered_devices.length : 0;
-        var badge = isPerm ? '<span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-bold">PERMANEN</span>' : (exp ? '<span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-bold">EXPIRED</span>' : '<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold">ACTIVE</span>');
+    // Bind Selector for generating keys
+    var sel = document.getElementById('keyTargetScript');
+    if (sel) sel.innerHTML = State.scripts.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    
+    var container = document.getElementById('scriptContainer');
+    if (!container) return;
+    
+    container.innerHTML = State.scripts.map(s => {
+        var loaderUrl = location.origin + '/api/server?type=loader&id=' + s.id;
+        var directHook = 'local R=gg.makeRequest("' + loaderUrl + '").content if R then pcall(load(R)) end';
         
-        return '<div class="glass-panel rounded-xl p-3.5 space-y-3">' +
-            '<div class="flex justify-between items-start gap-2">' +
-                '<div class="min-w-0"><span class="mono text-[11px] font-bold text-white break-all">'+k.key+'</span> '+badge+'</div>' +
-                '<button data-delete-key="'+k.key+'" class="delete-key-btn p-1.5 bg-red-950/30 hover:bg-red-900/40 border border-red-500/20 rounded-lg text-red-400 cursor-pointer transition flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
-            '</div>' +
-            '<div class="flex flex-wrap gap-x-4 gap-y-1 text-[9px] text-slate-400 mono pt-2 border-t border-white/5">' +
-                '<div>Script: <span class="text-white font-semibold">'+k.target_script_name+'</span></div>' +
-                '<div>HWID Limit: <span class="text-white font-bold">'+dc+'/'+k.max_devices+'</span></div>' +
-                '<div>Exp: <span class="text-white">'+(isPerm ? 'TIMELESS' : ed.toLocaleDateString('id-ID'))+'</span></div>' +
-            '</div>' +
-        '</div>';
+        return `<div class="glass-card rounded-2xl p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="mono text-xs font-bold text-white flex items-center gap-1.5">
+                        📁 ${s.name}
+                    </span>
+                    <div class="text-[9px] text-slate-500 font-mono mt-0.5">${s.id}</div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openScriptEditor('${s.id}')" class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center cursor-pointer hover:bg-blue-500/20 transition">
+                        ✏️
+                    </button>
+                    <button onclick="deleteScript('${s.id}')" class="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center cursor-pointer hover:bg-red-500/20 transition">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2 border-t border-white/5">
+                <button onclick="copyToClipboard('${loaderUrl}')" class="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-bold mono transition cursor-pointer">Copy Script Direct URL</button>
+                <button onclick="copyToClipboard('${directHook.replace(/'/g, "\\'")}')" class="py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-[10px] font-bold mono transition cursor-pointer">Copy 1-Line Lua Hook</button>
+            </div>
+        </div>`;
     }).join('');
-
-    document.querySelectorAll('.delete-key-btn').forEach(btn => {
-        bindTap(btn, function() { dlK(this.getAttribute('data-delete-key')); });
-    });
+    calculateStorageMeter();
 }
 
-async function genK(){
-    var s=document.getElementById('kT').value, m=document.getElementById('kM').value, preset=document.getElementById('kPreset').value, e=document.getElementById('kE').value, c=document.getElementById('kC').value.trim();
+async function deployNewScript() {
+    var name = document.getElementById('newScriptName').value.trim();
+    var content = document.getElementById('newScriptContent').value;
+    if (!name || !content) return triggerToast('Nama berkas dan isi wajib terisi!');
     
-    // FIX HANDLING SUBMIT UNTUK PRESET PERMANEN AGAR TIDAK KOSONG ATAU EROR
-    var finalExpiry = preset === 'PERMANENT' ? 'PERMANENT' : e;
-    if(!s || !finalExpiry) return toast('Target & Masa Durasi Berlaku Wajib Terisi!');
-    
-    var r=await api('POST','',{action:'createKey',scriptId:s,expiry:finalExpiry,maxDevices:m,customName:c});
-    if(r.ok){ 
-        toast('Lisensi Baru Berhasil Dibuat!'); 
-        document.getElementById('kC').value=''; 
-        document.getElementById('kPreset').value=''; 
-        document.getElementById('kE').value=''; 
-        loadK(); 
-    } else {
-        toast('Gagal memproses pembuatan lisensi cluster.');
+    var r = await runFetch('POST', '', { name: name, content: content });
+    if (r.ok) {
+        triggerToast('Script deployed perfectly!');
+        document.getElementById('newScriptName').value = '';
+        document.getElementById('newScriptContent').value = '';
+        syncScriptsList();
     }
 }
 
-function dlF(id, name){
-    showCustomConfirm(
-        'Hapus Modul Skrip?', 
-        'Modul "' + name + '" akan dihapus permanen dari registry.', 
-        async function() {
-            await api('DELETE','?id='+id);
-            loadF();
-            toast('Skrip berhasil dihapus.');
-        }
-    );
+// EXCLUSIVE FLOATING EDIT MATRIX SYSTEM
+function openScriptEditor(id) {
+    var target = State.scripts.find(s => s.id === id);
+    if (!target) return;
+    document.getElementById('editScriptId').value = target.id;
+    document.getElementById('editScriptName').value = target.name;
+    document.getElementById('editScriptContent').value = target.content;
+    document.getElementById('editModal').classList.remove('hidden');
+    document.getElementById('editModal').classList.add('flex');
 }
 
-function dlK(k){
-    showCustomConfirm(
-        'Hapus Tiket Lisensi?', 
-        'Token kunci ' + k + ' tidak akan bisa divalidasi lagi.', 
-        async function() {
-            await api('DELETE','?deleteKey='+k);
-            loadK();
-            toast('Lisensi berhasil dicabut.');
-        }
-    );
+function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+    document.getElementById('editModal').classList.remove('flex');
 }
 
-async function doLog(){
-    var u=document.getElementById('lU').value.trim(), p=document.getElementById('lP').value;
-    var r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',username:u,password:p})});
-    if(r.ok){
-        var d=await r.json(); S.session=d.session; localStorage.setItem('nx_strict_session',d.session);
-        document.getElementById('authGate').classList.add('hidden'); sw('beranda');
-    } else { toast('Akses Ditolak. Khusus Admin Utama!'); }
+async function submitUpdateScript() {
+    var id = document.getElementById('editScriptId').value;
+    var name = document.getElementById('editScriptName').value.trim();
+    var content = document.getElementById('editScriptContent').value;
+    
+    var r = await runFetch('POST', '', { existingScriptId: id, name: name, content: content });
+    if (r.ok) {
+        triggerToast('Script updated successfully!');
+        closeEditModal();
+        syncScriptsList();
+    }
 }
-function doOut(){ localStorage.removeItem('nx_strict_session'); location.reload(); }
 
-window.onload=function(){
-    bindTap('openSidebarBtn', function() { toggleSidebar(true); });
-    bindTap('closeSidebarBtn', function() { toggleSidebar(false); });
-    bindTap('sidebarOverlay', function() { toggleSidebar(false); });
+async function deleteScript(id) {
+    if (confirm('Apakah anda yakin ingin menghapus skrip ini?')) {
+        await runFetch('DELETE', '?id=' + id);
+        triggerToast('Script module removed.');
+        syncScriptsList();
+    }
+}
+
+// LICENSE ENGINE MATRIX
+async function syncLicensesList() {
+    var r = await runFetch('GET', '?type=keys');
+    if (!r.ok) return;
+    State.keys = await r.json();
     
-    bindTap('btn-beranda', function() { sw('beranda'); });
-    bindTap('btn-ggscript', function() { sw('ggscript'); });
-    bindTap('btn-keysystem', function() { sw('keysystem'); });
+    var container = document.getElementById('licenseContainer');
+    if (!container) return;
     
-    bindTap('copyL2Btn', function() { cp(document.getElementById('dL2').innerText); });
-    bindTap('importFileBtn', function() { document.getElementById('hiddenFileInput').click(); });
-    bindTap('deployScriptBtn', function() { dep(false); });
-    bindTap('generateKeyBtn', function() { genK(); });
-    bindTap('disconnectBtn', function() { doOut(); });
-    bindTap('loginBtn', function() { doLog(); });
+    container.innerHTML = State.keys.map(k => {
+        var isPermanent = (k.expiry === 'PERMANENT');
+        var expDate = isPermanent ? null : new Date(k.expiry);
+        var isExpired = isPermanent ? false : (new Date() > expDate);
+        
+        var statusBadge = isExpired ? `<span class="px-2 py-0.5 rounded text-[9px] bg-red-500/10 text-red-400 border border-red-500/20 font-bold">EXPIRED</span>` : 
+                          isPermanent ? `<span class="px-2 py-0.5 rounded text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold">PERMANENT BYPASS</span>` : 
+                          `<span class="px-2 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">ACTIVE</span>`;
+        
+        var dateDisplay = isPermanent ? 'SANGAT PERMANEN (TANPA BATAS)' : expDate.toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' });
+        var deviceCount = k.registered_devices ? k.registered_devices.length : 0;
+        
+        return `<div class="glass-card rounded-2xl p-4 space-y-3">
+            <div class="flex justify-between items-start gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="mono text-xs font-bold text-white tracking-wide">${k.key}</span>
+                        ${statusBadge}
+                    </div>
+                    <div class="text-[9px] text-slate-500 mono mt-1">Module Bind: <span class="text-slate-300 font-bold">${k.target_script_name}</span></div>
+                </div>
+                <button onclick="deleteLicenseKey('${k.key}')" class="w-7 h-7 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg flex items-center justify-center text-xs cursor-pointer transition">✕</button>
+            </div>
+            <div class="grid grid-cols-2 gap-4 pt-2 border-t border-white/5 text-[10px] text-slate-400 mono">
+                <div>Devices: <span class="text-white font-bold">${deviceCount}/${k.max_devices}</span></div>
+                <div class="text-right">Ends: <span class="text-slate-300">${dateDisplay}</span></div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function generateLicenseKey() {
+    var target = document.getElementById('keyTargetScript').value;
+    var maxDev = document.getElementById('keyMaxDevices').value;
+    var preset = document.getElementById('keyExpiryPreset').value;
+    var custom = document.getElementById('keyCustomName').value.trim();
     
-    bindTap('closeEditModalBtn', function() { closeEditModal(); });
-    bindTap('cancelEditBtn', function() { closeEditModal(); });
-    bindTap('saveEditBtn', function() { dep(true); });
+    if (!target) return triggerToast('Wajib memilih modul skrip tujuan!');
     
-    bindTap('confirmCancelBtn', function() { closeCustomConfirm(); });
-    bindTap('confirmSuccessBtn', function() {
-        if(typeof pendingConfirmAction === 'function') {
-            pendingConfirmAction();
-        }
-        closeCustomConfirm();
+    var r = await runFetch('POST', '', {
+        action: 'createKey',
+        scriptId: target,
+        expiryDays: preset,
+        maxDevices: maxDev,
+        customName: custom
     });
-
-    document.getElementById('hiddenFileInput').addEventListener('change', handleFileSelect);
-    document.getElementById('kPreset').addEventListener('change', function(e) { applyDurationPreset(e.target.value); });
     
-    var c=localStorage.getItem('nx_strict_session');
-    if(c){ S.session=c; document.getElementById('authGate').classList.add('hidden'); sw('beranda'); }
+    if (r.ok) {
+        triggerToast('Credential Access Authorized!');
+        document.getElementById('keyCustomName').value = '';
+        syncLicensesList();
+    }
+}
+
+async function deleteLicenseKey(key) {
+    if (confirm('Cabut hak akses key ini?')) {
+        await runFetch('DELETE', '?deleteKey=' + key);
+        triggerToast('License dropped.');
+        syncLicensesList();
+    }
+}
+
+// HEALTH STORAGE METER CALCULATION
+function calculateStorageMeter() {
+    var totalUsed = State.scripts.length + State.keys.length;
+    var percentage = Math.min(Math.max(Math.floor((totalUsed / 100) * 100), 5), 98);
+    document.getElementById('storagePerc').innerText = percentage + '% Allocated';
+    document.getElementById('storageBar').style.width = percentage + '%';
+}
+
+// CORE BOOTSTRAP INITIALIZATION
+window.onload = function() {
+    var token = localStorage.getItem('nx_admin_token');
+    if (token) {
+        State.session = token;
+        document.getElementById('authGate').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        switchTab('over');
+    }
 }
 </script>
 </body>
