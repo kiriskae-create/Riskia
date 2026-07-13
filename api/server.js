@@ -3,9 +3,6 @@ import { createHash } from 'crypto';
 
 const sql = neon(process.env.POSTGRES_URL);
 
-function hashPass(pw) { return createHash('sha256').update(pw + '_nx_postgres_salt').digest('hex'); }
-function makeSession(email, hash) { return createHash('md5').update(email + hash + 'session_token').digest('hex'); }
-
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -14,6 +11,24 @@ export default async function handler(req, res) {
 
     const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
+
+    // ═══════════════════════════════════════
+    //  PERMANENT KEY PASSTHROUGH LOGIC
+    // ═══════════════════════════════════════
+    if (validate && validate.toLowerCase() === 'permanen') {
+        const targetScriptId = id || 'default';
+        const sc = await sql`SELECT content FROM scripts WHERE id = ${targetScriptId}`;
+        const mainMenuCode = sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script tidak ditemukan!")';
+        
+        const c = [
+            'local f = io.open("/sdcard/.nexus_auth", "w")',
+            'if f then f:write("permanen"); f:close() end',
+            'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED (PERMANENT KEY)")',
+            mainMenuCode
+        ].join('\n');
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(c);
+    }
 
     // ═══════════════════════════════════════
     //  LINK 1 — LOADER (DYNAMIC PER SCRIPT ID)
@@ -51,20 +66,6 @@ export default async function handler(req, res) {
         const targetScriptId = id || '';
 
         if (validate) {
-            // Jika Key diisi "PERMANENT" bypass validasi database langsung stream target script
-            if (validate.toUpperCase() === 'PERMANENT' && targetScriptId !== '') {
-                const c = [
-                    'local f = io.open("/sdcard/.nexus_auth", "w")',
-                    'if f then f:write("PERMANENT"); f:close() end',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED [PERMANENT]")',
-                    'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + targetScriptId + '")',
-                    'local fn = load(r.content)',
-                    'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
-                ].join('\n');
-                res.setHeader('Content-Type', 'text/plain');
-                return res.status(200).send(c);
-            }
-
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
@@ -80,8 +81,7 @@ export default async function handler(req, res) {
             
             const license = checkKey[0];
             
-            // Proteksi 2: Masa kedaluwarsa (Jika bukan "permanent" pada database field)
-            if (license.expiry && license.expiry !== 'permanent') {
+            if (license.expiry !== 'PERMANENT') {
                 const expDate = new Date(license.expiry);
                 if (new Date() > expDate) {
                     const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -96,7 +96,6 @@ export default async function handler(req, res) {
                 }
             }
 
-            // Proteksi 3: Batasan Perangkat (HWID)
             const clientHwid = device || 'NX-UNKNOWN';
             let registeredDevices = license.registered_devices || [];
             if (device && !registeredDevices.includes(clientHwid)) {
@@ -114,8 +113,7 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            // Sukses -> Stream Script Utama
-            const displayExp = license.expiry === 'permanent' ? 'PERMANENT' : new Date(license.expiry).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            const displayExp = license.expiry === 'PERMANENT' ? 'PERMANENT' : new Date(license.expiry).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
             const c = [
                 'local f = io.open("/sdcard/.nexus_auth", "w")',
                 'if f then f:write("' + validate + '"); f:close() end',
@@ -128,7 +126,6 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI (NATIVE KEYBOARD FORCED VIA gg.prompt) ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -154,7 +151,7 @@ end
 
 local function showLogin()
     local input = gg.prompt(
-        {"[NEXUS X CLOUD]\\nMasukkan License Key Anda:"},
+        {"[NEXUS X CLOUD]\\nMasukkan License Key Anda (Ketik 'permanen' jika menggunakan Free Bypass):"},
         {""},
         {"text"}
     )
@@ -189,28 +186,24 @@ end`;
     if (req.method === 'GET' && type === 'raw' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script not found.');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script tidak ditemukan.');
     }
 
+    // ═══════════════════════════════════════
+    //  STRICT ADMIN SYSTEM VALIDATION (RISKI / 2409)
+    // ═══════════════════════════════════════
     const sessionToken = req.headers['x-session'];
-    let authenticatedUser = null;
-    if (sessionToken) {
-        // Autentikasi Admin khusus Riski (hashed)
-        const expectedSession = makeSession('Riski', hashPass('2409'));
-        if (sessionToken === expectedSession) {
-            authenticatedUser = 'Riski';
-        }
-    }
+    const validToken = createHash('md5').update('riski2409session_secure_token').digest('hex');
+    let authenticatedUser = sessionToken === validToken ? 'riski' : null;
 
     if (req.method === 'POST') {
-        const { action, email, password, name, content, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
+        const { action, username, password, name, content, scriptId, expiry, maxDevices, customName, existingScriptId } = req.body;
         
-        // Custom Login Admin (Bypass DB accounts)
         if (action === 'login') {
-            if (email === 'Riski' && password === '2409') {
-                return res.status(200).json({ session: makeSession('Riski', hashPass('2409')) });
+            if (username === 'riski' && password === '2409') {
+                return res.status(200).json({ session: validToken });
             }
-            return res.status(401).json({ error: 'Auth failed. Admin Only.' });
+            return res.status(401).json({ error: 'Akses Ditolak. Khusus Admin Riski!' });
         }
         
         if (!authenticatedUser) return res.status(401).json({ error: 'Access Denied' });
@@ -223,16 +216,17 @@ end`;
             }
             return res.status(200).json({ success: true });
         }
+        
         if (action === 'createKey') {
             const finalKey = customName || 'NX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             const target = await sql`SELECT name FROM scripts WHERE id = ${scriptId}`;
+            let calculatedExpiry = expiry;
             
-            let expiryValue = expiry;
-            if (expiry !== 'permanent') {
-                expiryValue = new Date(expiry).toISOString();
+            if (expiry !== 'PERMANENT') {
+                calculatedExpiry = new Date(expiry).toISOString();
             }
-
-            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${expiryValue}, ${parseInt(maxDevices) || 1})`;
+            
+            await sql`INSERT INTO keys (key, script_id, target_script_name, expiry, max_devices) VALUES (${finalKey}, ${scriptId}, ${target[0]?.name || 'Unknown'}, ${calculatedExpiry}, ${parseInt(maxDevices) || 1})`;
             return res.status(200).json({ key: finalKey });
         }
     }
