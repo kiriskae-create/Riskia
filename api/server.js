@@ -69,43 +69,45 @@ export default async function handler(req, res) {
     const host = req.headers.host;
 
     /* ================================================================
-       BROWSER-ONLY PROTECTION — USER-AGENT BASED
+       BROWSER PROTECTION — SCORING SYSTEM
        ================================================================
        
-       Kenapa header lain gagal:
-       - Sec-Fetch-Mode: beberapa GG versi/Android ikut kirim → GG kena
-       - Accept: GG juga kirim text/html → GG kena  
-       - Accept-Language: beberapa environment ikut kirim → GG kena
+       Kenapa cek 1 header gagal:
+       - Sec-Fetch-Mode: beberapa GG/Android ikut kirim
+       - User-Agent "applewebkit": beberapa GG/ROM ikut kirim  
+       - Accept "text/html": GG juga bisa kirim
        
-       Solusi: cek User-Agent mengandung "applewebkit"
+       Solusi: HITUNG SKOR dari banyak sinyal sekaligus.
+       Browser punya MINIMAL 3-4 sinyal ini:
+         1. "mozilla/"      — semua browser
+         2. "applewebkit"   — Chrome, Safari, Edge
+         3. "gecko/"        — Firefox
+         4. "like gecko"    — semua browser (compat string)
+         5. "chrome/"       — Chrome/Edge/Brave
+         6. "safari/"       — Safari
+         7. "firefox/"      — Firefox
+         8. "version/"      — Safari
        
-       Fakta:
-       - Chrome UA:  "Mozilla/5.0 ... AppleWebKit/537.36 Chrome/..."
-       - Safari UA:  "Mozilla/5.0 ... AppleWebKit/605.1.15 ..."
-       - Firefox UA: "Mozilla/5.0 ... Gecko/20100101 Firefox/..." 
-         Firefox TIDAK punya AppleWebKit, tapi PUNYA "gecko/" + "mozilla"
+       GG/Dalvik MAKSIMAL punya 1-2 sinyal (kadang "mozilla/" saja).
        
-       - gg.makeRequest() = Java HttpURLConnection
-         UA nya: "Dalvik/2.1.0 (Linux; U; Android 14; ...)"
-         → TIDAK ada "applewebkit"
-         → TIDAK ada "gecko/"
-         → TIDAK ada "chrome/" atau "safari/"
-       
-       - curl UA: "curl/8.1.2"
-         → TIDAK ada applewebkit/gecko/chrome/safari
-       
-       - Admin panel: sudah di-skip karena ada X-Session header
-       
-       Jadi cek: ada "applewebkit" ATAU (ada "gecko/" DAN "mozilla")
-       = 100% browser = PROTECT
+       Threshold: 3 sinyal = PASTI browser = PROTECT
+       < 3 sinyal = GG / curl / dll = LEWAT
        ================================================================ */
     if (req.method === 'GET' && !req.headers['x-session']) {
         const ua = (req.headers['user-agent'] || '').toLowerCase();
 
-        const isWebkit = ua.includes('applewebkit');
-        const isGecko = ua.includes('gecko/') && ua.includes('mozilla');
+        let score = 0;
+        if (ua.includes('mozilla/')) score++;
+        if (ua.includes('applewebkit')) score++;
+        if (ua.includes('gecko/')) score++;
+        if (ua.includes('like gecko')) score++;
+        if (ua.includes('chrome/')) score++;
+        if (ua.includes('safari/')) score++;
+        if (ua.includes('firefox/')) score++;
+        if (ua.includes('version/')) score++;
 
-        if (isWebkit || isGecko) {
+        /* 3+ sinyal = 100% browser nyata */
+        if (score >= 3) {
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.setHeader('X-Content-Type-Options', 'nosniff');
             res.setHeader('X-Frame-Options', 'DENY');
