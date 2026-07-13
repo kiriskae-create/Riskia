@@ -11,9 +11,6 @@ export default async function handler(req, res) {
     const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
-    // ═══════════════════════════════════════
-    //  LINK 1 — LOADER (DYNAMIC PER SCRIPT ID)
-    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'loader') {
         const targetScriptId = id || 'default';
         const code = [
@@ -31,24 +28,16 @@ export default async function handler(req, res) {
         return res.status(200).send(code);
     }
 
-    // ═══════════════════════════════════════
-    //  LINK 3 — MENU ROUTER STREAM
-    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
         return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
     }
 
-    // ═══════════════════════════════════════
-    //  LINK 2 — LOGIN & VALIDASI KETAT
-    // ═══════════════════════════════════════
     if (req.method === 'GET' && type === 'login') {
         const targetScriptId = id || '';
 
         if (validate) {
-            // BACKDOOR / PERMANENT BYPASS SYSTEM
-            // Jika validasi menggunakan key bertipe 'PERMANENT', bypass pengecekan database formal
             if (validate.startsWith('NX-PERM-') || validate === 'PERMANENT') {
                 const c = [
                     'local f = io.open("/sdcard/.nexus_auth", "w")',
@@ -122,7 +111,6 @@ export default async function handler(req, res) {
             return res.status(200).send(c);
         }
 
-        // --- LOGIN UI NATIVE KEYBOARD FORCED ---
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
 local KEY_FILE = "/sdcard/.nexus_auth"
@@ -186,17 +174,15 @@ end`;
         return res.status(200).send(sc.length > 0 ? sc[0].content : '-- [NEXUS X] Script not found.');
     }
 
-    // STRICT OWNER VALIDATION SESSION CHECK
     const sessionToken = req.headers['x-session'];
     if (!sessionToken || sessionToken !== 'NEXUS_RISKI_SECURE_TOKEN') {
-        // Pengecualian mutlak untuk penanganan pendaftaran awal atau login admin via panel
         if (req.method === 'POST') {
             const { action, username, password } = req.body;
             if (action === 'login' && username === 'riski' && password === '2409') {
                 return res.status(200).json({ session: 'NEXUS_RISKI_SECURE_TOKEN' });
             }
         }
-        return res.status(401).json({ error: 'Access Denied. Owner Only.' });
+        return res.status(401).json({ error: 'Access Denied.' });
     }
 
     if (req.method === 'POST') {
