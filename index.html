@@ -103,7 +103,7 @@
                 <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white font-black text-sm">NX</div>
                 <div>
                     <h2 class="text-xs font-bold text-white tracking-wider uppercase">Nexus Core</h2>
-                    <span class="text-[9px] text-emerald-400 mono font-semibold tracking-widest">ONLINE v2.8</span>
+                    <span class="text-[9px] text-emerald-400 mono font-semibold tracking-widest">ONLINE v2.9</span>
                 </div>
             </div>
             <button onclick="toggleSidebar(false)" class="md:hidden text-slate-400 hover:text-white p-1">
@@ -303,7 +303,8 @@ function toast(m) {
     setTimeout(function() { t.style.opacity = '0'; }, 2200);
 }
 
-function cp(t, msg = '📋 Copied to clipboard!') {
+function cp(t, msg) {
+    msg = msg || '📋 Copied to clipboard!';
     var area = document.createElement('textarea');
     area.value = t;
     document.body.appendChild(area);
@@ -390,16 +391,16 @@ async function pickLocalLuaFile() {
     var input = document.createElement('input');
     input.type = 'file';
     input.accept = '.lua';
-    input.onchange = e => {
+    input.onchange = function(e) {
         var file = e.target.files[0];
         var reader = new FileReader();
-        reader.readAsText(file,'UTF-8');
-        reader.onload = ev => {
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(ev) {
             document.getElementById('fN').value = file.name;
             document.getElementById('fC').value = ev.target.result;
             toast('📂 Loaded File: ' + file.name);
-        }
-    }
+        };
+    };
     input.click();
 }
 
@@ -419,7 +420,7 @@ async function loadF() {
     var r = await api('GET', ''); if (!r.ok) return;
     S.files = await r.json();
     var s = document.getElementById('kT');
-    if (s) s.innerHTML = S.files.map(function(f) { return '<option value="' + f.id + '">' + f.name + '</option>' }).join('');
+    if (s) s.innerHTML = S.files.map(function(f) { return '<option value="' + f.id + '">' + f.name + '</option>'; }).join('');
     var c = document.getElementById('fList');
     if (!c) return;
     
@@ -524,7 +525,7 @@ async function genK() {
     
     if (preset === 'PERMANENT') {
         var calculatedDate = new Date();
-        calculatedDate.setFullYear(calculatedDate.getFullYear() + 100); // Set 100 tahun ke depan dari tanggal sekarang
+        calculatedDate.setFullYear(calculatedDate.getFullYear() + 100);
         finalExpiry = calculatedDate.toISOString();
     } else if (preset === 'CUSTOM') {
         var rawVal = document.getElementById('kE').value;

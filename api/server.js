@@ -15,13 +15,13 @@ export default async function handler(req, res) {
         const targetScriptId = id || 'default';
         const code = [
             'gg.setVisible(false)',
-            'gg.toast("[X] NEXUS X - Connecting...")',
+            'gg.toast("Connecting...")',
             'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
-            '    if fn then fn() else gg.alert("[X] Script Empty!") end',
+            '    if fn then fn() else gg.alert("Script Empty!") end',
             'else',
-            '    gg.alert("[X] NEXUS X\\n\\nConnection Failed!")',
+            '    gg.alert("Connection Failed!")',
             'end'
         ].join('\n');
         res.setHeader('Content-Type', 'text/plain');
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && type === 'menu' && id) {
         const sc = await sql`SELECT content FROM scripts WHERE id = ${id}`;
         res.setHeader('Content-Type', 'text/plain');
-        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("[X] Menu script not found!")');
+        return res.status(200).send(sc.length > 0 ? sc[0].content : 'gg.alert("Script not found!")');
     }
 
     if (req.method === 'GET' && type === 'login') {
@@ -40,13 +40,11 @@ export default async function handler(req, res) {
         if (validate) {
             const clientHwid = device || 'NX-UNKNOWN';
 
-            // VALIDASI KEY
             const checkKey = await sql`SELECT * FROM keys WHERE key = ${validate}`;
             
             if (checkKey.length === 0 || (targetScriptId !== '' && checkKey[0].script_id !== targetScriptId)) {
                 const c = [
-                    'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense Key tidak valid untuk Script ini!")',
+                    'gg.alert("Invalid License Key!")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
@@ -56,15 +54,12 @@ export default async function handler(req, res) {
             
             const license = checkKey[0];
             const expDate = new Date(license.expiry);
-            
-            // Cek apakah key merupakan unlimited/permanent (100 tahun ke depan dari tahun 2026 adalah 2126)
             const isPermanent = expDate.getFullYear() >= 2125;
 
             if (new Date() > expDate) {
                 const fd = expDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                 const c = [
-                    'os.remove("/sdcard/.nexus_auth")',
-                    'gg.alert("[X] NEXUS X CLOUD\\n\\nLicense EXPIRED!\\nExpired on: ' + fd + '")',
+                    'gg.alert("License EXPIRED!\\nExpired on: ' + fd + '")',
                     'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                     'if r and r.code == 200 then load(r.content)() end'
                 ].join('\n');
@@ -76,8 +71,7 @@ export default async function handler(req, res) {
             if (device && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
-                        'os.remove("/sdcard/.nexus_auth")',
-                        'gg.alert("[X] NEXUS X CLOUD\\n\\nMax Device Limit Reached!")',
+                        'gg.alert("Max Device Limit Reached!")',
                         'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                         'if r and r.code == 200 then load(r.content)() end'
                     ].join('\n');
@@ -88,26 +82,22 @@ export default async function handler(req, res) {
                 await sql`UPDATE keys SET registered_devices = ${registeredDevices} WHERE key = ${validate}`;
             }
 
-            const toastMsg = isPermanent ? "⚡ NEXUS X PERMANENT ACCESS GRANTED ⚡" : "⚡ ACCESS GRANTED ⚡";
             const expDisplay = isPermanent ? 'PERMANENT' : expDate.toLocaleDateString('id-ID');
             
             const c = [
-                'local f = io.open("/sdcard/.nexus_auth", "w")',
-                'if f then f:write("' + validate + '"); f:close() end',
-                'gg.toast("' + toastMsg + '")',
-                'gg.alert("[X] NEXUS X CLOUD\\n\\nACCESS GRANTED\\n\\nExp: ' + expDisplay + '")',
+                'gg.toast("Access Granted")',
+                'gg.alert("ACCESS GRANTED\\n\\nExp: ' + expDisplay + '")',
                 'local r = gg.makeRequest("https://' + host + '/api/server?type=menu&id=' + license.script_id + '")',
                 'local fn = load(r.content)',
-                'if fn then fn() else gg.alert("[X] Failed to load menu!") end'
+                'if fn then fn() else gg.alert("Failed to load menu!") end'
             ].join('\n');
             res.setHeader('Content-Type', 'text/plain');
             return res.status(200).send(c);
         }
 
-        // LUA INTERACTION WITH PERSISTENT ON-TAP PROMPT SYSTEM
+        // LUA LOGIN PROMPT - SIMPLE, NO FILE, NO BRANDING, CANCEL = EXIT
         const loginLua = `gg.setVisible(false)
 local BASE = "https://${host}"
-local KEY_FILE = "/sdcard/.nexus_auth"
 local SCRIPT_ID = "${targetScriptId}"
 
 local function getHwid()
@@ -118,7 +108,7 @@ local function getHwid()
 end
 
 local function doValidate(k)
-    gg.toast("[X] Verifying license...")
+    gg.toast("Verifying...")
     local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
     if r and r.code == 200 then
         local fn = load(r.content)
@@ -128,38 +118,23 @@ local function doValidate(k)
     return false
 end
 
-local savedKey = nil
-local f = io.open(KEY_FILE, "r")
-if f then savedKey = f:read("*a"):match("^%s*(.-)%s*$"); f:close() end
-
-if savedKey and savedKey ~= "" then
-    gg.toast("[X] Restoring session...")
-    if doValidate(savedKey) then return end
-end
-
 while true do
     gg.setVisible(false)
     local input = gg.prompt(
-        {"[NEXUS X CLOUD]\\nEnter License Key:"},
+        {"Enter License"},
         {""},
         {"text"}
     )
-    
-    if input then
-        local targetKey = (input[1]):match("^%s*(.-)%s*$")
-        if targetKey ~= "" then
-            if doValidate(targetKey) then break end
-        else
-            gg.alert("[X] Key tidak boleh kosong!")
-        end
+
+    if not input then
+        return
+    end
+
+    local targetKey = (input[1]):match("^%s*(.-)%s*$")
+    if targetKey ~= "" then
+        if doValidate(targetKey) then break end
     else
-        gg.toast("💡 Script running in background. Tap GG icon to login.")
-        while true do
-            if gg.isVisible() then
-                break
-            end
-            gg.sleep(200)
-        end
+        gg.toast("Key cannot be empty!")
     end
 end`;
         res.setHeader('Content-Type', 'text/plain');
