@@ -78,35 +78,37 @@ export default async function handler(req, res) {
     const { id, type, key, device, deleteKey, validate } = req.query;
     const host = req.headers.host;
 
-    /* ============================================
-       BROWSER PROTECTION - MULTI-SIGNAL DETECTION
-       ============================================
-       Deteksi hanya browser navigasi, TIDAK gg.makeRequest
-       Signal yang HANYA browser kirim:
-       - Sec-Fetch-Dest (document/empty/etc) — GG tidak kirim ini
-       - Sec-Fetch-Mode (navigate/cors) — GG tidak kirim ini  
-       - Accept-Language (en-US,en;q=0.9) — GG tidak kirim ini
-       - Upgrade-Insecure-Requests: 1 — GG tidak kirim ini
-       ============================================ */
+    /* ============================================================
+       BROWSER-ONLY PROTECTION
+       ============================================================
+       2 signal yang HANYA muncul di browser navigation:
+       
+       1. Sec-Fetch-Mode: navigate
+          - Hanya ada ketik URL di address bar / klik link
+          - JavaScript fetch() TIDAK bisa set ini ke "navigate"
+            (browser otomatis override jadi "cors" atau "no-cors")
+          - gg.makeRequest() = Java HttpURLConnection = TIDAK kirim ini
+          - curl/wget/Postman = TIDAK kirim ini
+          
+       2. Upgrade-Insecure-Requests: 1
+          - Hanya browser kirim untuk auto-upgrade http→https
+          - Tidak bisa di-set manual via fetch() (di-ignore browser)
+          - gg.makeRequest() = TIDAK kirim ini
+          - curl/wget/Postman = TIDAK kirim ini
+       
+       Jadi: keduanya muncul = 100% orang buka di browser
+       Jika 0 dari 2 muncul = GG / API client → lewat normal
+       ============================================================ */
     if (req.method === 'GET' && !req.headers['x-session']) {
-        const secFetchDest = req.headers['sec-fetch-dest'] || '';
-        const secFetchMode = req.headers['sec-fetch-mode'] || '';
-        const acceptLang = req.headers['accept-language'] || '';
-        const upgradeInsecure = req.headers['upgrade-insecure-requests'] || '';
+        const sfm = (req.headers['sec-fetch-mode'] || '').toLowerCase();
+        const uir = req.headers['upgrade-insecure-requests'] || '';
 
-        /* Minimal 1 signal browser terdeteksi = browser asli */
-        const isBrowser = (
-            secFetchDest !== '' ||
-            secFetchMode !== '' ||
-            acceptLang !== '' ||
-            upgradeInsecure !== ''
-        );
-
-        if (isBrowser) {
+        if (sfm === 'navigate' || uir === '1') {
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.setHeader('X-Content-Type-Options', 'nosniff');
             res.setHeader('X-Frame-Options', 'DENY');
             res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
             return res.status(403).send(PROTECT_HTML);
         }
     }
