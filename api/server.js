@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         const targetScriptId = id || 'default';
         const code = [
             'gg.setVisible(false)',
-            'gg.toast("[X] Connecting...")',
+            'gg.toast("[X] Connecting to Nexus Core...")',
             'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
             'if r and r.code == 200 then',
             '    local fn = load(r.content)',
@@ -70,7 +70,7 @@ export default async function handler(req, res) {
             if (device && !registeredDevices.includes(clientHwid)) {
                 if (registeredDevices.length >= license.max_devices) {
                     const c = [
-                        'gg.alert("[X] Max Device Limit Reached!")',
+                        'gg.alert("[X] Max Device Limit Reached! Harap hapus perangkat lama di panel.")',
                         'local r = gg.makeRequest("https://' + host + '/api/server?type=login&id=' + targetScriptId + '")',
                         'if r and r.code == 200 then load(r.content)() end'
                     ].join('\n');
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
             const createdAt = new Date().toLocaleString('sv-SE').replace('T', ' ');
             const maxDev = license.max_devices >= 9999 ? 'tak terbatas' : license.max_devices;
             
-            const infoText = `PENGGUNA: VERSI SCRIPT\\nVERSI: ISAC SCRIPT\\nPERANGKAT: ${maxDev}\\nTERDAFTAR: ${createdAt}\\nBERLAKU HINGGA: ${expFull}\\nPENJUAL: NEXUS SCRIPT`;
+            const infoText = `PENGGUNA: VERSI SCRIPT\\nVERSI: NEXUS BERBAYAR\\nPERANGKAT: ${maxDev}\\nTERDAFTAR: ${createdAt}\\nBERLAKU HINGGA: ${expFull}\\nPENJUAL: NEXUS SCRIPT`;
             
             const c = [
                 'gg.toast("⚡ ACCESS GRANTED")',
@@ -110,7 +110,7 @@ local function getHwid()
 end
 
 local function doValidate(k)
-    gg.toast("[X] Verifying...")
+    gg.toast("[X] Verifying License...")
     local r = gg.makeRequest(BASE .. "/api/server?type=login&validate=" .. k .. "&device=" .. getHwid() .. "&id=" .. SCRIPT_ID)
     if r and r.code == 200 then
         local fn = load(r.content)
@@ -124,19 +124,15 @@ while true do
     gg.setVisible(false)
     local input = gg.prompt(
         {
-            "🔑 Masukkan License Key:",
-            "✅ LOGIN [Centang untuk Masuk]",
-            "❌ EXIT [Centang untuk Keluar]"
+            "License Key:",
+            "LOGIN [Centang untuk Masuk]"
         },
-        {"", false, false},
-        {"text", "checkbox", "checkbox"}
+        {"", false},
+        {"text", "checkbox"}
     )
     
     if input then
-        if input[3] == true then
-            gg.toast("Keluar dari Nexus Script")
-            os.exit()
-        elseif input[2] == true then
+        if input[2] == true then
             local targetKey = (input[1]):match("^%s*(.-)%s*$")
             if targetKey ~= "" then
                 if doValidate(targetKey) then break end
@@ -150,7 +146,7 @@ while true do
         gg.toast("Tap icon GG untuk membuka kembali menu login")
         while true do
             if gg.isVisible() then break end
-            gg.sleep(200)
+            gg.sleep(100)
         end
     end
 end`;
